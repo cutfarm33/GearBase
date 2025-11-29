@@ -58,9 +58,9 @@ const WebsiteScreen: React.FC = () => {
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gear Base</span>
           </div>
-          
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
+
+          {/* Centered Desktop Nav Links */}
+          <div className="hidden md:flex items-center space-x-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
             <button onClick={() => scrollToSection('features')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Features</button>
             <button onClick={() => scrollToSection('about')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">About</button>
             <button onClick={() => scrollToSection('pricing')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Pricing</button>
