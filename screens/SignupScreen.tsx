@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { UserRole } from '../types';
 
 const SignupScreen: React.FC = () => {
-  const { supabase, navigateTo, dispatch, mergeOfflineProfile, state } = useAppContext();
-  
-  const selectedPlan = state.currentView.params?.selectedPlan;
+  const { supabase, navigateTo, dispatch, mergeOfflineProfile } = useAppContext();
 
   const [formData, setFormData] = useState({
       name: '',
@@ -51,7 +49,7 @@ const SignupScreen: React.FC = () => {
                   data: {
                       full_name: formData.name,
                       role: formData.role,
-                      plan: selectedPlan || 'Free' // Store intended plan in metadata
+                      plan: 'free' // Everyone starts on free tier
                   }
               }
           });
@@ -70,7 +68,8 @@ const SignupScreen: React.FC = () => {
                       id: authData.user.id,
                       email: formData.email,
                       full_name: formData.name,
-                      role: formData.role
+                      role: formData.role,
+                      plan: 'free'
                   });
                    if (upsertError) console.error("Error creating merged profile:", upsertError);
 
@@ -80,7 +79,8 @@ const SignupScreen: React.FC = () => {
                       id: authData.user.id,
                       email: formData.email,
                       full_name: formData.name,
-                      role: formData.role
+                      role: formData.role,
+                      plan: 'free'
                   });
                   
                   if (profileError) {
@@ -110,12 +110,7 @@ const SignupScreen: React.FC = () => {
         </button>
         
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-2">Create Account</h2>
-        {selectedPlan && (
-            <div className="flex items-center justify-center gap-2 text-sky-600 dark:text-sky-400 font-bold mb-6 bg-sky-50 dark:bg-sky-900/20 py-1 px-3 rounded-full mx-auto w-fit text-sm">
-                <Zap size={14} />
-                Signing up for {selectedPlan} Plan
-            </div>
-        )}
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-6 text-sm">Start managing your gear for free. No credit card required.</p>
         
         {error && <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center">{error}</div>}
 
@@ -189,12 +184,12 @@ const SignupScreen: React.FC = () => {
                 />
             </div>
             
-            <button 
-                type="submit" 
+            <button
+                type="submit"
                 disabled={loading}
-                className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-lg transition-colors mt-4 shadow-lg disabled:bg-slate-400"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg transition-colors mt-4 shadow-lg disabled:bg-slate-400"
             >
-                {loading ? 'Creating Account...' : selectedPlan && selectedPlan !== 'Free' ? 'Sign Up & Proceed to Payment' : 'Sign Up'}
+                {loading ? 'Creating Account...' : 'Create Free Account'}
             </button>
         </form>
 

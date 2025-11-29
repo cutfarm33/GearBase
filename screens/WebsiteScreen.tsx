@@ -38,12 +38,6 @@ const WebsiteScreen: React.FC = () => {
     }
   };
 
-  const handlePlanSelect = (planName: string) => {
-      // In a real app, we would pass this plan to the signup screen 
-      // to eventually trigger the correct Stripe checkout link
-      navigateTo('SIGNUP', { selectedPlan: planName });
-  };
-
   const LegalLayout: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
       <div className="pt-32 pb-20 px-6 min-h-screen">
           <div className="container mx-auto max-w-3xl">
@@ -581,76 +575,79 @@ const WebsiteScreen: React.FC = () => {
                 {/* Pricing Section */}
                 <section id="pricing" className="py-24 bg-slate-900 text-white text-center">
                     <div className="container mx-auto px-6">
-                        <h2 className="text-4xl font-bold mb-6">Simple Pricing</h2>
-                        <p className="text-slate-400 mb-12 max-w-xl mx-auto">Choose the plan that fits your production size. Upgrade or downgrade anytime.</p>
+                        <h2 className="text-4xl font-bold mb-6">Start Free, Upgrade Later</h2>
+                        <p className="text-slate-400 mb-12 max-w-xl mx-auto">Get started for free today. No credit card required. Pro features coming soon.</p>
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
                             
-                            {/* FREE */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col hover:border-slate-500 transition-colors">
+                            {/* FREE - HIGHLIGHTED */}
+                            <div className="bg-gradient-to-b from-emerald-800 to-slate-800 p-8 rounded-2xl border border-emerald-500/50 flex flex-col relative shadow-xl shadow-emerald-500/10">
+                                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">AVAILABLE NOW</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-slate-400 uppercase mb-2">Free</div>
-                                    <div className="text-4xl font-bold mb-2">$0 <span className="text-lg font-normal text-slate-500">/mo</span></div>
-                                    <p className="text-slate-400 text-sm mb-6">For student films and small personal kits.</p>
+                                    <div className="text-sm font-bold text-emerald-400 uppercase mb-2">Free Forever</div>
+                                    <div className="text-4xl font-bold mb-2">$0 <span className="text-lg font-normal text-slate-400">/month</span></div>
+                                    <p className="text-slate-300 text-sm mb-6">Full access to all core features. No credit card required.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-300 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Up to 50 Items</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> 1 Active Job</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Single User</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Basic Check-in/out</li>
+                                <ul className="space-y-4 mb-8 text-slate-200 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Items</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Jobs</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Users</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> QR Code Support</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Check-in/Check-out</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Digital Signatures</li>
                                 </ul>
-                                <button onClick={() => handlePlanSelect('Free')} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors border border-slate-600">Get Started</button>
+                                <button onClick={() => navigateTo('SIGNUP')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">Get Started Free</button>
                             </div>
 
-                            {/* PRO */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col hover:border-sky-500 transition-colors relative">
+                            {/* PRO - COMING SOON */}
+                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
                                     <div className="text-sm font-bold text-sky-400 uppercase mb-2 flex items-center gap-2"><Zap size={14}/> Pro</div>
-                                    <div className="text-4xl font-bold mb-2">$49 <span className="text-lg font-normal text-slate-500">/mo</span></div>
-                                    <p className="text-slate-400 text-sm mb-6">For freelance producers and owner-operators.</p>
+                                    <div className="text-4xl font-bold mb-2">$29 <span className="text-lg font-normal text-slate-500">/mo</span></div>
+                                    <p className="text-slate-400 text-sm mb-6">Advanced features for professionals.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-300 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Unlimited Items</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> 5 Active Jobs</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Damage Tracking</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-sky-500 mt-1 flex-shrink-0"/> Digital Signatures</li>
+                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Free</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Advanced Reports</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> API Access</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Priority Support</li>
                                 </ul>
-                                <button onClick={() => handlePlanSelect('Pro')} className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 rounded-lg transition-colors">Start Trial</button>
+                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
-                            {/* TEAM */}
-                            <div className="bg-gradient-to-b from-slate-800 to-slate-900 p-8 rounded-2xl border border-indigo-500/50 flex flex-col relative shadow-xl shadow-indigo-500/10">
-                                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">MOST POPULAR</div>
+                            {/* TEAM - COMING SOON */}
+                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
                                     <div className="text-sm font-bold text-indigo-400 uppercase mb-2 flex items-center gap-2"><Users size={14}/> Team</div>
-                                    <div className="text-4xl font-bold mb-2">$100 <span className="text-lg font-normal text-slate-500">/mo</span></div>
+                                    <div className="text-4xl font-bold mb-2">$99 <span className="text-lg font-normal text-slate-500">/mo</span></div>
                                     <p className="text-slate-400 text-sm mb-6">For production houses and rental studios.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-300 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-indigo-400 mt-1 flex-shrink-0"/> Everything in Pro</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-indigo-400 mt-1 flex-shrink-0"/> Unlimited Users</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-indigo-400 mt-1 flex-shrink-0"/> Role Permissions</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-indigo-400 mt-1 flex-shrink-0"/> PDF Reports</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-indigo-400 mt-1 flex-shrink-0"/> Priority Support</li>
+                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Pro</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Advanced Analytics</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> White Label Options</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Dedicated Support</li>
                                 </ul>
-                                <button onClick={() => handlePlanSelect('Team')} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition-colors">Get Team</button>
+                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
-                            {/* ONE-TIME BUYOUT */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-amber-500/50 flex flex-col relative shadow-xl shadow-amber-500/10">
-                                <div className="absolute top-0 right-0 bg-amber-500 text-black text-[10px] font-bold px-3 py-1 rounded-bl-lg">LIFETIME</div>
+                            {/* ENTERPRISE - COMING SOON */}
+                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-amber-500 uppercase mb-2 flex items-center gap-2"><Infinity size={14}/> Buyout</div>
-                                    <div className="text-3xl font-bold mb-2">Contact for Quote</div>
-                                    <p className="text-slate-400 text-sm mb-6">Pay once, own it forever. Includes future updates.</p>
+                                    <div className="text-sm font-bold text-amber-500 uppercase mb-2 flex items-center gap-2"><Infinity size={14}/> Enterprise</div>
+                                    <div className="text-3xl font-bold mb-2">Custom</div>
+                                    <p className="text-slate-400 text-sm mb-6">Custom solutions for large organizations.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-300 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-amber-500 mt-1 flex-shrink-0"/> <strong>Lifetime Access</strong></li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-amber-500 mt-1 flex-shrink-0"/> No Monthly Fees</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-amber-500 mt-1 flex-shrink-0"/> Early Access to Features</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-amber-500 mt-1 flex-shrink-0"/> Founder's Badge</li>
+                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Team</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Custom Integrations</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> On-Premise Hosting</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> SLA Guarantee</li>
                                 </ul>
-                                <button onClick={() => scrollToSection('contact')} className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors">Contact Sales</button>
+                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
                         </div>
