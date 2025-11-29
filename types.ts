@@ -1,0 +1,131 @@
+
+export enum ItemCondition {
+  GOOD = 'Good',
+  USED = 'Used but OK',
+  DAMAGED = 'Damage Noted',
+  IN_REPAIR = 'In Repair',
+  LOST = 'Lost',
+  RETIRED = 'Retired',
+}
+
+export enum ItemStatus {
+  AVAILABLE = 'Available',
+  CHECKED_OUT = 'Checked Out',
+  IN_MAINTENANCE = 'In Maintenance',
+  UNAVAILABLE = 'Unavailable',
+}
+
+export enum JobStatus {
+  UPCOMING = 'Upcoming',
+  IN_PROGRESS = 'In Progress',
+  WRAPPED = 'Wrapped',
+  CANCELED = 'Canceled',
+}
+
+export enum TransactionType {
+  CHECKOUT = 'Check-out',
+  CHECKIN = 'Check-in',
+}
+
+export type UserRole = 'Admin' | 'Producer' | 'Director' | 'DP' | 'Gaffer' | 'Grip' | 'AC' | 'PA' | 'Crew';
+
+export interface User {
+  id: string; // Changed to string (UUID)
+  name: string;
+  role: UserRole;
+  email: string;
+  verificationCode?: string; // Added for verification mock
+  // Password and verification are handled by Supabase Auth internally
+}
+
+export interface InventoryItem {
+  id: number;
+  name: string;
+  qrCode: string;
+  category: string;
+  status: ItemStatus;
+  condition: ItemCondition;
+  notes?: string;
+  purchaseDate?: string;
+  value?: number;
+  weight?: number; // Weight in lbs
+  storageCase?: string; // Case or Bin location
+  history: TransactionLog[];
+  imageUrl: string;
+}
+
+export interface Kit {
+  id: number;
+  name: string;
+  itemIds: number[];
+}
+
+export interface Job {
+  id: number;
+  name: string;
+  producerId: string; // Changed to string (UUID)
+  startDate: string;
+  endDate: string;
+  status: JobStatus;
+  gearList: { itemId: number }[];
+}
+
+export interface TransactionItem {
+  itemId: number;
+  startCondition: ItemCondition;
+  endCondition?: ItemCondition;
+  notes?: string;
+  photos?: string[]; // URLs to images
+  isMissing?: boolean;
+}
+
+export interface Transaction {
+  id: number;
+  jobId: number | null;
+  type: TransactionType;
+  userId: string; // Changed to string (UUID)
+  assignedToId?: string; // Changed to string (UUID)
+  timestamp: string;
+  items: TransactionItem[];
+  signature?: string; // Data URL of signature
+}
+
+export interface TransactionLog {
+    transactionId: number;
+    jobId: number | null;
+    userId: string;
+    assignedToId?: string;
+    type: TransactionType;
+    date: string;
+    condition: ItemCondition;
+    notes?: string;
+}
+
+export interface ViewState {
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'CALENDAR';
+  params?: any;
+}
+
+export type Theme = 'light' | 'dark';
+
+// Standard Industry Categories
+export const PREDEFINED_CATEGORIES = [
+  'Cameras',
+  'Lenses',
+  'Lighting',
+  'G&E', // Added specific request
+  'Grip',
+  'Electric',
+  'Audio',
+  'Monitors',
+  'Support', // Tripods, Gimbals, etc
+  'Batteries & Power',
+  'Media', // Cards, Drives
+  'Cables',
+  'Drones',
+  'Cases',
+  'Computers',
+  'Production Supplies',
+  'Vehicles',
+  'Expendables'
+];
