@@ -72,13 +72,6 @@ const LoginScreen: React.FC = () => {
     }
   };
 
-  // Check if using default keys
-  const isDefaultKey = isConfigured && (
-      // A simple heuristic check if users forgot to change it
-      // In a real app we wouldn't expose keys, but here we know the placeholders
-      false // We can't easily check value content securely here without context helpers
-  );
-
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh]">
       <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200 dark:border-slate-700">

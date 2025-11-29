@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Users, Plus, User as UserIcon, Shield, Mail, Copy, Check, Database, Edit2, Trash2, X, Save, Share2 } from 'lucide-react';
+import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 

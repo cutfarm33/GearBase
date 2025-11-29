@@ -2,10 +2,10 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
-import { ArrowLeft, Save, X, Camera, Upload, Image as ImageIcon, Database, Check, Copy } from 'lucide-react';
+import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy } from 'lucide-react';
 
 const AddItemScreen: React.FC = () => {
-  const { state, dispatch, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
+  const { state, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
   const [isSaving, setIsSaving] = useState(false);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

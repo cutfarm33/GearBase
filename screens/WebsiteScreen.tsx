@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Camera, CheckSquare, Smartphone, Shield, Sun, Moon, ChevronRight, Users, Briefcase, Mail, MapPin, ArrowRight, Star, Zap, Infinity } from 'lucide-react';
+import { Camera, CheckSquare, Smartphone, Shield, Sun, Moon, ChevronRight, Users, Briefcase, Mail, Zap, Infinity } from 'lucide-react';
 
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 

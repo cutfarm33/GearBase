@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Mail, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Mail, AlertTriangle } from 'lucide-react';
 
 const VerifyEmailScreen: React.FC = () => {
   const { state, navigateTo } = useAppContext();

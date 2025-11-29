@@ -5,7 +5,7 @@ export interface SignaturePadRef {
   clearSignature: () => void;
 }
 
-const SignaturePad = forwardRef<SignaturePadRef>((props, ref) => {
+const SignaturePad = forwardRef<SignaturePadRef>((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
 

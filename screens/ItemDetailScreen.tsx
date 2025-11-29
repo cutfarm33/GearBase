@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, InventoryItem, JobStatus, TransactionType, PREDEFINED_CATEGORIES } from '../types';
-import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, Link, QrCode } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
 import { getItemDeepLink, copyToClipboard } from '../utils/deepLinks';

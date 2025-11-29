@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { InventoryItem, ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, X, Edit2 } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
 const StatusBadge: React.FC<{ status: ItemStatus }> = ({ status }) => {

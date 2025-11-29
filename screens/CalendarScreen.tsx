@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { JobStatus } from '../types';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Home, Users, BarChart3, MessageCircle, Settings, Search, Bell } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks, startOfMonth, endOfMonth, eachWeekOfInterval, addMonths, subMonths, isToday, isSameMonth, parseISO, addDays } from 'date-fns';
+import { ChevronLeft, ChevronRight, Plus, Search, Bell } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks, startOfMonth, endOfMonth, addMonths, subMonths, isToday, isSameMonth, parseISO } from 'date-fns';
 
 const CalendarScreen: React.FC = () => {
     const { state, navigateTo } = useAppContext();
@@ -37,7 +37,7 @@ const CalendarScreen: React.FC = () => {
     });
 
     // Get jobs for a specific day and time slot
-    const getJobsForSlot = (day: Date, hour: number) => {
+    const getJobsForSlot = (day: Date, _hour: number) => {
         return weekJobs.filter(job => {
             const jobStart = parseISO(job.startDate);
             const jobEnd = parseISO(job.endDate);
@@ -56,10 +56,13 @@ const CalendarScreen: React.FC = () => {
 
     const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
     const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
-    const goToToday = () => setCurrentDate(new Date());
 
     const nextMiniMonth = () => setMiniCalendarDate(addMonths(miniCalendarDate, 1));
     const prevMiniMonth = () => setMiniCalendarDate(subMonths(miniCalendarDate, 1));
+
+    // Suppress unused variable warnings for future feature implementation
+    void viewMode;
+    void setViewMode;
 
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-slate-900 -m-8 overflow-hidden">
@@ -128,7 +131,6 @@ const CalendarScreen: React.FC = () => {
                     </div>
                     <div className="space-y-3">
                         {weekJobs.slice(0, 4).map((job, i) => {
-                            const producer = state.users.find(u => u.id === job.producerId);
                             return (
                                 <div
                                     key={i}

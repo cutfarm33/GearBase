@@ -2,7 +2,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle } from 'lucide-react';
-import { ViewState } from '../types';
 
 const Sidebar: React.FC = () => {
   const { state, dispatch, navigateTo, signOut } = useAppContext();

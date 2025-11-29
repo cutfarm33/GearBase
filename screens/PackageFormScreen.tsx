@@ -21,7 +21,7 @@ alter table kit_items disable row level security;
 `;
 
 const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
-    const { state, dispatch, navigateTo, supabase, refreshData } = useAppContext();
+    const { state, navigateTo, supabase, refreshData } = useAppContext();
     
     // Safety: Ensure kitId is a number if passed (handles potential string params)
     const safeKitId = kitId ? Number(kitId) : undefined;

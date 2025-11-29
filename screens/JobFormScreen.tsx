@@ -6,7 +6,7 @@ import { ArrowLeft, Save, AlertTriangle, Plus, X, Briefcase, Trash2, Package, Ch
 import ConfirmModal from '../components/ConfirmModal';
 
 const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
-    const { state, dispatch, navigateTo, findJob, findItem, supabase, refreshData, deleteJob, addTeamMember } = useAppContext();
+    const { state, navigateTo, findJob, findItem, supabase, refreshData, deleteJob, addTeamMember } = useAppContext();
     const isEditing = !!jobId;
     const existingJob = jobId ? findJob(jobId) : undefined;
     const [showDeleteModal, setShowDeleteModal] = useState(false);
