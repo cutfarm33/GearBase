@@ -256,13 +256,14 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           if (txError) console.warn("Transactions fetch error", txError);
 
           // 2. Format Data
+          const defaultOrgId = '00000000-0000-0000-0000-000000000000';
           const formattedUsers: User[] = (profiles || []).map((p: any) => ({
               id: p.id,
               name: p.full_name || 'Unknown',
               email: p.email,
               role: p.role as UserRole,
               theme: p.theme as Theme || 'dark',
-              organization_id: p.organization_id
+              organization_id: p.organization_id || defaultOrgId
           }));
 
           const formattedJobs: Job[] = (jobsData || []).map((j: any) => ({
@@ -273,14 +274,14 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               endDate: j.end_date,
               status: j.status,
               gearList: (j.job_items || []).map((ji: any) => ({ itemId: ji.item_id })),
-              organization_id: j.organization_id
+              organization_id: j.organization_id || defaultOrgId
           }));
           
           let formattedKits: Kit[] = (kitsData || []).map((k: any) => ({
               id: k.id,
               name: k.name,
               itemIds: (k.kit_items || []).map((ki: any) => ki.item_id),
-              organization_id: k.organization_id
+              organization_id: k.organization_id || defaultOrgId
           }));
 
           const transactions: Transaction[] = (transactionsData || []).map((t: any) => ({
@@ -298,7 +299,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   notes: ti.notes,
                   isMissing: ti.is_missing
               })),
-              organization_id: t.organization_id
+              organization_id: t.organization_id || defaultOrgId
           }));
 
           const formattedInventory: InventoryItem[] = (items || []).map((i: any) => {
@@ -337,7 +338,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   storageCase: i.storage_case,
                   imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/\s/g,'')}/200`,
                   history: itemHistory,
-                  organization_id: i.organization_id
+                  organization_id: i.organization_id || defaultOrgId
               };
           });
 
@@ -374,13 +375,17 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         const full_name = profileData?.full_name || session.user.user_metadata?.full_name || email.split('@')[0];
         const userTheme = (profileData?.theme as Theme) || 'dark';
 
+        // Default organization_id if not set (for backwards compatibility with existing users)
+        const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+        const orgId = profileData?.organization_id || defaultOrgId;
+
         const userProfile = {
             id: session.user.id,
             name: full_name || 'Unknown User',
             email: email,
             role: (profileData?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || 'Crew',
             theme: userTheme,
-            organization_id: profileData?.organization_id
+            organization_id: orgId
         };
 
         // Set theme from user profile
