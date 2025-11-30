@@ -13,6 +13,7 @@ import ImportInventoryScreen from './screens/ImportInventoryScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import VerifyEmailScreen from './screens/VerifyEmailScreen';
+import EmailConfirmedScreen from './screens/EmailConfirmedScreen';
 import JobFormScreen from './screens/JobFormScreen';
 import WebsiteScreen from './screens/WebsiteScreen';
 import PackagesScreen from './screens/PackagesScreen';
@@ -89,6 +90,7 @@ const App: React.FC = () => {
     if (view === 'LOGIN') return <LoginScreen />;
     if (view === 'SIGNUP') return <SignupScreen />;
     if (view === 'VERIFY_EMAIL') return <VerifyEmailScreen />;
+    if (view === 'EMAIL_CONFIRMED') return <EmailConfirmedScreen />;
 
     // Guard: If not logged in, force login
     if (!state.currentUser) {

@@ -9,10 +9,13 @@
  * In development, this will be your local server
  */
 export const getBaseUrl = (): string => {
-  // Check if we're in production or have a custom domain set
+  // Use production domain in production, local in development
   if (typeof window !== 'undefined') {
-    // You can replace this with your production domain when deployed
-    // Example: return 'https://app.mygearbase.com';
+    // Check if we're in production (not localhost)
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return 'https://mygearbase.com';
+    }
+    // Development: use local server
     return window.location.origin;
   }
   return '';
