@@ -272,13 +272,15 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               startDate: j.start_date,
               endDate: j.end_date,
               status: j.status,
-              gearList: (j.job_items || []).map((ji: any) => ({ itemId: ji.item_id }))
+              gearList: (j.job_items || []).map((ji: any) => ({ itemId: ji.item_id })),
+              organization_id: j.organization_id
           }));
           
           let formattedKits: Kit[] = (kitsData || []).map((k: any) => ({
               id: k.id,
               name: k.name,
-              itemIds: (k.kit_items || []).map((ki: any) => ki.item_id)
+              itemIds: (k.kit_items || []).map((ki: any) => ki.item_id),
+              organization_id: k.organization_id
           }));
 
           const transactions: Transaction[] = (transactionsData || []).map((t: any) => ({
@@ -295,7 +297,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   endCondition: ti.condition as ItemCondition,
                   notes: ti.notes,
                   isMissing: ti.is_missing
-              }))
+              })),
+              organization_id: t.organization_id
           }));
 
           const formattedInventory: InventoryItem[] = (items || []).map((i: any) => {
@@ -333,7 +336,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   weight: i.weight,
                   storageCase: i.storage_case,
                   imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/\s/g,'')}/200`,
-                  history: itemHistory
+                  history: itemHistory,
+                  organization_id: i.organization_id
               };
           });
 

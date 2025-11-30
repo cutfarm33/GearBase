@@ -83,6 +83,7 @@ const CheckinScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                   isMissing: i.isMissing,
                   notes: i.notes
               })),
+              organization_id: state.currentUser.organization_id,
           },
           processedItems.map(item => ({
               itemId: item.itemId,

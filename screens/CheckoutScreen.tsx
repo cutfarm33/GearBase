@@ -83,6 +83,7 @@ const CheckoutScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
               assignedToId,
               items: scannedItems,
               signature,
+              organization_id: state.currentUser.organization_id,
           },
           scannedItems.map(item => ({
               itemId: item.itemId,

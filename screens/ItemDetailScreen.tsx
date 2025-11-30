@@ -264,7 +264,8 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                       notes: quickForm.notes,
                       isMissing: false
                   }],
-                  signature: signature
+                  signature: signature,
+                  organization_id: state.currentUser.organization_id
               }, [{
                   itemId: item.id,
                   newStatus: ItemStatus.CHECKED_OUT, // Force Unavailable
@@ -291,7 +292,8 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                       notes: quickForm.notes,
                       isMissing: false
                   }],
-                  signature: signature
+                  signature: signature,
+                  organization_id: state.currentUser.organization_id
               }, [{
                   itemId: item.id,
                   newStatus: ItemStatus.AVAILABLE, // Force Available
