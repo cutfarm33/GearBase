@@ -42,6 +42,7 @@ export interface User {
   role: UserRole;
   email: string;
   organization_id: string; // UUID - links to Organization
+  theme?: Theme; // User's preferred theme (light/dark)
   verificationCode?: string; // Added for verification mock
   // Password and verification are handled by Supabase Auth internally
 }

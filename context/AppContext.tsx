@@ -113,8 +113,14 @@ const appReducer = (state: AppState, action: Action): AppState => {
             currentUser: null,
             currentView: { view: 'LANDING' }
         };
-    case 'TOGGLE_THEME':
-        return { ...state, theme: state.theme === 'dark' ? 'light' : 'dark' };
+    case 'TOGGLE_THEME': {
+        const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+        return {
+            ...state,
+            theme: newTheme,
+            currentUser: state.currentUser ? { ...state.currentUser, theme: newTheme } : null
+        };
+    }
     
     case 'ADD_INVENTORY_ITEM_LOCAL':
         return { ...state, inventory: [...state.inventory, action.payload] };
@@ -195,11 +201,12 @@ interface AppContextType {
   mergeOfflineProfile: (offlineId: string, realUserId: string) => Promise<void>;
   uploadImage: (file: File) => Promise<string>;
   createTransaction: (
-      transaction: Omit<Transaction, 'id' | 'timestamp'>, 
+      transaction: Omit<Transaction, 'id' | 'timestamp'>,
       updatedItems: { itemId: number; newStatus: ItemStatus; newCondition: ItemCondition; notes?: string; isMissing?: boolean }[]
   ) => Promise<boolean>;
   updateInventoryItem: (item: InventoryItem) => Promise<void>;
   signOut: () => Promise<void>;
+  toggleTheme: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -253,7 +260,9 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               id: p.id,
               name: p.full_name || 'Unknown',
               email: p.email,
-              role: p.role as UserRole
+              role: p.role as UserRole,
+              theme: p.theme as Theme || 'dark',
+              organization_id: p.organization_id
           }));
 
           const formattedJobs: Job[] = (jobsData || []).map((j: any) => ({
@@ -350,22 +359,33 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   const processUserSession = async (session: Session): Promise<boolean> => {
     try {
-        // 1. Set User State Immediately (Optimistic)
+        // 1. Fetch user profile from database to get theme preference
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, role, theme, organization_id')
+            .eq('id', session.user.id)
+            .single();
+
         const email = session.user.email || `user-${session.user.id}@example.com`;
-        const full_name = session.user.user_metadata?.full_name || email.split('@')[0];
-        
+        const full_name = profileData?.full_name || session.user.user_metadata?.full_name || email.split('@')[0];
+        const userTheme = (profileData?.theme as Theme) || 'dark';
+
         const userProfile = {
             id: session.user.id,
             name: full_name || 'Unknown User',
             email: email,
-            role: (session.user.user_metadata?.role as UserRole) || 'Crew'
+            role: (profileData?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || 'Crew',
+            theme: userTheme,
+            organization_id: profileData?.organization_id
         };
 
+        // Set theme from user profile
+        dispatch({ type: 'SET_DATA', payload: { theme: userTheme } });
         dispatch({ type: 'SET_CURRENT_USER', payload: userProfile });
-        
+
         // 2. Load Data in Background
         refreshData(true).catch(e => console.error("Background refresh failed", e));
-        
+
         return true;
     } catch (globalError) {
         console.error("CRITICAL: processUserSession failed", globalError);
@@ -654,6 +674,27 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       dispatch({ type: 'LOGOUT' });
   };
 
+  const toggleTheme = async () => {
+      dispatch({ type: 'TOGGLE_THEME' });
+
+      // Save theme preference to database if user is logged in
+      if (state.currentUser) {
+          const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+          try {
+              const { error } = await supabase
+                  .from('profiles')
+                  .update({ theme: newTheme })
+                  .eq('id', state.currentUser.id);
+
+              if (error) {
+                  console.error('Failed to save theme preference:', error);
+              }
+          } catch (err) {
+              console.error('Error saving theme:', err);
+          }
+      }
+  };
+
   // Initial Load & Auth Check
   useEffect(() => {
       const init = async () => {
@@ -695,7 +736,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme }}>
       {children}
     </AppContext.Provider>
   );

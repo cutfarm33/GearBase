@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
-  const { state, dispatch, navigateTo, signOut } = useAppContext();
+  const { state, dispatch, navigateTo, signOut, toggleTheme } = useAppContext();
   const { view } = state.currentView;
 
   // Helper to determine if a nav item is active based on the current view
@@ -83,7 +83,7 @@ const Sidebar: React.FC = () => {
 
           <div className="flex gap-2">
             <button
-                onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+                onClick={toggleTheme}
                 className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all hover:shadow-sm"
                 title="Toggle Theme"
             >

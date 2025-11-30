@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
 import { ArrowLeft, Upload, AlertTriangle, FileText, Link as LinkIcon, Download, Tag } from 'lucide-react';
@@ -14,12 +14,106 @@ const ImportInventoryScreen: React.FC = () => {
   const [isLoadingSheet, setIsLoadingSheet] = useState(false);
   const [error, setError] = useState('');
   const [defaultCategory, setDefaultCategory] = useState('General');
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get existing categories AND predefined ones for autocomplete
   const existingCategories = Array.from(new Set([
       ...PREDEFINED_CATEGORIES,
       ...state.inventory.map(i => i.category)
   ])).sort();
+
+  // Handle file upload (CSV, TSV, Excel, JSON)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError('');
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const fileName = file.name.toLowerCase();
+    setSelectedFileName(file.name);
+
+    // Handle JSON files
+    if (fileName.endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const jsonData = JSON.parse(event.target?.result as string);
+          convertJsonToCsv(jsonData);
+        } catch (err) {
+          setError('Invalid JSON file. Please check the format.');
+        }
+      };
+      reader.onerror = () => {
+        setError('Failed to read JSON file.');
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    // Handle Excel files (.xlsx, .xls) - note: requires parsing library in production
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      setError('Excel files (.xlsx/.xls) are not directly supported. Please export as CSV from Excel: File → Save As → CSV');
+      return;
+    }
+
+    // Handle text-based files (CSV, TSV, TXT)
+    if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const csvText = event.target?.result as string;
+        setTextInput(csvText);
+        setError('');
+      };
+      reader.onerror = () => {
+        setError('Failed to read file. Please try again.');
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    setError('Unsupported file format. Please use CSV, TSV, TXT, or JSON files.');
+  };
+
+  // Convert JSON array to CSV text
+  const convertJsonToCsv = (jsonData: any) => {
+    try {
+      // Handle array of objects
+      if (Array.isArray(jsonData)) {
+        if (jsonData.length === 0) {
+          setError('JSON file is empty.');
+          return;
+        }
+
+        // Extract headers from first object
+        const headers = Object.keys(jsonData[0]);
+        const csvLines = [headers.join(',')];
+
+        // Convert each object to CSV row
+        jsonData.forEach(item => {
+          const row = headers.map(header => {
+            const value = item[header] || '';
+            // Escape commas and quotes
+            const stringValue = String(value).replace(/"/g, '""');
+            return stringValue.includes(',') ? `"${stringValue}"` : stringValue;
+          });
+          csvLines.push(row.join(','));
+        });
+
+        setTextInput(csvLines.join('\n'));
+        setError('');
+      } else {
+        setError('JSON must be an array of objects. Example: [{"name": "Camera", "category": "Equipment"}]');
+      }
+    } catch (err) {
+      setError('Failed to convert JSON to CSV format.');
+    }
+  };
+
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   // Fetch data from Google Sheet URL
   const fetchGoogleSheet = async () => {
@@ -180,8 +274,46 @@ const ImportInventoryScreen: React.FC = () => {
 
       {!isPreviewing ? (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-slate-700 space-y-8">
-            
-            {/* Section 1: Google Sheet URL */}
+
+            {/* Section 1: CSV File Upload */}
+            <div>
+                <h3 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                    <Upload size={20} className="text-emerald-600"/> Upload CSV File
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                    Upload a CSV file from your computer. Supports Excel exports and standard CSV files.
+                </p>
+                <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept=".csv,.txt,.tsv,.json"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={triggerFileUpload}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-lg"
+                        >
+                            <Upload size={18}/> Choose File
+                        </button>
+                        {selectedFileName && (
+                            <span className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                                <FileText size={16} className="text-emerald-500"/>
+                                {selectedFileName}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Supported formats: CSV, TSV, TXT, JSON
+                    </p>
+                </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-700"></div>
+
+            {/* Section 2: Google Sheet URL */}
             <div>
                 <h3 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
                     <LinkIcon size={20} className="text-green-600"/> Import from Google Sheet

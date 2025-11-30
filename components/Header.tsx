@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar } from 'lucide-react';
 
 const Header: React.FC = () => {
-  const { state, dispatch, navigateTo, signOut } = useAppContext();
+  const { state, navigateTo, signOut, toggleTheme } = useAppContext();
   const isLoggedIn = !!state.currentUser;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isLanding = state.currentView.view === 'LANDING';
@@ -40,9 +40,9 @@ const Header: React.FC = () => {
           
           {/* Logo Area */}
           <div className="flex items-center gap-3">
-            <h1 
-                className="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-sky-600 dark:hover:text-sky-400 transition-colors" 
-                onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})}
+            <h1
+                className="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                onClick={() => navigateTo('LANDING')}
             >
                 Gear Base
             </h1>
@@ -59,7 +59,7 @@ const Header: React.FC = () => {
           {/* Desktop Right Actions (Landing Page Only mostly) */}
           <div className="hidden md:flex items-center gap-4">
               <button
-                onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+                onClick={toggleTheme}
                 className="text-slate-500 hover:text-sky-500 dark:text-slate-400 dark:hover:text-sky-400 transition-colors p-2"
                 title="Toggle Theme"
               >
@@ -86,7 +86,7 @@ const Header: React.FC = () => {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
              <button
-                onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+                onClick={toggleTheme}
                 className="text-slate-500 hover:text-sky-500 dark:text-slate-400 p-1"
               >
                   {state.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}

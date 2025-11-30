@@ -6,7 +6,7 @@ import { Camera, CheckSquare, Smartphone, Shield, Sun, Moon, ChevronRight, Users
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
 const WebsiteScreen: React.FC = () => {
-  const { dispatch, navigateTo, state } = useAppContext();
+  const { navigateTo, state, toggleTheme } = useAppContext();
   const [currentPage, setCurrentPage] = useState<PageView>('home');
 
   // Scroll to top when page changes
@@ -68,7 +68,7 @@ const WebsiteScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-             <button onClick={() => dispatch({ type: 'TOGGLE_THEME' })} className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+             <button onClick={toggleTheme} className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                 {state.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
              </button>
              <button
