@@ -29,11 +29,19 @@ export enum TransactionType {
 
 export type UserRole = 'Admin' | 'Producer' | 'Director' | 'DP' | 'Gaffer' | 'Grip' | 'AC' | 'PA' | 'Crew';
 
+export interface Organization {
+  id: string; // UUID
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: string; // Changed to string (UUID)
   name: string;
   role: UserRole;
   email: string;
+  organization_id: string; // UUID - links to Organization
   verificationCode?: string; // Added for verification mock
   // Password and verification are handled by Supabase Auth internally
 }
@@ -52,12 +60,14 @@ export interface InventoryItem {
   storageCase?: string; // Case or Bin location
   history: TransactionLog[];
   imageUrl: string;
+  organization_id: string; // UUID - links to Organization
 }
 
 export interface Kit {
   id: number;
   name: string;
   itemIds: number[];
+  organization_id: string; // UUID - links to Organization
 }
 
 export interface Job {
@@ -68,6 +78,7 @@ export interface Job {
   endDate: string;
   status: JobStatus;
   gearList: { itemId: number }[];
+  organization_id: string; // UUID - links to Organization
 }
 
 export interface TransactionItem {
@@ -88,6 +99,7 @@ export interface Transaction {
   timestamp: string;
   items: TransactionItem[];
   signature?: string; // Data URL of signature
+  organization_id: string; // UUID - links to Organization
 }
 
 export interface TransactionLog {

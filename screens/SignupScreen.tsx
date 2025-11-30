@@ -57,19 +57,35 @@ const SignupScreen: React.FC = () => {
           if (authError) throw authError;
 
           if (authData.user) {
-              // 2. Handle Profile Creation or Merge
+              // 2. Create Organization for the new user
+              const { data: orgData, error: orgError } = await supabase
+                  .from('organizations')
+                  .insert({
+                      name: `${formData.name}'s Organization`
+                  })
+                  .select()
+                  .single();
+
+              if (orgError) {
+                  console.error("Error creating organization:", orgError);
+                  throw new Error("Failed to create organization");
+              }
+
+              const organizationId = orgData.id;
+
+              // 3. Handle Profile Creation or Merge
               if (offlineProfileId) {
                   // MERGE: Don't create new profile. Link old data to new Auth ID.
                   await mergeOfflineProfile(offlineProfileId, authData.user.id);
-                  
-                  // Ensure the new profile has the correct ID (Auth ID)
-                  // The merge function deleted the old profile. Now we insert the new one (or update if upsert)
+
+                  // Ensure the new profile has the correct ID (Auth ID) and organization
                   const { error: upsertError } = await supabase.from('profiles').upsert({
                       id: authData.user.id,
                       email: formData.email,
                       full_name: formData.name,
                       role: formData.role,
-                      plan: 'free'
+                      plan: 'free',
+                      organization_id: organizationId
                   });
                    if (upsertError) console.error("Error creating merged profile:", upsertError);
 
@@ -80,14 +96,15 @@ const SignupScreen: React.FC = () => {
                       email: formData.email,
                       full_name: formData.name,
                       role: formData.role,
-                      plan: 'free'
+                      plan: 'free',
+                      organization_id: organizationId
                   });
-                  
+
                   if (profileError) {
                       console.warn('Initial profile creation skipped (likely pending verification).', profileError);
                   }
               }
-              
+
               // Pass the email to the state so the Verify screen can show it
               dispatch({ type: 'SET_DATA', payload: { pendingEmail: formData.email } });
               navigateTo('VERIFY_EMAIL');
