@@ -378,16 +378,18 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         console.log('Processing user session for:', session.user.email);
 
         // 1. Fetch user profile from database to get theme preference
+        console.log('Fetching profile for user ID:', session.user.id);
         const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('full_name, role, theme, organization_id')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
         if (profileError) {
             console.error('Profile fetch error:', profileError);
+            // Don't throw - continue with defaults
         }
-        console.log('Profile data:', profileData);
+        console.log('Profile data received:', profileData);
 
         const email = session.user.email || `user-${session.user.id}@example.com`;
         const full_name = profileData?.full_name || session.user.user_metadata?.full_name || email.split('@')[0];
