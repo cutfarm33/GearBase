@@ -629,7 +629,16 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       try {
           const id = crypto.randomUUID();
           const fakeEmail = email || `${name.toLowerCase().replace(/\s/g, '.')}@offline.user`;
-          const { error } = await supabase.from('profiles').insert({ id, full_name: name, role, email: fakeEmail });
+          const organizationId = state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
+
+          const { error } = await supabase.from('profiles').insert({
+              id,
+              full_name: name,
+              role,
+              email: fakeEmail,
+              organization_id: organizationId
+          });
+
           if (error) throw error;
           await refreshData(true);
           return id;
