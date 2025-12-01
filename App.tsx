@@ -15,7 +15,7 @@ import SignupScreen from './screens/SignupScreen';
 import VerifyEmailScreen from './screens/VerifyEmailScreen';
 import EmailConfirmedScreen from './screens/EmailConfirmedScreen';
 import JobFormScreen from './screens/JobFormScreen';
-import WebsiteScreen from './screens/WebsiteScreen';
+import WebsiteScreen from './screens/WebsiteScreen';  // Used for LANDING view
 import PackagesScreen from './screens/PackagesScreen';
 import PackageFormScreen from './screens/PackageFormScreen';
 import TeamScreen from './screens/TeamScreen';
@@ -33,7 +33,6 @@ const App: React.FC = () => {
   const { state, isConfigured, navigateTo } = useAppContext();
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
-  const isLanding = view === 'LANDING';
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(view);
 
   // Handle deep linking from URL parameters
@@ -164,7 +163,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <Header />
-        {renderView()}
+        {view === 'LANDING' ? <WebsiteScreen /> : renderView()}
       </div>
     );
   }

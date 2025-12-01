@@ -8,7 +8,6 @@ const Header: React.FC = () => {
   const isLoggedIn = !!state.currentUser;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const currentView = state.currentView.view;
-  const isLanding = currentView === 'LANDING';
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(currentView);
 
   // Helper for mobile nav items
