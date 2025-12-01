@@ -379,16 +379,31 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
         // 1. Fetch user profile from database to get theme preference
         console.log('Fetching profile for user ID:', session.user.id);
-        const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('full_name, role, theme, organization_id')
-            .eq('id', session.user.id)
-            .maybeSingle();
 
-        if (profileError) {
-            console.error('Profile fetch error:', profileError);
-            // Don't throw - continue with defaults
+        let profileData = null;
+        try {
+            // Add timeout to profile fetch
+            const fetchPromise = supabase
+                .from('profiles')
+                .select('full_name, role, theme, organization_id')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Profile fetch timeout after 5s')), 5000)
+            );
+
+            const result = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+            profileData = result.data;
+
+            if (result.error) {
+                console.error('Profile fetch error:', result.error);
+            }
+        } catch (fetchError: any) {
+            console.error('Profile fetch exception:', fetchError.message || fetchError);
         }
+
         console.log('Profile data received:', profileData);
 
         const email = session.user.email || `user-${session.user.id}@example.com`;
