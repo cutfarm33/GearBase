@@ -236,24 +236,33 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               return;
           }
 
+          console.log('Starting data refresh...');
+
           // 1. Fetch Raw Data
           const { data: items, error: itemsError } = await supabase.from('inventory').select('*').order('id');
+          console.log('Inventory fetched:', items?.length, 'items');
           if (itemsError) throw itemsError;
 
           const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*');
+          console.log('Profiles fetched:', profiles?.length, 'profiles');
           if (profilesError) console.warn("Profiles fetch error", profilesError);
-          
+
           const { data: jobsData, error: jobsError } = await supabase.from('jobs').select(`*, job_items(item_id)`);
+          console.log('Jobs fetched:', jobsData?.length, 'jobs');
           if (jobsError) throw jobsError;
 
           const { data: kitsData } = await supabase.from('kits').select(`*, kit_items(item_id)`);
+          console.log('Kits fetched:', kitsData?.length, 'kits');
 
           const { data: transactionsData, error: txError } = await supabase
               .from('transactions')
               .select(`*, transaction_items(*)`)
               .order('timestamp', { ascending: false });
+          console.log('Transactions fetched:', transactionsData?.length, 'transactions');
 
           if (txError) console.warn("Transactions fetch error", txError);
+
+          console.log('Starting data formatting...');
 
           // 2. Format Data
           const defaultOrgId = '00000000-0000-0000-0000-000000000000';
@@ -342,16 +351,18 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               };
           });
 
-          dispatch({ 
-              type: 'SET_DATA', 
-              payload: { 
-                  inventory: formattedInventory, 
+          dispatch({
+              type: 'SET_DATA',
+              payload: {
+                  inventory: formattedInventory,
                   users: formattedUsers || [],
                   jobs: formattedJobs || [],
                   kits: formattedKits || [],
                   transactions: transactions
-              } 
+              }
           });
+
+          console.log('Data refresh completed successfully');
 
       } catch (err: any) {
           // FIX: Safely log error string to prevent [object Object]
@@ -364,12 +375,19 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   const processUserSession = async (session: Session): Promise<boolean> => {
     try {
+        console.log('Processing user session for:', session.user.email);
+
         // 1. Fetch user profile from database to get theme preference
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('full_name, role, theme, organization_id')
             .eq('id', session.user.id)
             .single();
+
+        if (profileError) {
+            console.error('Profile fetch error:', profileError);
+        }
+        console.log('Profile data:', profileData);
 
         const email = session.user.email || `user-${session.user.id}@example.com`;
         const full_name = profileData?.full_name || session.user.user_metadata?.full_name || email.split('@')[0];
@@ -392,9 +410,12 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         dispatch({ type: 'SET_DATA', payload: { theme: userTheme } });
         dispatch({ type: 'SET_CURRENT_USER', payload: userProfile });
 
+        console.log('User profile set, starting background data refresh...');
+
         // 2. Load Data in Background
         refreshData(true).catch(e => console.error("Background refresh failed", e));
 
+        console.log('processUserSession completed successfully');
         return true;
     } catch (globalError) {
         console.error("CRITICAL: processUserSession failed", globalError);
