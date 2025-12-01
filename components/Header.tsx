@@ -39,11 +39,9 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           
           {/* Logo Area */}
-          <div className="flex items-center gap-3">
-            <h1
-                className="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                onClick={() => navigateTo('LANDING')}
-            >
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateTo('LANDING')}>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
                 Gear Base
             </h1>
           </div>

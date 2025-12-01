@@ -42,9 +42,7 @@ const Sidebar: React.FC = () => {
     <aside className="w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-300 fixed left-0 top-0 z-30">
       {/* Logo Area */}
       <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 cursor-pointer" onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})}>
-          <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
-              G
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
           <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Gear Base</span>
       </div>
 
