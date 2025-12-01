@@ -232,8 +232,10 @@ const ImportInventoryScreen: React.FC = () => {
             notes: getVal(noteIdx) || '',
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
-            image_url: `https://picsum.photos/seed/${name.replace(/\s/g,'')}/200`, // Fallback image
-            organization_id: state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000'
+            image_url: `https://picsum.photos/seed/${name.replace(/\s/g,'')}/200`,
+            organization_id: state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
+            purchase_date: new Date().toISOString().split('T')[0] // Default to today
+            // Note: history is not a database column, it's computed from transactions table
         });
     }
 
@@ -247,15 +249,27 @@ const ImportInventoryScreen: React.FC = () => {
 
   const handleImport = async () => {
       setIsUploading(true);
+      setError(''); // Clear previous errors
       try {
-          const { error } = await supabase.from('inventory').insert(parsedData);
-          if (error) throw error;
-          
+          console.log('Starting import of', parsedData.length, 'items');
+          console.log('Sample data:', parsedData[0]);
+
+          const { data, error } = await supabase.from('inventory').insert(parsedData);
+
+          if (error) {
+              console.error('Supabase insert error:', error);
+              throw error;
+          }
+
+          console.log('Import successful!', data);
           await refreshData();
           alert(`Successfully imported ${parsedData.length} items!`);
           navigateTo('INVENTORY');
       } catch (err: any) {
-          setError(err.message || 'Failed to upload data.');
+          console.error('Import failed:', err);
+          const errorMessage = err.message || err.toString() || 'Failed to upload data.';
+          setError(`Import failed: ${errorMessage}`);
+          alert(`Import failed: ${errorMessage}`); // Show alert for immediate feedback
       } finally {
           setIsUploading(false);
       }
