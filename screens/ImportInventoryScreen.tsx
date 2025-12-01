@@ -225,14 +225,15 @@ const ImportInventoryScreen: React.FC = () => {
         }
 
         data.push({
-            name: name, 
+            name: name,
             category: finalCategory,
             value: parsedValue,
             qr_code: getVal(qrIdx) || `GT-${Date.now()}-${i}`,
             notes: getVal(noteIdx) || '',
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
-            image_url: `https://picsum.photos/seed/${name.replace(/\s/g,'')}/200` // Fallback image
+            image_url: `https://picsum.photos/seed/${name.replace(/\s/g,'')}/200`, // Fallback image
+            organization_id: state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000'
         });
     }
 
