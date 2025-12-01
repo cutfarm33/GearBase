@@ -252,25 +252,47 @@ const ImportInventoryScreen: React.FC = () => {
       setError(''); // Clear previous errors
       try {
           console.log('=== CSV IMPORT DEBUG ===');
+          console.log('Current user:', state.currentUser);
           console.log('Current user organization_id:', state.currentUser?.organization_id);
           console.log('Starting import of', parsedData.length, 'items');
           console.log('Sample data with organization_id:', parsedData[0]);
 
-          const { data, error } = await supabase.from('inventory').insert(parsedData).select();
+          const { data: insertedData, error: insertError } = await supabase.from('inventory').insert(parsedData).select();
 
-          if (error) {
-              console.error('Supabase insert error:', error);
-              throw error;
+          if (insertError) {
+              console.error('Supabase insert error:', insertError);
+              throw insertError;
           }
 
-          console.log('Import successful! Inserted records:', data);
+          console.log('✅ Import successful! Inserted records:', insertedData);
+          console.log('Inserted', insertedData?.length, 'items');
+
+          // Verify the data was actually inserted by querying directly
+          console.log('Verifying inserted data...');
+          const { data: verifyData, error: verifyError } = await supabase
+              .from('inventory')
+              .select('id, name, organization_id')
+              .in('id', insertedData?.map(d => d.id) || []);
+
+          if (verifyError) {
+              console.error('❌ Verification query error:', verifyError);
+          } else {
+              console.log('✅ Verification query returned', verifyData?.length, 'items:', verifyData);
+          }
+
+          // Check current inventory count before refresh
+          console.log('Current inventory in state before refresh:', state.inventory.length, 'items');
+
           console.log('Refreshing data...');
           await refreshData();
+
           console.log('Data refresh complete');
+          console.log('Current inventory in state after refresh:', state.inventory.length, 'items');
+
           alert(`Successfully imported ${parsedData.length} items! Check the Inventory screen.`);
           navigateTo('INVENTORY');
       } catch (err: any) {
-          console.error('Import failed:', err);
+          console.error('❌ Import failed:', err);
           const errorMessage = err.message || err.toString() || 'Failed to upload data.';
           setError(`Import failed: ${errorMessage}`);
           alert(`Import failed: ${errorMessage}`); // Show alert for immediate feedback
