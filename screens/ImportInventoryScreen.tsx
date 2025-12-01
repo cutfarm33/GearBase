@@ -251,19 +251,23 @@ const ImportInventoryScreen: React.FC = () => {
       setIsUploading(true);
       setError(''); // Clear previous errors
       try {
+          console.log('=== CSV IMPORT DEBUG ===');
+          console.log('Current user organization_id:', state.currentUser?.organization_id);
           console.log('Starting import of', parsedData.length, 'items');
-          console.log('Sample data:', parsedData[0]);
+          console.log('Sample data with organization_id:', parsedData[0]);
 
-          const { data, error } = await supabase.from('inventory').insert(parsedData);
+          const { data, error } = await supabase.from('inventory').insert(parsedData).select();
 
           if (error) {
               console.error('Supabase insert error:', error);
               throw error;
           }
 
-          console.log('Import successful!', data);
+          console.log('Import successful! Inserted records:', data);
+          console.log('Refreshing data...');
           await refreshData();
-          alert(`Successfully imported ${parsedData.length} items!`);
+          console.log('Data refresh complete');
+          alert(`Successfully imported ${parsedData.length} items! Check the Inventory screen.`);
           navigateTo('INVENTORY');
       } catch (err: any) {
           console.error('Import failed:', err);
