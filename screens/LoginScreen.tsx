@@ -37,6 +37,8 @@ const LoginScreen: React.FC = () => {
             password: password.trim()
         });
 
+        console.log("Auth response received:", { hasSession: !!data?.session, error: authError });
+
         if (authError) {
             console.error("Supabase Auth Error:", authError);
             if (authError.message === 'Invalid login credentials') {
@@ -50,9 +52,11 @@ const LoginScreen: React.FC = () => {
              setLoading(false);
              return;
         }
-        
+
+        console.log("Calling checkAuth with session...");
         // Manually trigger auth check which updates GLOBAL state
         const success = await checkAuth(data.session);
+        console.log("checkAuth completed, success:", success);
         
         if (!success) {
             // This should logically never happen with the new fail-safe processUserSession
