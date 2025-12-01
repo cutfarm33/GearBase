@@ -59,33 +59,35 @@ WITH CHECK (auth.uid() = id);
 -- ==========================================
 
 -- First, create a helper function to get user's organization_id
-CREATE OR REPLACE FUNCTION auth.user_organization_id()
+-- Note: Must be in public schema, not auth schema (permission denied)
+CREATE OR REPLACE FUNCTION public.get_user_organization_id()
 RETURNS uuid
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
 AS $$
-  SELECT organization_id FROM profiles WHERE id = auth.uid()
+  SELECT organization_id FROM profiles WHERE id = auth.uid() LIMIT 1
 $$;
 
 -- Allow users to view inventory from their organization
 CREATE POLICY "Users can view their organization's inventory"
 ON inventory FOR SELECT
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- Allow users to insert inventory for their organization
 CREATE POLICY "Users can insert their organization's inventory"
 ON inventory FOR INSERT
-WITH CHECK (organization_id = auth.user_organization_id());
+WITH CHECK (organization_id = public.get_user_organization_id());
 
 -- Allow users to update inventory in their organization
 CREATE POLICY "Users can update their organization's inventory"
 ON inventory FOR UPDATE
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- Allow users to delete inventory from their organization
 CREATE POLICY "Users can delete their organization's inventory"
 ON inventory FOR DELETE
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- ==========================================
 -- JOBS TABLE POLICIES
@@ -93,11 +95,11 @@ USING (organization_id = auth.user_organization_id());
 
 CREATE POLICY "Users can view their organization's jobs"
 ON jobs FOR SELECT
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 CREATE POLICY "Users can manage their organization's jobs"
 ON jobs FOR ALL
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- ==========================================
 -- KITS TABLE POLICIES
@@ -105,11 +107,11 @@ USING (organization_id = auth.user_organization_id());
 
 CREATE POLICY "Users can view their organization's kits"
 ON kits FOR SELECT
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 CREATE POLICY "Users can manage their organization's kits"
 ON kits FOR ALL
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- ==========================================
 -- TRANSACTIONS TABLE POLICIES
@@ -117,11 +119,11 @@ USING (organization_id = auth.user_organization_id());
 
 CREATE POLICY "Users can view their organization's transactions"
 ON transactions FOR SELECT
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 CREATE POLICY "Users can manage their organization's transactions"
 ON transactions FOR ALL
-USING (organization_id = auth.user_organization_id());
+USING (organization_id = public.get_user_organization_id());
 
 -- ==========================================
 -- JUNCTION TABLES (job_items, kit_items, transaction_items)
