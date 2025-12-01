@@ -51,35 +51,8 @@ const WebsiteScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-sans selection:bg-sky-500 selection:text-white flex flex-col">
-      
-      {/* Website Navigation */}
-      <nav className="fixed w-full z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
-             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gear Base</span>
-          </div>
 
-          {/* Centered Desktop Nav Links */}
-          <div className="hidden md:flex items-center space-x-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
-            <button onClick={() => scrollToSection('features')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Features</button>
-            <button onClick={() => scrollToSection('about')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">About</button>
-            <button onClick={() => scrollToSection('pricing')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Pricing</button>
-            <button onClick={() => setCurrentPage('contact')} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Contact</button>
-          </div>
-
-          <div className="flex items-center gap-4">
-             <button onClick={toggleTheme} className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                {state.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-             </button>
-             <button
-                onClick={handleLaunch}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 text-sm"
-             >
-                {state.currentUser ? 'Go to Dashboard' : 'Launch App'}
-             </button>
-          </div>
-        </div>
-      </nav>
+      {/* Navigation is now handled by Header component in App.tsx */}
 
       {/* CONTENT SWITCHER */}
       <main className="flex-grow">
