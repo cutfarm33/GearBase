@@ -7,7 +7,9 @@ const Header: React.FC = () => {
   const { state, navigateTo, signOut, toggleTheme } = useAppContext();
   const isLoggedIn = !!state.currentUser;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isLanding = state.currentView.view === 'LANDING';
+  const currentView = state.currentView.view;
+  const isLanding = currentView === 'LANDING';
+  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(currentView);
 
   // Helper for mobile nav items
   const MobileNavItem: React.FC<{ view: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR'; icon: React.ReactNode; label: string }> = ({ view, icon, label }) => (
@@ -27,10 +29,10 @@ const Header: React.FC = () => {
     </button>
   );
 
-  // On Desktop, if we are logged in, the Sidebar takes over. We hide this header.
-  // If we are on Landing page, we show it.
-  const headerClasses = isLoggedIn && !isLanding 
-    ? "md:hidden bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800" 
+  // On Desktop, if we are logged in and NOT on website pages, the Sidebar takes over. We hide this header.
+  // If we are on website pages, we show it.
+  const headerClasses = isLoggedIn && !isWebsitePage
+    ? "md:hidden bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800"
     : "bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800";
 
   return (
@@ -43,11 +45,39 @@ const Header: React.FC = () => {
             <img src="/logo.png" alt="Gear Base" className="h-10 w-auto object-contain" />
           </div>
 
-          {/* Desktop Navigation (Landing Page Only) */}
-          {isLanding && (
+          {/* Desktop Navigation (Website Pages) */}
+          {isWebsitePage && (
              <div className="hidden md:flex items-center gap-6">
-                 <button onClick={() => {}} className="text-slate-600 dark:text-slate-400 hover:text-sky-500">Features</button>
-                 <button onClick={() => {}} className="text-slate-600 dark:text-slate-400 hover:text-sky-500">Pricing</button>
+                 <button
+                   onClick={() => navigateTo('FEATURES')}
+                   className={`font-medium transition-colors ${currentView === 'FEATURES' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                 >
+                   Features
+                 </button>
+                 <button
+                   onClick={() => navigateTo('PRICING')}
+                   className={`font-medium transition-colors ${currentView === 'PRICING' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                 >
+                   Pricing
+                 </button>
+                 <button
+                   onClick={() => navigateTo('HELP')}
+                   className={`font-medium transition-colors ${currentView === 'HELP' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                 >
+                   Help
+                 </button>
+                 <button
+                   onClick={() => navigateTo('ABOUT')}
+                   className={`font-medium transition-colors ${currentView === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                 >
+                   About
+                 </button>
+                 <button
+                   onClick={() => navigateTo('CONTACT')}
+                   className={`font-medium transition-colors ${currentView === 'CONTACT' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                 >
+                   Contact
+                 </button>
              </div>
           )}
           
@@ -61,19 +91,29 @@ const Header: React.FC = () => {
                   {state.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
 
-              {isLoggedIn && isLanding && (
-                  <button 
+              {isLoggedIn && isWebsitePage && (
+                  <button
                     onClick={() => navigateTo('DASHBOARD')}
-                    className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
                   >
                       Go to Dashboard
                   </button>
               )}
-              
-              {!isLoggedIn && isLanding && (
+
+              {!isLoggedIn && isWebsitePage && (
                   <div className="flex gap-2">
-                    <button onClick={() => navigateTo('LOGIN')} className="text-slate-600 dark:text-slate-300 hover:text-sky-500 font-medium px-3 py-2">Login</button>
-                    <button onClick={() => navigateTo('SIGNUP')} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm">Get Started</button>
+                    <button
+                      onClick={() => navigateTo('LOGIN')}
+                      className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium px-4 py-2 transition-colors"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => navigateTo('SIGNUP')}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                    >
+                      Get Started
+                    </button>
                   </div>
               )}
           </div>
@@ -100,7 +140,56 @@ const Header: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 py-4 shadow-lg animate-in slide-in-from-top-5">
             <div className="space-y-2">
-                {isLoggedIn ? (
+                {isWebsitePage && !isLoggedIn && (
+                    <>
+                        <button
+                          onClick={() => { navigateTo('FEATURES'); setIsMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'FEATURES' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                          Features
+                        </button>
+                        <button
+                          onClick={() => { navigateTo('PRICING'); setIsMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'PRICING' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                          Pricing
+                        </button>
+                        <button
+                          onClick={() => { navigateTo('HELP'); setIsMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'HELP' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                          Help
+                        </button>
+                        <button
+                          onClick={() => { navigateTo('ABOUT'); setIsMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'ABOUT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                          About
+                        </button>
+                        <button
+                          onClick={() => { navigateTo('CONTACT'); setIsMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'CONTACT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                          Contact
+                        </button>
+                        <div className="border-t border-slate-100 dark:border-slate-800 my-2 pt-2">
+                          <button
+                            onClick={() => { navigateTo('LOGIN'); setIsMenuOpen(false); }}
+                            className="w-full py-3 text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800 rounded-lg"
+                          >
+                            Login
+                          </button>
+                          <button
+                            onClick={() => { navigateTo('SIGNUP'); setIsMenuOpen(false); }}
+                            className="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg mt-2"
+                          >
+                            Get Started
+                          </button>
+                        </div>
+                    </>
+                )}
+
+                {isLoggedIn && !isWebsitePage && (
                     <>
                         <MobileNavItem view="DASHBOARD" icon={<LayoutDashboard size={18}/>} label="Dashboard" />
                         <MobileNavItem view="CALENDAR" icon={<Calendar size={18}/>} label="Calendar" />
@@ -109,7 +198,7 @@ const Header: React.FC = () => {
                         <MobileNavItem view="PACKAGES" icon={<Package size={18}/>} label="Packages" />
                         <MobileNavItem view="TEAM" icon={<Users size={18}/>} label="Team" />
                         <div className="border-t border-slate-100 dark:border-slate-800 my-2 pt-2">
-                             <button 
+                             <button
                                 onClick={() => {
                                     signOut();
                                     setIsMenuOpen(false);
@@ -121,11 +210,15 @@ const Header: React.FC = () => {
                              </button>
                         </div>
                     </>
-                ) : (
-                    <div className="flex flex-col gap-3">
-                        <button onClick={() => navigateTo('LOGIN')} className="w-full py-3 text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800 rounded-lg">Login</button>
-                        <button onClick={() => navigateTo('SIGNUP')} className="w-full py-3 bg-sky-600 text-white font-bold rounded-lg">Create Account</button>
-                    </div>
+                )}
+
+                {isLoggedIn && isWebsitePage && (
+                    <button
+                      onClick={() => { navigateTo('DASHBOARD'); setIsMenuOpen(false); }}
+                      className="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg"
+                    >
+                      Go to Dashboard
+                    </button>
                 )}
             </div>
         </div>

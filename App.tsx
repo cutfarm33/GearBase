@@ -20,6 +20,11 @@ import PackagesScreen from './screens/PackagesScreen';
 import PackageFormScreen from './screens/PackageFormScreen';
 import TeamScreen from './screens/TeamScreen';
 import CalendarScreen from './screens/CalendarScreen';
+import FeaturesScreen from './screens/FeaturesScreen';
+import PricingScreen from './screens/PricingScreen';
+import HelpScreen from './screens/HelpScreen';
+import AboutScreen from './screens/AboutScreen';
+import ContactScreen from './screens/ContactScreen';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import { Loader } from 'lucide-react';
@@ -29,6 +34,7 @@ const App: React.FC = () => {
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
   const isLanding = view === 'LANDING';
+  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(view);
 
   // Handle deep linking from URL parameters
   useEffect(() => {
@@ -92,6 +98,13 @@ const App: React.FC = () => {
     if (view === 'VERIFY_EMAIL') return <VerifyEmailScreen />;
     if (view === 'EMAIL_CONFIRMED') return <EmailConfirmedScreen />;
 
+    // Website Pages (Public)
+    if (view === 'FEATURES') return <FeaturesScreen />;
+    if (view === 'PRICING') return <PricingScreen />;
+    if (view === 'HELP') return <HelpScreen />;
+    if (view === 'ABOUT') return <AboutScreen />;
+    if (view === 'CONTACT') return <ContactScreen />;
+
     // Guard: If not logged in, force login
     if (!state.currentUser) {
         return <LoginScreen />;
@@ -146,9 +159,14 @@ const App: React.FC = () => {
 
   // --- LAYOUT LOGIC ---
 
-  // 1. LANDING PAGE (Completely separate layout)
-  if (isLanding) {
-    return <WebsiteScreen />;
+  // 1. WEBSITE PAGES (Landing, Features, Pricing, Help, About, Contact)
+  if (isWebsitePage) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <Header />
+        {renderView()}
+      </div>
+    );
   }
 
   // 2. APP LAYOUT (Sidebar + Header + Content)
