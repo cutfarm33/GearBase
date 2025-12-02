@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles, Camera } from 'lucide-react';
 
 const FeaturesScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -281,6 +281,26 @@ const FeaturesScreen: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-12 px-6 mt-auto">
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigateTo('LANDING')}>
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-1.5 rounded-md text-white">
+              <Camera size={16} />
+            </div>
+            <span className="font-bold text-slate-900 dark:text-white">Gear Base</span>
+          </div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            &copy; {new Date().getFullYear()} Gear Base. All rights reserved.
+          </div>
+          <div className="flex gap-6">
+            <button onClick={() => navigateTo('LANDING')} className="text-slate-500 hover:text-emerald-500 transition-colors text-sm">Privacy</button>
+            <button onClick={() => navigateTo('LANDING')} className="text-slate-500 hover:text-emerald-500 transition-colors text-sm">Terms</button>
+            <button onClick={() => navigateTo('CONTACT')} className="text-slate-500 hover:text-emerald-500 transition-colors text-sm">Contact</button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
