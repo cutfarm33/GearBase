@@ -29,9 +29,11 @@ const Header: React.FC = () => {
   );
 
   // On Desktop, if we are logged in and NOT on website pages, the Sidebar takes over. We hide this header.
-  // If we are on website pages, we show it.
+  // If we are on website pages, we show it with glass effect.
   const headerClasses = isLoggedIn && !isWebsitePage
     ? "md:hidden bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800"
+    : isWebsitePage
+    ? "glass-card shadow-glass border-b border-white/20 dark:border-white/10"
     : "bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800";
 
   return (
@@ -41,7 +43,8 @@ const Header: React.FC = () => {
           
           {/* Logo Area */}
           <div className="flex items-center cursor-pointer" onClick={() => navigateTo('LANDING')}>
-            <img src="/logo.png" alt="Gear Base" className="h-14 w-auto object-contain" />
+            <img src="/logoB.png" alt="Gear Base" className="h-20 w-auto object-contain dark:hidden" />
+            <img src="/logo.png" alt="Gear Base" className="h-20 w-auto object-contain hidden dark:block" />
           </div>
 
           {/* Desktop Navigation (Website Pages) */}
@@ -49,31 +52,31 @@ const Header: React.FC = () => {
              <div className="hidden md:flex items-center gap-6">
                  <button
                    onClick={() => navigateTo('FEATURES')}
-                   className={`font-medium transition-colors ${currentView === 'FEATURES' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                   className={`font-medium transition-colors ${currentView === 'FEATURES' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400'}`}
                  >
                    Features
                  </button>
                  <button
                    onClick={() => navigateTo('PRICING')}
-                   className={`font-medium transition-colors ${currentView === 'PRICING' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                   className={`font-medium transition-colors ${currentView === 'PRICING' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400'}`}
                  >
                    Pricing
                  </button>
                  <button
                    onClick={() => navigateTo('HELP')}
-                   className={`font-medium transition-colors ${currentView === 'HELP' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                   className={`font-medium transition-colors ${currentView === 'HELP' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400'}`}
                  >
                    Help
                  </button>
                  <button
                    onClick={() => navigateTo('ABOUT')}
-                   className={`font-medium transition-colors ${currentView === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                   className={`font-medium transition-colors ${currentView === 'ABOUT' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400'}`}
                  >
                    About
                  </button>
                  <button
                    onClick={() => navigateTo('CONTACT')}
-                   className={`font-medium transition-colors ${currentView === 'CONTACT' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
+                   className={`font-medium transition-colors ${currentView === 'CONTACT' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400'}`}
                  >
                    Contact
                  </button>
@@ -93,7 +96,7 @@ const Header: React.FC = () => {
               {isLoggedIn && isWebsitePage && (
                   <button
                     onClick={() => navigateTo('DASHBOARD')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                    className="glass-button text-white font-bold py-2 px-6 rounded-lg transition-all shadow-glow-emerald hover:shadow-glow-teal hover:scale-105"
                   >
                       Go to Dashboard
                   </button>
@@ -103,13 +106,13 @@ const Header: React.FC = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => navigateTo('LOGIN')}
-                      className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium px-4 py-2 transition-colors"
+                      className="text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium px-4 py-2 transition-colors"
                     >
                       Login
                     </button>
                     <button
                       onClick={() => navigateTo('SIGNUP')}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                      className="glass-button text-white font-bold py-2 px-6 rounded-lg transition-all shadow-glow-emerald hover:shadow-glow-teal hover:scale-105"
                     >
                       Get Started
                     </button>
@@ -143,31 +146,31 @@ const Header: React.FC = () => {
                     <>
                         <button
                           onClick={() => { navigateTo('FEATURES'); setIsMenuOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'FEATURES' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'FEATURES' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                           Features
                         </button>
                         <button
                           onClick={() => { navigateTo('PRICING'); setIsMenuOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'PRICING' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'PRICING' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                           Pricing
                         </button>
                         <button
                           onClick={() => { navigateTo('HELP'); setIsMenuOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'HELP' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'HELP' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                           Help
                         </button>
                         <button
                           onClick={() => { navigateTo('ABOUT'); setIsMenuOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'ABOUT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'ABOUT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                           About
                         </button>
                         <button
                           onClick={() => { navigateTo('CONTACT'); setIsMenuOpen(false); }}
-                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'CONTACT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${currentView === 'CONTACT' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                           Contact
                         </button>
@@ -180,7 +183,7 @@ const Header: React.FC = () => {
                           </button>
                           <button
                             onClick={() => { navigateTo('SIGNUP'); setIsMenuOpen(false); }}
-                            className="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg mt-2"
+                            className="w-full py-3 glass-button text-white font-bold rounded-lg mt-2"
                           >
                             Get Started
                           </button>
@@ -214,7 +217,7 @@ const Header: React.FC = () => {
                 {isLoggedIn && isWebsitePage && (
                     <button
                       onClick={() => { navigateTo('DASHBOARD'); setIsMenuOpen(false); }}
-                      className="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg"
+                      className="w-full py-3 glass-button text-white font-bold rounded-lg"
                     >
                       Go to Dashboard
                     </button>

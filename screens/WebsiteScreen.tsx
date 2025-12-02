@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Briefcase, Mail, Zap, Infinity } from 'lucide-react';
+import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Briefcase, Mail, Zap, Infinity, Package, X } from 'lucide-react';
 
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
@@ -50,7 +50,7 @@ const WebsiteScreen: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-sans selection:bg-sky-500 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-hero dark:bg-gradient-to-br dark:from-slate-900 dark:via-emerald-950/50 dark:to-slate-900 text-slate-900 dark:text-white font-sans selection:bg-emerald-500 selection:text-white flex flex-col animate-gradient bg-[length:200%_200%]">
 
       {/* Navigation is now handled by Header component in App.tsx */}
 
@@ -59,64 +59,38 @@ const WebsiteScreen: React.FC = () => {
         {currentPage === 'home' && (
             <>
                 {/* Hero Section */}
-                <section className="pt-32 pb-20 px-6">
-                    <div className="container mx-auto text-center max-w-5xl">
-                    <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold border border-emerald-200 dark:border-emerald-700">
+                <section className="pt-32 pb-20 px-6 relative">
+                    {/* Background overlay for light mode - more visible gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 via-teal-50/40 to-white/50 dark:from-transparent dark:via-transparent dark:to-transparent"></div>
+                    {/* Additional depth with radial gradient */}
+                    <div className="absolute inset-0 bg-gradient-radial from-emerald-100/30 via-transparent to-transparent dark:from-transparent"></div>
+                    {/* Subtle shadow at bottom for depth */}
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent dark:via-emerald-900/20"></div>
+
+                    <div className="container mx-auto text-center max-w-5xl relative z-10">
+                    <div className="inline-block mb-6 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
                         🚀 Version 2.0 is here
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
                         Track Your Gear.<br/>
-                        <span className="bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Own Your Production.</span>
+                        <span className="text-teal-600 dark:text-teal-400">Own Your Production.</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed font-normal">
                         Professional inventory management built for film crews, rental houses, and production companies. Stop losing gear, start managing it.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <style dangerouslySetInnerHTML={{
-                            __html: `
-                                @keyframes border-beam {
-                                    0% { background-position: 0% 0%; }
-                                    100% { background-position: 200% 200%; }
-                                }
-                                .btn-beam-wrapper {
-                                    position: relative;
-                                    border-radius: 1rem;
-                                }
-                                .btn-beam-wrapper::before {
-                                    content: '';
-                                    position: absolute;
-                                    top: -1px;
-                                    left: -1px;
-                                    right: -1px;
-                                    bottom: -1px;
-                                    border-radius: inherit;
-                                    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.6), transparent);
-                                    background-size: 200% 200%;
-                                    opacity: 0;
-                                    transition: opacity 0.3s;
-                                    animation: border-beam 2s linear infinite;
-                                    pointer-events: none;
-                                    z-index: 0;
-                                }
-                                .btn-beam-wrapper:hover::before {
-                                    opacity: 1;
-                                }
-                            `
-                        }} />
-                        <div className="btn-beam-wrapper">
-                            <button
-                                onClick={handleLaunch}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-lg font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 flex items-center justify-center gap-2 relative z-10"
-                            >
-                                Start for Free <ChevronRight size={20} />
-                            </button>
-                        </div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <button
+                            onClick={handleLaunch}
+                            className="glass-button text-white text-lg font-bold py-4 px-8 rounded-2xl transition-all shadow-glow-teal hover:shadow-glow-emerald hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto"
+                        >
+                            Start for Free <ChevronRight size={20} />
+                        </button>
                         <button
                             onClick={() => scrollToSection('features')}
-                            className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-lg font-bold py-4 px-8 rounded-2xl transition-all border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700"
+                            className="glass-card hover-float text-slate-900 dark:text-white text-lg font-bold py-4 px-8 rounded-2xl transition-all shadow-glass hover:shadow-glass-lg w-full sm:w-auto"
                         >
                             Learn More
                         </button>
@@ -125,7 +99,7 @@ const WebsiteScreen: React.FC = () => {
                 </section>
 
                 {/* Feature Grid */}
-                <section id="features" className="py-24 bg-slate-50 dark:bg-slate-900">
+                <section id="features" className="py-24">
                     <div className="container mx-auto px-6">
                         <div className="text-center mb-16">
                         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Everything you need to run the show</h2>
@@ -133,80 +107,147 @@ const WebsiteScreen: React.FC = () => {
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 group hover:-translate-y-1">
-                                <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
-                                    <CheckSquare size={26} />
+                            <div className="glass-card hover-float p-8 rounded-3xl shadow-glass hover:shadow-glass-lg transition-all duration-300 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent blur-2xl"></div>
+                                <div className="relative z-10">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-glow-emerald">
+                                        <CheckSquare size={26} />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Digital Check-in/out</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Scan gear in and out using standard barcodes. Capture digital signatures from crew members for accountability.
+                                    </p>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Digital Check-in/out</h3>
-                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Scan gear in and out using standard barcodes. Capture digital signatures from crew members for accountability.
-                                </p>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 group hover:-translate-y-1">
-                                <div className="w-14 h-14 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-500 mb-6 group-hover:scale-110 transition-transform">
-                                    <Shield size={26} />
+                            <div className="glass-card hover-float p-8 rounded-3xl shadow-glass hover:shadow-glass-lg transition-all duration-300 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500/10 to-transparent blur-2xl"></div>
+                                <div className="relative z-10">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-blue-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-glow-teal">
+                                        <Shield size={26} />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Damage Tracking</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Log damage immediately with photos and notes. Track repair status so you never send out broken gear.
+                                    </p>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Damage Tracking</h3>
-                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Log damage immediately with photos and notes. Track repair status so you never send out broken gear.
-                                </p>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 group hover:-translate-y-1">
-                                <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform">
-                                    <Smartphone size={26} />
+                            <div className="glass-card hover-float p-8 rounded-3xl shadow-glass hover:shadow-glass-lg transition-all duration-300 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent blur-2xl"></div>
+                                <div className="relative z-10">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-glow-blue">
+                                        <Smartphone size={26} />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Mobile First</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Built for the set. Works perfectly on phones and tablets so you can manage inventory from the camera truck.
+                                    </p>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Mobile First</h3>
-                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Built for the set. Works perfectly on phones and tablets so you can manage inventory from the camera truck.
-                                </p>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Mobile App Preview Section */}
-                <section className="py-32 px-6 bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20 overflow-hidden">
-                    <div className="container mx-auto max-w-7xl">
+                <section className="py-32 px-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-blue-500/5 dark:from-emerald-900/10 dark:via-emerald-900/10 dark:to-blue-900/10"></div>
+                    <div className="container mx-auto max-w-7xl relative z-10">
                         <div className="text-center mb-20">
-                            <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm font-semibold border border-emerald-200 dark:border-emerald-700">
+                            <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
                                 📱 Mobile Experience
                             </div>
                             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">
                                 Manage gear from anywhere
                             </h2>
                             <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                                Track inventory, check out equipment, and manage your production on the go with our beautifully designed mobile app.
+                                Track inventory, check out equipment, and manage your production on the go with our beautifully designed mobile interface.
                             </p>
                         </div>
 
-                        <div className="relative flex justify-center items-center gap-8 flex-wrap lg:flex-nowrap">
-                            {/* Left Phone - Dashboard */}
-                            <div className="relative transform lg:-rotate-6 hover:rotate-0 transition-transform duration-500">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl ring-8 ring-slate-900/10 dark:ring-white/10">
-                                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-[2.5rem] overflow-hidden relative">
+                        <div className="relative flex justify-center items-center gap-6 flex-wrap lg:flex-nowrap max-w-6xl mx-auto">
+                            {/* Left Phone - Upload Inventory */}
+                            <div className="relative">
+                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
+                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
 
                                         {/* Content */}
-                                        <div className="p-8 pt-12 text-slate-900">
-                                            <div className="mb-8">
-                                                <div className="text-sm mb-2">9:41</div>
-                                                <div className="w-12 h-12 bg-emerald-700 rounded-2xl mb-8"></div>
+                                        <div className="p-6 pt-10">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
+                                                    <Package className="text-white" size={20} />
+                                                </div>
+                                                <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">Done</button>
                                             </div>
-                                            <h3 className="text-3xl font-bold mb-2 leading-tight">Track Your<br/>Gear</h3>
-                                            <p className="text-sm opacity-80 mb-8 leading-relaxed">Manage your inventory easily using our intuitive interface</p>
-                                            <button className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-4 px-6 rounded-2xl transition-colors shadow-lg">
-                                                Get Started
-                                            </button>
-                                            <p className="text-sm text-center mt-4 opacity-70">Already have an account? <span className="font-semibold underline">Login</span></p>
+
+                                            {/* Main Title */}
+                                            <div className="mb-6">
+                                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Import Inventory</h3>
+                                                <p className="text-slate-500 dark:text-slate-400 text-sm">Upload your gear list</p>
+                                            </div>
+
+                                            {/* Upload Card */}
+                                            <div className="mb-4 rounded-2xl p-6 bg-slate-50 dark:bg-slate-700/50 border-2 border-dashed border-slate-300 dark:border-slate-600">
+                                                <div className="flex flex-col items-center text-center">
+                                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
+                                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                        </svg>
+                                                    </div>
+                                                    <p className="text-slate-900 dark:text-white font-bold mb-1 text-sm">Drop CSV file here</p>
+                                                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">or tap to browse</p>
+                                                    <button className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-xs font-bold px-5 py-2 rounded-lg">
+                                                        Choose File
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress */}
+                                            <div className="mb-4">
+                                                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-slate-900 dark:text-white text-sm font-medium">inventory_list.csv</span>
+                                                        <span className="text-teal-600 dark:text-teal-400 text-xs">78%</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2 overflow-hidden">
+                                                        <div className="bg-gradient-to-r from-blue-500 to-teal-500 h-full rounded-full" style={{ width: '78%', animation: 'progress 2s ease-in-out infinite' }}></div>
+                                                    </div>
+                                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2">247 items uploading...</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Tips */}
+                                            <div>
+                                                <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4">
+                                                    <p className="text-blue-700 dark:text-blue-300 text-xs">💡 Tip: Include serial numbers for better tracking</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Navigation */}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-800/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 px-6 py-4">
+                                            <div className="flex items-center justify-around">
+                                                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                                    <Package className="text-blue-600 dark:text-blue-400" size={20} />
+                                                </div>
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                                                    <Camera className="text-slate-400 dark:text-slate-500" size={20} />
+                                                </div>
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                                                    <Users className="text-slate-400 dark:text-slate-500" size={20} />
+                                                </div>
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                                                    <span className="text-slate-400 dark:text-slate-500 text-xl">⋯</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Center Phone - Main Dashboard */}
-                            <div className="relative z-10 transform lg:scale-110">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl ring-8 ring-slate-900/10 dark:ring-white/10">
+                            {/* Center Phone - Check Out */}
+                            <div className="relative">
+                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
                                     <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
@@ -215,117 +256,133 @@ const WebsiteScreen: React.FC = () => {
                                         <div className="p-6 pt-10">
                                             <div className="flex items-center justify-between mb-6">
                                                 <div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Hi, Producer</div>
-                                                    <div className="text-lg font-bold text-slate-900 dark:text-white">Welcome Back!</div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Checkout</div>
+                                                    <div className="text-lg font-bold text-slate-900 dark:text-white">John Smith</div>
                                                 </div>
-                                                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold relative">
-                                                    🔔
-                                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border-2 border-white"></div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-slate-900 dark:bg-slate-700 rounded-2xl p-5 mb-6 text-white">
-                                                <div className="text-xs opacity-70 mb-1">Total Inventory</div>
-                                                <div className="text-3xl font-bold mb-4">247 Items</div>
-                                                <div className="flex gap-2">
-                                                    <div className="flex-1 bg-emerald-600/20 backdrop-blur rounded-xl px-3 py-2 text-xs">
-                                                        <div className="text-emerald-300">Available</div>
-                                                        <div className="font-bold">189</div>
-                                                    </div>
-                                                    <div className="flex-1 bg-amber-600/20 backdrop-blur rounded-xl px-3 py-2 text-xs">
-                                                        <div className="text-amber-300">Out</div>
-                                                        <div className="font-bold">58</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-3 mb-6">
-                                                <button className="flex-1 bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg shadow-emerald-500/30">
-                                                    Check Out
-                                                </button>
-                                                <button className="flex-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold py-3 px-4 rounded-xl text-sm">
-                                                    Check In
+                                                <button className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                                                    <X size={16} className="text-slate-600 dark:text-slate-300" />
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-3">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                                                    <span>Recent Activity</span>
-                                                    <span className="text-emerald-600 dark:text-emerald-400">See All →</span>
-                                                </div>
-                                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
-                                                    <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                                                        CA
+                                            {/* Selected Items */}
+                                            <div className="mb-6">
+                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Selected Items (3)</div>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border-2 border-emerald-200 dark:border-emerald-700">
+                                                        <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg animate-pulse">
+                                                            <Camera size={18} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">RED Camera</div>
+                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-2847</div>
+                                                        </div>
+                                                        <CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400" />
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-xs font-bold text-slate-900 dark:text-white truncate">Camera A</div>
-                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Today, 14:30</div>
+                                                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+                                                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center font-bold text-xs text-blue-600 dark:text-blue-400">
+                                                            L1
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">LED Light Kit</div>
+                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-1293</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-xs font-bold text-red-600">-$450</div>
+                                                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+                                                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center font-bold text-xs text-amber-600 dark:text-amber-400">
+                                                            T1
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">Tripod</div>
+                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-4521</div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            {/* Signature Area */}
+                                            <div className="mb-6">
+                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Signature</div>
+                                                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 h-28 border-2 border-dashed border-slate-300 dark:border-slate-600 relative overflow-hidden">
+                                                    <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
+                                                        <path d="M 10 50 Q 30 20, 50 40 T 90 30 Q 110 50, 140 35 T 190 45" stroke="rgb(16, 185, 129)" strokeWidth="2" fill="none" className="animate-pulse"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            {/* Checkout Button */}
+                                            <button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/30 animate-pulse">
+                                                Complete Check Out →
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Right Phone - Analytics */}
-                            <div className="relative transform lg:rotate-6 hover:rotate-0 transition-transform duration-500">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl ring-8 ring-slate-900/10 dark:ring-white/10">
+                            {/* Right Phone - Check In */}
+                            <div className="relative">
+                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
                                     <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
                                         {/* Notch */}
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
 
                                         {/* Content */}
                                         <div className="p-6 pt-12">
-                                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Analytics</h3>
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Check In</h3>
+                                                <button className="text-teal-600 dark:text-teal-400 text-sm font-bold">Scan QR</button>
+                                            </div>
 
-                                            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 mb-6">
-                                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Active Jobs</div>
-                                                <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">12</div>
-                                                <div className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                    ↗ 4.9% <span className="text-slate-400">From last week</span>
+                                            {/* Scan Result */}
+                                            <div className="mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-2xl p-5 border-2 border-teal-200 dark:border-teal-700">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg animate-bounce">
+                                                        <Camera size={24} />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="text-sm font-bold text-slate-900 dark:text-white">RED Camera</div>
+                                                        <div className="text-xs text-slate-600 dark:text-slate-400">#SN-2847</div>
+                                                    </div>
+                                                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center animate-pulse">
+                                                        <CheckSquare size={16} className="text-white" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-teal-700 dark:text-teal-300 font-medium">
+                                                    ✓ Checked out to John Smith
                                                 </div>
                                             </div>
 
+                                            {/* Condition Check */}
                                             <div className="mb-6">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Equipment Usage</div>
-                                                <div className="h-32 bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-4 relative overflow-hidden">
-                                                    {/* Simple wave chart simulation */}
-                                                    <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
-                                                        <path d="M 0 60 Q 25 20, 50 30 T 100 45 T 150 25 T 200 40" stroke="rgb(16, 185, 129)" strokeWidth="3" fill="none" opacity="0.8"/>
-                                                        <path d="M 0 60 Q 25 20, 50 30 T 100 45 T 150 25 T 200 40 L 200 80 L 0 80 Z" fill="url(#gradient)" opacity="0.2"/>
-                                                        <defs>
-                                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                                                <stop offset="0%" style={{ stopColor: 'rgb(16, 185, 129)', stopOpacity: 0.5 }} />
-                                                                <stop offset="100%" style={{ stopColor: 'rgb(16, 185, 129)', stopOpacity: 0 }} />
-                                                            </linearGradient>
-                                                        </defs>
-                                                    </svg>
+                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Condition Check</div>
+                                                <div className="space-y-2">
+                                                    <button className="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
+                                                        <CheckSquare size={16} />
+                                                        Good Condition
+                                                    </button>
+                                                    <button className="w-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium py-3 px-4 rounded-xl text-sm">
+                                                        Report Damage
+                                                    </button>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                                        <span className="text-slate-600 dark:text-slate-400">Cameras</span>
-                                                    </div>
-                                                    <span className="font-bold text-slate-900 dark:text-white">$2,100</span>
+                                            {/* Notes */}
+                                            <div className="mb-6">
+                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Return Notes</div>
+                                                <textarea
+                                                    className="w-full bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600 resize-none"
+                                                    rows={3}
+                                                    placeholder="Add any notes about the return..."
+                                                ></textarea>
+                                            </div>
+
+                                            {/* Success Message */}
+                                            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl p-4 flex items-center gap-3 animate-pulse">
+                                                <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <CheckSquare size={16} className="text-white" />
                                                 </div>
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                        <span className="text-slate-600 dark:text-slate-400">Lighting</span>
-                                                    </div>
-                                                    <span className="font-bold text-slate-900 dark:text-white">$890</span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                                                        <span className="text-slate-600 dark:text-slate-400">Audio</span>
-                                                    </div>
-                                                    <span className="font-bold text-slate-900 dark:text-white">$645</span>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Ready to check in</p>
+                                                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Tap confirm to complete</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -361,18 +418,18 @@ const WebsiteScreen: React.FC = () => {
                 </section>
 
                 {/* About Section */}
-                <section id="about" className="py-24 px-6 bg-white dark:bg-slate-900">
+                <section id="about" className="py-24 px-6">
                     <div className="container mx-auto max-w-6xl">
                         <div className="flex flex-col md:flex-row items-center gap-16">
 
                             {/* Content */}
                             <div className="md:w-1/2 order-2 md:order-1">
-                                <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold border border-emerald-200 dark:border-emerald-700">
+                                <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
                                     🎬 About Us
                                 </div>
                                 <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
                                     Built by filmmakers,<br/>
-                                    <span className="text-emerald-600 dark:text-emerald-400">for filmmakers.</span>
+                                    <span className="text-teal-600 dark:text-teal-400">for filmmakers.</span>
                                 </h2>
                                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
                                     Gear Base started on a feature film set when we lost track of a $15,000 lens. That moment of panic led us to build what became the industry's most trusted inventory system.
@@ -383,8 +440,8 @@ const WebsiteScreen: React.FC = () => {
 
                                 <div className="space-y-4">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400" />
+                                        <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-emerald">
+                                            <CheckSquare size={16} className="text-white" />
                                         </div>
                                         <div>
                                             <div className="font-bold text-slate-900 dark:text-white mb-1">Production-First Design</div>
@@ -392,8 +449,8 @@ const WebsiteScreen: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <Shield size={16} className="text-emerald-600 dark:text-emerald-400" />
+                                        <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-teal">
+                                            <Shield size={16} className="text-white" />
                                         </div>
                                         <div>
                                             <div className="font-bold text-slate-900 dark:text-white mb-1">Battle-Tested Reliability</div>
@@ -401,8 +458,8 @@ const WebsiteScreen: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <Users size={16} className="text-emerald-600 dark:text-emerald-400" />
+                                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-blue">
+                                            <Users size={16} className="text-white" />
                                         </div>
                                         <div>
                                             <div className="font-bold text-slate-900 dark:text-white mb-1">Community Driven</div>
@@ -546,81 +603,82 @@ const WebsiteScreen: React.FC = () => {
                 </section>
 
                 {/* Pricing Section */}
-                <section id="pricing" className="py-24 bg-slate-900 text-white text-center">
-                    <div className="container mx-auto px-6">
-                        <h2 className="text-4xl font-bold mb-6">Start Free, Upgrade Later</h2>
-                        <p className="text-slate-400 mb-12 max-w-xl mx-auto">Get started for free today. No credit card required. Pro features coming soon.</p>
-                        
+                <section id="pricing" className="py-24 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-slate-900/40 to-blue-900/20 dark:from-emerald-950/40 dark:via-slate-950/60 dark:to-blue-950/40"></div>
+                    <div className="container mx-auto px-6 relative z-10">
+                        <h2 className="text-4xl font-bold mb-6 text-slate-900 dark:text-white text-center">Start Free, Upgrade Later</h2>
+                        <p className="text-slate-600 dark:text-slate-400 mb-12 max-w-xl mx-auto text-center">Get started for free today. No credit card required. Pro features coming soon.</p>
+
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-                            
+
                             {/* FREE - HIGHLIGHTED */}
-                            <div className="bg-gradient-to-b from-emerald-800 to-slate-800 p-8 rounded-2xl border border-emerald-500/50 flex flex-col relative shadow-xl shadow-emerald-500/10">
-                                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">AVAILABLE NOW</div>
+                            <div className="glass-card hover-float p-8 rounded-2xl flex flex-col relative shadow-glass-lg border-2 border-teal-500/50">
+                                <div className="absolute top-0 right-0 glass-button text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg shadow-glow-teal">AVAILABLE NOW</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-emerald-400 uppercase mb-2">Free Forever</div>
-                                    <div className="text-4xl font-bold mb-2">$0 <span className="text-lg font-normal text-slate-400">/month</span></div>
-                                    <p className="text-slate-300 text-sm mb-6">Full access to all core features. No credit card required.</p>
+                                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2">Free Forever</div>
+                                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">$0 <span className="text-lg font-normal text-slate-500 dark:text-slate-400">/month</span></div>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">Full access to all core features. No credit card required.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-200 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Items</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Jobs</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Users</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> QR Code Support</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Check-in/Check-out</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-400 mt-1 flex-shrink-0"/> Digital Signatures</li>
+                                <ul className="space-y-4 mb-8 text-slate-700 dark:text-slate-200 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Items</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Jobs</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> Unlimited Users</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> QR Code Support</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> Check-in/Check-out</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400 mt-1 flex-shrink-0"/> Digital Signatures</li>
                                 </ul>
                                 <button onClick={() => navigateTo('SIGNUP')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">Get Started Free</button>
                             </div>
 
                             {/* PRO - COMING SOON */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
-                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
+                            <div className="glass-card p-8 rounded-2xl flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-sky-400 uppercase mb-2 flex items-center gap-2"><Zap size={14}/> Pro</div>
-                                    <div className="text-4xl font-bold mb-2">$29 <span className="text-lg font-normal text-slate-500">/mo</span></div>
-                                    <p className="text-slate-400 text-sm mb-6">Advanced features for professionals.</p>
+                                    <div className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase mb-2 flex items-center gap-2"><Zap size={14}/> Pro</div>
+                                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">$29 <span className="text-lg font-normal text-slate-500 dark:text-slate-400">/mo</span></div>
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Advanced features for professionals.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Free</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Advanced Reports</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> API Access</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Priority Support</li>
+                                <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Everything in Free</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Advanced Reports</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> API Access</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Priority Support</li>
                                 </ul>
-                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
+                                <button disabled className="w-full bg-slate-300 dark:bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
                             {/* TEAM - COMING SOON */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
-                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
+                            <div className="glass-card p-8 rounded-2xl flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-indigo-400 uppercase mb-2 flex items-center gap-2"><Users size={14}/> Team</div>
-                                    <div className="text-4xl font-bold mb-2">$99 <span className="text-lg font-normal text-slate-500">/mo</span></div>
-                                    <p className="text-slate-400 text-sm mb-6">For production houses and rental studios.</p>
+                                    <div className="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase mb-2 flex items-center gap-2"><Users size={14}/> Team</div>
+                                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">$99 <span className="text-lg font-normal text-slate-500 dark:text-slate-400">/mo</span></div>
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">For production houses and rental studios.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Pro</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Advanced Analytics</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> White Label Options</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Dedicated Support</li>
+                                <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Everything in Pro</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Advanced Analytics</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> White Label Options</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Dedicated Support</li>
                                 </ul>
-                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
+                                <button disabled className="w-full bg-slate-300 dark:bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
                             {/* ENTERPRISE - COMING SOON */}
-                            <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 flex flex-col opacity-60 relative">
-                                <div className="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
+                            <div className="glass-card p-8 rounded-2xl flex flex-col opacity-60 relative">
+                                <div className="absolute top-0 right-0 bg-slate-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">COMING SOON</div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-amber-500 uppercase mb-2 flex items-center gap-2"><Infinity size={14}/> Enterprise</div>
-                                    <div className="text-3xl font-bold mb-2">Custom</div>
-                                    <p className="text-slate-400 text-sm mb-6">Custom solutions for large organizations.</p>
+                                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2 flex items-center gap-2"><Infinity size={14}/> Enterprise</div>
+                                    <div className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Custom</div>
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Custom solutions for large organizations.</p>
                                 </div>
-                                <ul className="space-y-4 mb-8 text-slate-400 text-left flex-grow">
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Everything in Team</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> Custom Integrations</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> On-Premise Hosting</li>
-                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 mt-1 flex-shrink-0"/> SLA Guarantee</li>
+                                <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-left flex-grow">
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Everything in Team</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> Custom Integrations</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> On-Premise Hosting</li>
+                                    <li className="flex items-start gap-2"><CheckSquare size={16} className="text-slate-500 dark:text-slate-500 mt-1 flex-shrink-0"/> SLA Guarantee</li>
                                 </ul>
-                                <button disabled className="w-full bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
+                                <button disabled className="w-full bg-slate-300 dark:bg-slate-700 text-slate-500 font-bold py-3 rounded-lg cursor-not-allowed">Coming Soon</button>
                             </div>
 
                         </div>
