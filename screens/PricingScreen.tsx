@@ -1,69 +1,80 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Check } from 'lucide-react';
+import { CheckCircle, Zap, Users, Infinity } from 'lucide-react';
 
 const PricingScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
 
   const plans = [
     {
-      name: 'Free',
+      name: 'Free Forever',
+      nameShort: 'Free',
       price: '$0',
-      period: 'forever',
-      description: 'Perfect for small teams getting started',
+      period: '/month',
+      description: 'Full access to all core features. No credit card required.',
       features: [
-        'Up to 50 inventory items',
-        'Up to 3 team members',
-        '1 active job at a time',
-        'QR code generation',
-        'Mobile access',
-        'Basic reporting',
-        'Email support'
+        'Unlimited Items',
+        'Unlimited Jobs',
+        'Unlimited Users',
+        'QR Code Support',
+        'Check-in/Check-out',
+        'Digital Signatures'
       ],
       cta: 'Get Started Free',
-      highlighted: false
+      highlighted: true,
+      available: true,
+      icon: null
     },
     {
       name: 'Pro',
+      nameShort: 'Pro',
       price: '$29',
-      period: 'per month',
-      description: 'For growing production companies',
+      period: '/mo',
+      description: 'Advanced features for professionals.',
       features: [
-        'Unlimited inventory items',
-        'Unlimited team members',
-        'Unlimited active jobs',
-        'QR code generation & scanning',
-        'Mobile access',
-        'Advanced reporting & analytics',
-        'Priority email support',
-        'Bulk import (CSV, Google Sheets)',
-        'Custom categories',
-        'Equipment kits/packages',
-        'Digital signatures',
-        'Data export'
+        'Everything in Free',
+        'Advanced Reports',
+        'API Access',
+        'Priority Support'
       ],
-      cta: 'Start Free Trial',
-      highlighted: true
+      cta: 'Coming Soon',
+      highlighted: false,
+      available: false,
+      icon: Zap
+    },
+    {
+      name: 'Team',
+      nameShort: 'Team',
+      price: '$99',
+      period: '/mo',
+      description: 'For production houses and rental studios.',
+      features: [
+        'Everything in Pro',
+        'Advanced Analytics',
+        'White Label Options',
+        'Dedicated Support'
+      ],
+      cta: 'Coming Soon',
+      highlighted: false,
+      available: false,
+      icon: Users
     },
     {
       name: 'Enterprise',
+      nameShort: 'Enterprise',
       price: 'Custom',
-      period: 'contact us',
-      description: 'For large organizations with custom needs',
+      period: '',
+      description: 'Custom solutions for large organizations.',
       features: [
-        'Everything in Pro',
-        'Multiple organizations',
-        'Custom integrations',
-        'API access',
-        'Dedicated support',
-        'Custom training',
-        'Service level agreement (SLA)',
-        'On-premise deployment option',
-        'Advanced security features',
-        'Custom branding'
+        'Everything in Team',
+        'Custom Integrations',
+        'On-Premise Hosting',
+        'SLA Guarantee'
       ],
-      cta: 'Contact Sales',
-      highlighted: false
+      cta: 'Coming Soon',
+      highlighted: false,
+      available: false,
+      icon: Infinity
     }
   ];
 
@@ -71,18 +82,18 @@ const PricingScreen: React.FC = () => {
     <div className="min-h-screen bg-gradient-hero dark:bg-gradient-to-br dark:from-slate-900 dark:via-emerald-950/50 dark:to-slate-900 text-slate-900 dark:text-white font-sans selection:bg-emerald-500 selection:text-white animate-gradient bg-[length:200%_200%]">
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 relative">
-        {/* Depth layer - subtle gradient overlay for light mode */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-emerald-50/30 to-transparent dark:from-transparent dark:via-transparent dark:to-transparent"></div>
-        {/* Subtle shadow at bottom for depth */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-200/40 to-transparent dark:via-emerald-900/20"></div>
+        {/* Background overlay for light mode */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 via-teal-50/40 to-white/50 dark:from-transparent dark:via-transparent dark:to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-radial from-emerald-100/30 via-transparent to-transparent dark:from-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent dark:via-emerald-900/20"></div>
 
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-              Simple, <span className="text-teal-600 dark:text-teal-400">Transparent</span> Pricing
+              Start Free, <span className="text-teal-600 dark:text-teal-400">Upgrade Later</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Start free. Upgrade when you're ready. Cancel anytime.
+              Get started for free today. No credit card required. Pro features coming soon.
             </p>
           </div>
         </div>
@@ -91,68 +102,76 @@ const PricingScreen: React.FC = () => {
       {/* Pricing Cards */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-3 gap-6 items-center">
-            {plans.map((plan, index) => (
-              <div
-                key={index}
-                className={`glass-card rounded-3xl p-8 shadow-glass relative overflow-hidden transition-all duration-300 ${
-                  plan.highlighted
-                    ? 'md:scale-105 border-2 border-teal-500/50 shadow-glass-lg hover:scale-110 hover:-translate-y-2'
-                    : 'hover:shadow-glass-lg hover:-translate-y-1'
-                }`}
-              >
-                <div className={`absolute top-0 right-0 w-64 h-64 ${
-                  plan.highlighted
-                    ? 'bg-gradient-to-br from-teal-500/20 via-emerald-500/20 to-transparent'
-                    : 'bg-gradient-to-br from-blue-500/10 to-transparent'
-                } blur-3xl`}></div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {plans.map((plan, index) => {
+              const IconComponent = plan.icon;
 
-                <div className="relative z-10">
-                  {plan.highlighted && (
-                    <div className="text-center mb-6">
-                      <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                        MOST POPULAR
-                      </span>
-                    </div>
-                  )}
-                  <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-5xl font-bold text-slate-900 dark:text-white">
-                      {plan.price}
-                    </span>
-                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                      {' '}/{plan.period}
-                    </span>
+              return (
+                <div
+                  key={index}
+                  className={`glass-card hover-float p-8 rounded-2xl flex flex-col relative shadow-glass hover:shadow-glass-lg transition-all duration-300 ${
+                    plan.highlighted ? 'border-2 border-teal-500/50' : ''
+                  } ${!plan.available ? 'opacity-60' : ''}`}
+                >
+                  <div className="absolute top-0 right-0 text-[10px] font-bold px-3 py-1 rounded-bl-lg">
+                    {plan.available ? (
+                      <span className="glass-button text-white shadow-glow-teal">AVAILABLE NOW</span>
+                    ) : (
+                      <span className="bg-slate-600/80 backdrop-blur-sm text-white">COMING SOON</span>
+                    )}
                   </div>
-                  <p className="mb-6 text-slate-600 dark:text-slate-300">
-                    {plan.description}
-                  </p>
+
+                  <div className="text-left">
+                    <div className={`text-sm font-bold uppercase mb-2 flex items-center gap-2 ${
+                      plan.available
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : index === 1 ? 'text-blue-600 dark:text-blue-400'
+                        : index === 2 ? 'text-teal-600 dark:text-teal-400'
+                        : 'text-emerald-600 dark:text-emerald-400'
+                    }`}>
+                      {IconComponent && <IconComponent size={14} />}
+                      {plan.nameShort}
+                    </div>
+                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">
+                      {plan.price} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">{plan.period}</span>
+                    </div>
+                    <p className={`text-sm mb-6 ${
+                      plan.available ? 'text-slate-600 dark:text-slate-300' : 'text-slate-600 dark:text-slate-400'
+                    }`}>
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  <ul className={`space-y-4 mb-8 text-left flex-grow ${
+                    plan.available ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'
+                  }`}>
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle
+                          size={16}
+                          className={`mt-1 flex-shrink-0 ${
+                            plan.available ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-500'
+                          }`}
+                        />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
                   <button
-                    onClick={() => plan.name === 'Enterprise' ? navigateTo('CONTACT') : navigateTo('SIGNUP')}
-                    className={`w-full py-3 rounded-xl font-bold mb-6 transition-all ${
-                      plan.highlighted
-                        ? 'glass-button text-white shadow-glow-teal hover:shadow-glow-emerald hover:scale-105'
-                        : 'glass-card border border-emerald-200/50 dark:border-teal-500/30 text-slate-900 dark:text-white hover-float'
+                    onClick={() => plan.available ? navigateTo('SIGNUP') : undefined}
+                    disabled={!plan.available}
+                    className={`w-full font-bold py-3 rounded-lg transition-colors ${
+                      plan.available
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        : 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                     }`}
                   >
                     {plan.cta}
                   </button>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start text-slate-600 dark:text-slate-300">
-                        <Check
-                          size={20}
-                          className="mr-2 flex-shrink-0 mt-0.5 text-teal-500"
-                        />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
