@@ -57,21 +57,16 @@ const SignupScreen: React.FC = () => {
           if (authError) throw authError;
 
           if (authData.user) {
-              // 2. Create Organization for the new user
-              const { data: orgData, error: orgError } = await supabase
-                  .from('organizations')
-                  .insert({
-                      name: `${formData.name}'s Organization`
-                  })
-                  .select()
-                  .single();
+              // 2. Create Organization for the new user using RPC (bypasses RLS)
+              const { data: organizationId, error: orgError } = await supabase
+                  .rpc('create_organization_for_signup', {
+                      org_name: `${formData.name}'s Organization`
+                  });
 
-              if (orgError) {
+              if (orgError || !organizationId) {
                   console.error("Error creating organization:", orgError);
                   throw new Error("Failed to create organization");
               }
-
-              const organizationId = orgData.id;
 
               // 3. Handle Profile Creation or Merge
               if (offlineProfileId) {
