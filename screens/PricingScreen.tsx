@@ -113,13 +113,15 @@ const PricingScreen: React.FC = () => {
                     plan.highlighted ? 'border-2 border-teal-500/50' : ''
                   } ${!plan.available ? 'opacity-60' : ''}`}
                 >
-                  <div className="absolute top-0 right-0 text-[10px] font-bold px-3 py-1 rounded-bl-lg">
-                    {plan.available ? (
-                      <span className="glass-button text-white shadow-glow-teal">AVAILABLE NOW</span>
-                    ) : (
-                      <span className="bg-slate-600/80 backdrop-blur-sm text-white">COMING SOON</span>
-                    )}
-                  </div>
+                  {plan.available ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 glass-badge text-[10px] font-bold px-3 py-1.5 rounded-full text-white shadow-lg">
+                      AVAILABLE NOW
+                    </div>
+                  ) : (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-500/90 dark:bg-slate-600/90 backdrop-blur-sm text-[10px] font-bold px-3 py-1.5 rounded-full text-white">
+                      COMING SOON
+                    </div>
+                  )}
 
                   <div className="text-left">
                     <div className={`text-sm font-bold uppercase mb-2 flex items-center gap-2 ${

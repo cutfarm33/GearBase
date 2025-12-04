@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Mail, MessageSquare, Phone, MapPin, Send, Clock, HelpCircle, ArrowRight } from 'lucide-react';
+import { Mail, Send, HelpCircle, ArrowRight } from 'lucide-react';
 
 const ContactScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -12,15 +12,31 @@ const ContactScreen: React.FC = () => {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send to a backend API
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('https://formspree.io/f/mnnezjkg', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -30,49 +46,10 @@ const ContactScreen: React.FC = () => {
     });
   };
 
-  const contactMethods = [
-    {
-      icon: <Mail size={24} />,
-      title: 'Email Support',
-      description: 'For general inquiries and support',
-      contact: 'support@mygearbase.com',
-      link: 'mailto:support@mygearbase.com',
-      gradient: 'from-emerald-500 to-teal-500'
-    },
-    {
-      icon: <MessageSquare size={24} />,
-      title: 'Sales Inquiries',
-      description: 'Questions about pricing or enterprise plans',
-      contact: 'sales@mygearbase.com',
-      link: 'mailto:sales@mygearbase.com',
-      gradient: 'from-teal-500 to-blue-500'
-    },
-    {
-      icon: <Phone size={24} />,
-      title: 'Phone Support',
-      description: 'Pro and Enterprise customers only',
-      contact: '+1 (555) 123-4567',
-      link: 'tel:+15551234567',
-      gradient: 'from-blue-500 to-teal-500'
-    },
-    {
-      icon: <MapPin size={24} />,
-      title: 'Office Location',
-      description: '123 Production Way, Los Angeles, CA 90001',
-      contact: 'United States',
-      link: null,
-      gradient: 'from-teal-500 to-emerald-500'
-    }
-  ];
-
   const faqs = [
     {
       question: 'How quickly will I get a response?',
       answer: 'We aim to respond to all inquiries within 24 hours during business days. Enterprise customers receive priority support with faster response times.'
-    },
-    {
-      question: 'Do you offer phone support?',
-      answer: 'Phone support is available for Pro and Enterprise plan customers Monday through Friday, 9am-6pm PST. Free tier users can reach us via email.'
     },
     {
       question: 'Can I schedule a demo?',
@@ -97,45 +74,6 @@ const ContactScreen: React.FC = () => {
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
               Have questions? We're here to help your team succeed.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Methods Grid */}
-      <section className="py-12 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {contactMethods.map((method, index) => (
-              <div
-                key={index}
-                className="glass-card rounded-2xl p-6 shadow-glass hover:shadow-glass-lg transition-all duration-300 relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500/10 to-transparent blur-2xl"></div>
-                <div className="relative z-10">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${method.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                    <div className="text-white">{method.icon}</div>
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2">
-                    {method.title}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
-                    {method.description}
-                  </p>
-                  {method.link ? (
-                    <a
-                      href={method.link}
-                      className="text-teal-600 dark:text-teal-400 hover:underline text-sm font-medium"
-                    >
-                      {method.contact}
-                    </a>
-                  ) : (
-                    <p className="text-slate-900 dark:text-white text-sm font-medium">
-                      {method.contact}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -224,10 +162,11 @@ const ContactScreen: React.FC = () => {
                     </div>
                     <button
                       type="submit"
-                      className="w-full glass-button text-white px-6 py-4 rounded-xl font-bold shadow-glow-teal hover:shadow-glow-emerald hover:scale-105 transition-all flex items-center justify-center gap-2 text-lg"
+                      disabled={isSubmitting}
+                      className="w-full glass-button text-white px-6 py-4 rounded-xl font-bold shadow-glow-teal hover:shadow-glow-emerald hover:scale-105 transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      <Send size={20} />
-                      Send Message
+                      <Send size={20} className={isSubmitting ? 'animate-pulse' : ''} />
+                      {isSubmitting ? 'Sending...' : 'Send Message'}
                     </button>
                   </form>
                 )}
@@ -236,30 +175,39 @@ const ContactScreen: React.FC = () => {
 
             {/* Additional Info */}
             <div className="space-y-8">
-              {/* Support Hours */}
+              {/* Email Contacts */}
               <div className="glass-card rounded-2xl p-8 shadow-glass relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent blur-2xl"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent blur-2xl"></div>
                 <div className="relative z-10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                    <Clock className="text-white" size={24} />
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                    <Mail className="text-white" size={24} />
                   </div>
                   <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-4">
-                    Support Hours
+                    Email Us Directly
                   </h3>
-                  <div className="space-y-3 text-slate-600 dark:text-white">
-                    <div className="flex justify-between">
-                      <span>Email Support:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">24/7</span>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-1">General Support</p>
+                      <a
+                        href="mailto:support@mygearbase.com"
+                        className="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                      >
+                        support@mygearbase.com
+                      </a>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Phone Support:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">Mon-Fri, 9am-6pm PST</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Response Time:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">Within 24 hours</span>
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-1">Sales & Pricing</p>
+                      <a
+                        href="mailto:sales@mygearbase.com"
+                        className="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                      >
+                        sales@mygearbase.com
+                      </a>
                     </div>
                   </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                    We respond within 24 hours
+                  </p>
                 </div>
               </div>
 

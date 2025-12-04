@@ -42,7 +42,7 @@ const Sidebar: React.FC = () => {
     <aside className="w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-300 fixed left-0 top-0 z-30">
       {/* Logo Area */}
       <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-center cursor-pointer" onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})}>
-          <img src="/logo.png" alt="Gear Base" className="h-12 w-auto object-contain" />
+          <img src="/logo.png" alt="Gear Base" className="h-18 w-auto object-contain" />
       </div>
 
       {/* Navigation */}

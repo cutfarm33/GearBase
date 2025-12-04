@@ -60,9 +60,67 @@ const CalendarScreen: React.FC = () => {
     const nextMiniMonth = () => setMiniCalendarDate(addMonths(miniCalendarDate, 1));
     const prevMiniMonth = () => setMiniCalendarDate(subMonths(miniCalendarDate, 1));
 
-    // Suppress unused variable warnings for future feature implementation
-    void viewMode;
-    void setViewMode;
+    // Navigation functions for different view modes
+    const nextPeriod = () => {
+        if (viewMode === 'month') {
+            setCurrentDate(addMonths(currentDate, 1));
+        } else if (viewMode === 'week') {
+            setCurrentDate(addWeeks(currentDate, 1));
+        } else {
+            setCurrentDate(new Date(currentDate.getTime() + 86400000)); // Add 1 day
+        }
+    };
+
+    const prevPeriod = () => {
+        if (viewMode === 'month') {
+            setCurrentDate(subMonths(currentDate, 1));
+        } else if (viewMode === 'week') {
+            setCurrentDate(subWeeks(currentDate, 1));
+        } else {
+            setCurrentDate(new Date(currentDate.getTime() - 86400000)); // Subtract 1 day
+        }
+    };
+
+    // Month view calculations
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const firstDayOfCurrentMonth = monthStart.getDay();
+    const monthOffset = firstDayOfCurrentMonth === 0 ? 6 : firstDayOfCurrentMonth - 1;
+
+    // Get display days based on view mode
+    const displayDays = viewMode === 'month' ? monthDays : viewMode === 'day' ? [currentDate] : weekDays;
+
+    // Helper to get jobs that span across a date range
+    const getJobsForDateRange = (days: Date[]) => {
+        if (!days.length) return [];
+        const rangeStart = days[0];
+        const rangeEnd = days[days.length - 1];
+
+        return state.jobs.filter(job => {
+            if (job.status === JobStatus.CANCELED) return false;
+            const jobStart = parseISO(job.startDate);
+            const jobEnd = parseISO(job.endDate);
+            return jobEnd >= rangeStart && jobStart <= rangeEnd;
+        });
+    };
+
+    // Calculate job bar position and width
+    const calculateJobBar = (job: any, days: Date[]) => {
+        const jobStart = parseISO(job.startDate);
+        const jobEnd = parseISO(job.endDate);
+
+        // Find start and end positions
+        let startIndex = days.findIndex(day => isSameDay(day, jobStart) || day > jobStart);
+        let endIndex = days.findIndex(day => isSameDay(day, jobEnd));
+
+        if (startIndex === -1) startIndex = 0;
+        if (endIndex === -1) endIndex = days.length - 1;
+
+        const width = endIndex - startIndex + 1;
+
+        return { startIndex, width };
+    };
 
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-slate-900 -m-8 overflow-hidden">
@@ -207,13 +265,13 @@ const CalendarScreen: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                {format(currentDate, 'MMMM yyyy')}
+                                {viewMode === 'day' ? format(currentDate, 'MMMM d, yyyy') : format(currentDate, 'MMMM yyyy')}
                             </h2>
                             <div className="flex items-center gap-2">
-                                <button onClick={prevWeek} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                <button onClick={prevPeriod} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                     <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
                                 </button>
-                                <button onClick={nextWeek} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                <button onClick={nextPeriod} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                     <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
                                 </button>
                             </div>
@@ -221,9 +279,24 @@ const CalendarScreen: React.FC = () => {
 
                         <div className="flex items-center gap-3">
                             <div className="flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-                                <button className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`} onClick={() => setViewMode('month')}>Month</button>
-                                <button className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`} onClick={() => setViewMode('week')}>Week</button>
-                                <button className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'day' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`} onClick={() => setViewMode('day')}>Day</button>
+                                <button
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                                    onClick={() => setViewMode('month')}
+                                >
+                                    Month
+                                </button>
+                                <button
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                                    onClick={() => setViewMode('week')}
+                                >
+                                    Week
+                                </button>
+                                <button
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'day' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                                    onClick={() => setViewMode('day')}
+                                >
+                                    Day
+                                </button>
                             </div>
                             <button
                                 onClick={() => navigateTo('ADD_JOB')}
@@ -235,67 +308,137 @@ const CalendarScreen: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Week View */}
+                {/* Calendar View */}
                 <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-6">
                     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                        {/* Week Days Header */}
-                        <div className="grid grid-cols-8 border-b border-slate-200 dark:border-slate-700">
-                            <div className="p-4 text-sm font-semibold text-slate-500 dark:text-slate-400">GMT +4</div>
-                            {weekDays.map((day, i) => {
-                                const isCurrentDay = isToday(day);
-                                return (
-                                    <div key={i} className={`p-4 text-center border-l border-slate-200 dark:border-slate-700 ${isCurrentDay ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''}`}>
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{format(day, 'EEE')} {format(day, 'd')}</div>
-                                        {isCurrentDay && <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Today</div>}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        {viewMode === 'month' ? (
+                            /* Month View */
+                            <div className="p-6">
+                                {/* Days Header */}
+                                <div className="grid grid-cols-7 gap-2 mb-4">
+                                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                                        <div key={day} className="text-center text-sm font-semibold text-slate-500 dark:text-slate-400 py-2">
+                                            {day.slice(0, 3)}
+                                        </div>
+                                    ))}
+                                </div>
 
-                        {/* Time Slots */}
-                        <div className="overflow-y-auto max-h-[600px]">
-                            {timeSlots.map((hour) => (
-                                <div key={hour} className="grid grid-cols-8 border-b border-slate-100 dark:border-slate-700/50">
-                                    <div className="p-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                                        {format(new Date().setHours(hour, 0), 'h:00 a')}
-                                    </div>
-                                    {weekDays.map((day, dayIndex) => {
-                                        const jobs = getJobsForSlot(day, hour);
+                                {/* Calendar Grid */}
+                                <div className="grid grid-cols-7 gap-2">
+                                    {Array.from({ length: monthOffset }).map((_, i) => (
+                                        <div key={`offset-${i}`} className="aspect-square"></div>
+                                    ))}
+                                    {monthDays.map((day, i) => {
                                         const isCurrentDay = isToday(day);
+                                        const dayJobs = getJobsForDateRange([day]);
 
                                         return (
                                             <div
-                                                key={dayIndex}
-                                                className={`p-2 min-h-[80px] border-l border-slate-100 dark:border-slate-700/50 relative ${isCurrentDay ? 'bg-emerald-50/30 dark:bg-emerald-900/5' : ''}`}
+                                                key={i}
+                                                className={`aspect-square border border-slate-200 dark:border-slate-700 rounded-xl p-2 ${
+                                                    isCurrentDay ? 'bg-emerald-50 dark:bg-emerald-900/20 ring-2 ring-emerald-500' : ''
+                                                }`}
                                             >
-                                                {jobs.map((job, jobIndex) => {
-                                                    const producer = state.users.find(u => u.id === job.producerId);
-                                                    return (
+                                                <div className={`text-sm font-semibold mb-1 ${
+                                                    isCurrentDay ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                    {format(day, 'd')}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {dayJobs.slice(0, 3).map((job, idx) => (
                                                         <div
-                                                            key={jobIndex}
+                                                            key={idx}
                                                             onClick={() => navigateTo('JOB_DETAIL', { jobId: job.id })}
-                                                            className={`p-2 rounded-xl cursor-pointer hover:shadow-lg transition-all mb-2 ${getJobColor(job.status)}`}
+                                                            className={`text-[9px] px-1.5 py-0.5 rounded cursor-pointer truncate ${getJobColor(job.status)}`}
                                                         >
-                                                            <div className="font-bold text-xs mb-0.5">{job.name}</div>
-                                                            <div className="text-[10px] opacity-90">
-                                                                {format(parseISO(job.startDate), 'HH:mm')} - {format(parseISO(job.endDate), 'HH:mm')}
-                                                            </div>
-                                                            {producer && (
-                                                                <div className="flex gap-1 mt-1">
-                                                                    <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center text-[8px] font-bold">
-                                                                        {producer.name.charAt(0)}
-                                                                    </div>
-                                                                </div>
-                                                            )}
+                                                            {job.name}
                                                         </div>
-                                                    );
-                                                })}
+                                                    ))}
+                                                    {dayJobs.length > 3 && (
+                                                        <div className="text-[9px] text-slate-500 dark:text-slate-400 px-1.5">
+                                                            +{dayJobs.length - 3} more
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ) : (
+                            /* Week/Day View with Bars */
+                            <>
+                                {/* Days Header */}
+                                <div className={`grid ${viewMode === 'day' ? 'grid-cols-1' : 'grid-cols-7'} border-b border-slate-200 dark:border-slate-700`}>
+                                    {displayDays.map((day, i) => {
+                                        const isCurrentDay = isToday(day);
+                                        return (
+                                            <div key={i} className={`p-4 text-center border-l border-slate-200 dark:border-slate-700 first:border-l-0 ${isCurrentDay ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''}`}>
+                                                <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{format(day, 'EEE')}</div>
+                                                <div className={`text-2xl font-bold ${isCurrentDay ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
+                                                    {format(day, 'd')}
+                                                </div>
+                                                {isCurrentDay && <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">Today</div>}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Jobs as Bars - Grid-based positioning */}
+                                <div className="relative min-h-[500px] p-6">
+                                    {/* Background grid for visual reference */}
+                                    <div className={`absolute inset-0 grid ${viewMode === 'day' ? 'grid-cols-1' : 'grid-cols-7'} pointer-events-none`}>
+                                        {displayDays.map((day, i) => {
+                                            const isCurrentDay = isToday(day);
+                                            return (
+                                                <div key={i} className={`border-l border-slate-100 dark:border-slate-800/50 first:border-l-0 ${isCurrentDay ? 'bg-emerald-50/30 dark:bg-emerald-900/5' : ''}`}></div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Job bars container */}
+                                    <div className="relative space-y-2">
+                                        {getJobsForDateRange(displayDays).map((job, jobIndex) => {
+                                            const { startIndex, width } = calculateJobBar(job, displayDays);
+                                            const producer = state.users.find(u => u.id === job.producerId);
+                                            const gridCols = viewMode === 'day' ? 1 : 7;
+
+                                            // Calculate position based on grid
+                                            const leftPercent = (startIndex / gridCols) * 100;
+                                            const widthPercent = (width / gridCols) * 100;
+
+                                            return (
+                                                <div
+                                                    key={jobIndex}
+                                                    onClick={() => navigateTo('JOB_DETAIL', { jobId: job.id })}
+                                                    className={`rounded-lg cursor-pointer hover:shadow-lg transition-all p-3 ${getJobColor(job.status)}`}
+                                                    style={{
+                                                        position: 'relative',
+                                                        marginLeft: `${leftPercent}%`,
+                                                        width: `${widthPercent}%`,
+                                                        maxWidth: `${widthPercent}%`
+                                                    }}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-bold text-xs truncate">{job.name}</div>
+                                                            <div className="text-[10px] opacity-90 truncate">
+                                                                {format(parseISO(job.startDate), 'MMM d')} - {format(parseISO(job.endDate), 'MMM d')}
+                                                            </div>
+                                                        </div>
+                                                        {producer && width > 1 && (
+                                                            <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                                                {producer.name.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

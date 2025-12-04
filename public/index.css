@@ -82,6 +82,41 @@ html {
   transform: translateX(100%);
 }
 
+/* Glass badge - smaller version for tags/labels */
+.glass-badge {
+  background: linear-gradient(135deg, #10B981 0%, #14B8A6 50%, #06B6D4 100%);
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.glass-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: badge-shine 2s ease-in-out infinite;
+}
+
+@keyframes badge-shine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
 /* Gradient border utility */
 .gradient-border {
   position: relative;
@@ -144,4 +179,73 @@ html {
 /* Radial gradient utility for hero section */
 .bg-gradient-radial {
   background-image: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
+/* Feature Card Animations */
+@keyframes inventory-stack {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-8px) translateX(-4px);
+  }
+  66% {
+    transform: translateY(-4px) translateX(4px);
+  }
+}
+
+@keyframes qr-scan {
+  0%, 100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes bulk-flow {
+  0% {
+    transform: translateX(-100%) translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.animate-inventory-stack {
+  animation: inventory-stack 3s ease-in-out infinite;
+}
+
+.animate-qr-scan {
+  animation: qr-scan 3s ease-in-out infinite;
+}
+
+.animate-bulk-flow {
+  animation: bulk-flow 2.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
