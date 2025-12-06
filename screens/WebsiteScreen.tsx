@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Mail, Zap, Infinity, Package, X } from 'lucide-react';
+import Lottie from 'lottie-react';
 
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
@@ -73,8 +74,7 @@ const WebsiteScreen: React.FC = () => {
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-                        Track Your Gear.<br/>
-                        <span className="text-teal-600 dark:text-teal-400">Own Your Production.</span>
+                        Never Lose Your Production Gear Again
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed font-normal">
@@ -104,6 +104,24 @@ const WebsiteScreen: React.FC = () => {
                         <div className="text-center mb-16">
                         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Everything you need to run the show</h2>
                         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">We built this specifically for producers, camera assistants, and rental houses.</p>
+                        </div>
+
+                        {/* Animation Container */}
+                        <div className="mb-16 flex justify-center">
+                            <div className="w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                                {/* TODO: Add your Lottie animation here */}
+                                {/* <Lottie
+                                    animationData={animationData}
+                                    loop={true}
+                                    autoplay={true}
+                                /> */}
+                                <div className="aspect-video flex items-center justify-center text-slate-400 dark:text-slate-500">
+                                    <div className="text-center">
+                                        <p className="text-lg font-semibold mb-2">Animation Placeholder</p>
+                                        <p className="text-sm">Place your Lottie JSON file in /public/animations/</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
