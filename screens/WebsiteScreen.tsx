@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Mail, Zap, Infinity, Package, X } from 'lucide-react';
-import Lottie from 'lottie-react';
 
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
@@ -106,19 +105,13 @@ const WebsiteScreen: React.FC = () => {
                         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">We built this specifically for producers, camera assistants, and rental houses.</p>
                         </div>
 
-                        {/* Animation Container */}
+                        {/* Animation Container - Placeholder */}
                         <div className="mb-16 flex justify-center">
                             <div className="w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                                {/* TODO: Add your Lottie animation here */}
-                                {/* <Lottie
-                                    animationData={animationData}
-                                    loop={true}
-                                    autoplay={true}
-                                /> */}
                                 <div className="aspect-video flex items-center justify-center text-slate-400 dark:text-slate-500">
                                     <div className="text-center">
                                         <p className="text-lg font-semibold mb-2">Animation Placeholder</p>
-                                        <p className="text-sm">Place your Lottie JSON file in /public/animations/</p>
+                                        <p className="text-sm">Add optimized animation here (target: under 500KB)</p>
                                     </div>
                                 </div>
                             </div>

@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar } from 'lucide-react';
+import OrganizationSwitcher from './OrganizationSwitcher';
+import { OfflineIndicatorCompact } from './OfflineIndicator';
 
 const Header: React.FC = () => {
   const { state, navigateTo, signOut, toggleTheme } = useAppContext();
@@ -85,6 +87,12 @@ const Header: React.FC = () => {
           
           {/* Desktop Right Actions (Landing Page Only mostly) */}
           <div className="hidden md:flex items-center gap-4">
+              {/* Offline status indicator - Only show when logged in */}
+              {isLoggedIn && <OfflineIndicatorCompact />}
+
+              {/* Organization Switcher - Only show when logged in */}
+              {isLoggedIn && <OrganizationSwitcher currentUser={state.currentUser} />}
+
               <button
                 onClick={toggleTheme}
                 className="text-slate-500 hover:text-sky-500 dark:text-slate-400 dark:hover:text-sky-400 transition-colors p-2"
@@ -122,13 +130,16 @@ const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
+             {/* Offline indicator for mobile */}
+             {isLoggedIn && <OfflineIndicatorCompact />}
+
              <button
                 onClick={toggleTheme}
                 className="text-slate-500 hover:text-sky-500 dark:text-slate-400 p-1"
               >
                   {state.theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-             <button 
+             <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1"
              >

@@ -1,7 +1,8 @@
 
 import React, { useEffect } from 'react';
-import { useAppContext } from './context/AppContext';
+import { useAppContext, supabase } from './context/AppContext';
 import DashboardScreen from './screens/DashboardScreen';
+import { registerServiceWorker, useAutoSync, useOnlineStatus, syncEngine } from './lib/offline';
 import JobListScreen from './screens/JobListScreen';
 import JobDetailScreen from './screens/JobDetailScreen';
 import InventoryScreen from './screens/InventoryScreen';
@@ -19,6 +20,8 @@ import WebsiteScreen from './screens/WebsiteScreen';  // Used for LANDING view
 import PackagesScreen from './screens/PackagesScreen';
 import PackageFormScreen from './screens/PackageFormScreen';
 import TeamScreen from './screens/TeamScreen';
+import TeamManagementScreen from './screens/TeamManagementScreen';
+import AcceptInvitationScreen from './screens/AcceptInvitationScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import FeaturesScreen from './screens/FeaturesScreen';
 import PricingScreen from './screens/PricingScreen';
@@ -34,6 +37,28 @@ const App: React.FC = () => {
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(view);
+  const isOnline = useOnlineStatus();
+
+  // Get organization ID for sync
+  const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || null;
+
+  // Auto-sync when coming online
+  const { triggerSync } = useAutoSync(
+    isConfigured ? supabase : null,
+    organizationId
+  );
+
+  // Register service worker on mount
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
+  // Initialize sync engine when user logs in
+  useEffect(() => {
+    if (isConfigured && isLoggedIn && organizationId) {
+      syncEngine.initialize(supabase, organizationId);
+    }
+  }, [isConfigured, isLoggedIn, organizationId]);
 
   // Handle deep linking from URL parameters
   useEffect(() => {
@@ -96,6 +121,7 @@ const App: React.FC = () => {
     if (view === 'SIGNUP') return <SignupScreen />;
     if (view === 'VERIFY_EMAIL') return <VerifyEmailScreen />;
     if (view === 'EMAIL_CONFIRMED') return <EmailConfirmedScreen />;
+    if (view === 'ACCEPT_INVITATION') return <AcceptInvitationScreen />;
 
     // Website Pages (Public)
     if (view === 'FEATURES') return <FeaturesScreen />;
@@ -151,6 +177,8 @@ const App: React.FC = () => {
         return <PackageFormScreen kitId={params?.kitId} />;
       case 'TEAM':
         return <TeamScreen />;
+      case 'TEAM_MANAGEMENT':
+        return <TeamManagementScreen />;
       default:
         return <DashboardScreen />;
     }

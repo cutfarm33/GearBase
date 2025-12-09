@@ -29,11 +29,47 @@ export enum TransactionType {
 
 export type UserRole = 'Admin' | 'Producer' | 'Director' | 'DP' | 'Gaffer' | 'Grip' | 'AC' | 'PA' | 'Crew';
 
+export type SubscriptionTier = 'free' | 'pro' | 'team' | 'enterprise';
+export type SubscriptionStatus = 'active' | 'canceled' | 'past_due';
+export type OrganizationRole = 'owner' | 'admin' | 'member';
+export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'expired';
+
 export interface Organization {
   id: string; // UUID
   name: string;
+  subscription_tier?: SubscriptionTier;
+  subscription_status?: SubscriptionStatus;
+  owner_id?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: OrganizationRole;
+  invited_by?: string;
+  joined_at: string;
+  // Expanded fields when joined with other tables
+  organization?: Organization;
+  user?: User;
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  organization_id: string;
+  invited_by?: string;
+  role: OrganizationRole;
+  token: string;
+  status: InvitationStatus;
+  created_at: string;
+  expires_at: string;
+  accepted_at?: string;
+  // Expanded fields when joined
+  organization?: Organization;
+  inviter?: User;
 }
 
 export interface User {
@@ -41,7 +77,8 @@ export interface User {
   name: string;
   role: UserRole;
   email: string;
-  organization_id: string; // UUID - links to Organization
+  organization_id: string; // UUID - links to Organization (legacy - for migration)
+  active_organization_id?: string; // Currently active organization
   theme?: Theme; // User's preferred theme (light/dark)
   verificationCode?: string; // Added for verification mock
   // Password and verification are handled by Supabase Auth internally
@@ -115,7 +152,7 @@ export interface TransactionLog {
 }
 
 export interface ViewState {
-  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT';
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT';
   params?: any;
 }
 
