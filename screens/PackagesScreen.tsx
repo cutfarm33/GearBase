@@ -288,42 +288,12 @@ const PackagesScreen: React.FC = () => {
 
                     return (
                         <div key={kit.id} className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                            <div className="mb-4">
+                                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 w-fit">
                                     <Package size={24} />
                                 </div>
-                                <div className="flex gap-1">
-                                    <button
-                                        onClick={() => setPreviewKit(kit)}
-                                        className="p-2 text-slate-400 hover:text-emerald-500 transition-colors"
-                                        title="Quick View"
-                                    >
-                                        <Eye size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPackagePDF(kit)}
-                                        className="p-2 text-slate-400 hover:text-indigo-500 transition-colors"
-                                        title="Download PDF"
-                                    >
-                                        <FileText size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => navigateTo('PACKAGE_FORM', { kitId: kit.id })}
-                                        className="p-2 text-slate-400 hover:text-sky-500 transition-colors"
-                                        title="Edit Package"
-                                    >
-                                        <Edit size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => setKitToDelete({id: kit.id, name: kit.name})}
-                                        className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                                        title="Delete Package"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
                             </div>
-                            
+
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{kit.name}</h3>
                             <div className="flex gap-4 mb-4">
                                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{kit.itemIds.length} items</p>
@@ -333,8 +303,8 @@ const PackagesScreen: React.FC = () => {
                                     </p>
                                 )}
                             </div>
-                            
-                            <div className="flex flex-wrap gap-2">
+
+                            <div className="flex flex-wrap gap-2 mb-4">
                                 {kit.itemIds.slice(0, 3).map(id => {
                                     const item = state.inventory.find(i => i.id === id);
                                     return item ? (
@@ -348,6 +318,38 @@ const PackagesScreen: React.FC = () => {
                                         +{kit.itemIds.length - 3} more
                                     </span>
                                 )}
+                            </div>
+
+                            {/* Action Buttons - Centered at Bottom */}
+                            <div className="flex justify-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setPreviewKit(kit)}
+                                    className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                    title="Quick View"
+                                >
+                                    <Eye size={18} />
+                                </button>
+                                <button
+                                    onClick={() => downloadPackagePDF(kit)}
+                                    className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                    title="Download PDF"
+                                >
+                                    <FileText size={18} />
+                                </button>
+                                <button
+                                    onClick={() => navigateTo('PACKAGE_FORM', { kitId: kit.id })}
+                                    className="p-2 text-slate-400 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-lg transition-colors"
+                                    title="Edit Package"
+                                >
+                                    <Edit size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setKitToDelete({id: kit.id, name: kit.name})}
+                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    title="Delete Package"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
                         </div>
                     );
