@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Edit, Trash2, Package, Search, Weight, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Weight, FileText, Eye, X, DollarSign } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -11,6 +11,7 @@ const PackagesScreen: React.FC = () => {
     const { state, navigateTo, deleteKit } = useAppContext();
     const [search, setSearch] = useState('');
     const [kitToDelete, setKitToDelete] = useState<{id: number, name: string} | null>(null);
+    const [previewKit, setPreviewKit] = useState<Kit | null>(null);
 
     const filteredKits = state.kits.filter(k => 
         k.name.toLowerCase().includes(search.toLowerCase())
@@ -118,7 +119,7 @@ const PackagesScreen: React.FC = () => {
 
     return (
         <div>
-            <ConfirmModal 
+            <ConfirmModal
                 isOpen={!!kitToDelete}
                 title="Delete Package"
                 message={`Are you sure you want to delete "${kitToDelete?.name}"? This will remove the package template, but will not affect jobs that already used it.`}
@@ -127,6 +128,131 @@ const PackagesScreen: React.FC = () => {
                 onConfirm={handleDelete}
                 onCancel={() => setKitToDelete(null)}
             />
+
+            {/* Quick View Modal */}
+            {previewKit && (() => {
+                const items = previewKit.itemIds
+                    .map(id => state.inventory.find(i => i.id === id))
+                    .filter((item): item is InventoryItem => item !== undefined);
+
+                const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
+                const totalWeight = items.reduce((sum, i) => sum + (i.weight || 0), 0);
+
+                // Group by category
+                const byCategory: Record<string, InventoryItem[]> = {};
+                items.forEach(item => {
+                    if (!byCategory[item.category]) byCategory[item.category] = [];
+                    byCategory[item.category].push(item);
+                });
+
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPreviewKit(null)}>
+                        <div
+                            className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Header */}
+                            <div className="bg-indigo-600 text-white p-4 flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <Package size={24} />
+                                    <div>
+                                        <h3 className="text-xl font-bold">{previewKit.name}</h3>
+                                        <p className="text-indigo-200 text-sm">{items.length} items</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setPreviewKit(null)}
+                                    className="p-2 hover:bg-indigo-500 rounded-lg transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            {/* Summary Stats */}
+                            <div className="flex gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
+                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                    <DollarSign size={16} className="text-green-500" />
+                                    <span className="font-medium">${totalValue.toLocaleString()}</span>
+                                    <span className="text-slate-400">total value</span>
+                                </div>
+                                {totalWeight > 0 && (
+                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                        <Weight size={16} className="text-blue-500" />
+                                        <span className="font-medium">{totalWeight.toFixed(1)} lbs</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Items List */}
+                            <div className="overflow-y-auto max-h-[50vh] p-4">
+                                {Object.keys(byCategory).sort().map(category => (
+                                    <div key={category} className="mb-4">
+                                        <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                                            {category} ({byCategory[category].length})
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {byCategory[category].sort((a, b) => a.name.localeCompare(b.name)).map(item => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex justify-between items-center bg-slate-100 dark:bg-slate-700 rounded-lg px-3 py-2"
+                                                >
+                                                    <div>
+                                                        <span className="text-slate-900 dark:text-white font-medium">{item.name}</span>
+                                                        <span className="text-xs text-slate-400 ml-2">{item.qrCode}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 text-sm">
+                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                            item.condition === 'Good' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                            item.condition === 'Used but OK' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                            item.condition === 'In Repair' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                        }`}>
+                                                            {item.condition}
+                                                        </span>
+                                                        {item.value && (
+                                                            <span className="text-slate-500 dark:text-slate-400">${item.value.toLocaleString()}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {items.length === 0 && (
+                                    <div className="text-center py-8 text-slate-400">
+                                        <Package size={32} className="mx-auto mb-2 opacity-50" />
+                                        <p>No items in this package</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer Actions */}
+                            <div className="p-4 border-t border-slate-200 dark:border-slate-600 flex gap-2 justify-end">
+                                <button
+                                    onClick={() => {
+                                        downloadPackagePDF(previewKit);
+                                    }}
+                                    className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    <FileText size={16} />
+                                    Download PDF
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        navigateTo('PACKAGE_FORM', { kitId: previewKit.id });
+                                        setPreviewKit(null);
+                                    }}
+                                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    <Edit size={16} />
+                                    Edit Package
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                 <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Packages</h2>
@@ -167,6 +293,13 @@ const PackagesScreen: React.FC = () => {
                                     <Package size={24} />
                                 </div>
                                 <div className="flex gap-1">
+                                    <button
+                                        onClick={() => setPreviewKit(kit)}
+                                        className="p-2 text-slate-400 hover:text-emerald-500 transition-colors"
+                                        title="Quick View"
+                                    >
+                                        <Eye size={18} />
+                                    </button>
                                     <button
                                         onClick={() => downloadPackagePDF(kit)}
                                         className="p-2 text-slate-400 hover:text-indigo-500 transition-colors"
