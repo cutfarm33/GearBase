@@ -358,7 +358,7 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
-  // Generate QR Code Labels PDF (printable stickers - 0.5" x 0.5" each)
+  // Generate QR Code Labels PDF (printable stickers - 0.5" x 0.5" QR codes)
   const downloadQRLabels = async (categoryToExport?: string) => {
       const items = categoryToExport
           ? state.inventory.filter(i => i.category === categoryToExport)
@@ -367,21 +367,21 @@ const InventoryScreen: React.FC = () => {
       const doc = new jsPDF();
       const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
-      // Label size: 0.5" x 0.5" = 12.7mm x 12.7mm
-      // Add small gap for cutting: total cell = 14mm x 16mm (extra height for tiny text)
-      const qrSize = 12.7; // 0.5 inches in mm
-      const labelWidth = 14; // QR + small margin
-      const labelHeight = 18; // QR + space for tiny name below
-
-      const pageWidth = doc.internal.pageSize.getWidth(); // 210mm for A4/Letter
-      const pageHeight = doc.internal.pageSize.getHeight(); // 297mm for A4, 279mm for Letter
-      const marginX = 10;
-      const marginY = 12;
-
-      // Calculate grid
-      const labelsPerRow = Math.floor((pageWidth - 2 * marginX) / labelWidth);
-      const labelsPerColumn = Math.floor((pageHeight - 2 * marginY - 8) / labelHeight);
+      // Label layout settings (3 columns x 4 rows per page = 12 labels per page)
+      const labelsPerRow = 3;
+      const labelsPerColumn = 4;
       const labelsPerPage = labelsPerRow * labelsPerColumn;
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 10;
+      const marginY = 15;
+
+      const labelWidth = (pageWidth - 2 * marginX) / labelsPerRow;
+      const labelHeight = (pageHeight - 2 * marginY - 10) / labelsPerColumn;
+
+      // QR code size: 0.5" x 0.5" = 12.7mm
+      const qrSize = 12.7;
 
       // Sort items by category then name
       const sortedItems = [...items].sort((a, b) => {
@@ -394,8 +394,8 @@ const InventoryScreen: React.FC = () => {
       for (const item of sortedItems) {
           try {
               qrCodes[item.qrCode] = await QRCode.toDataURL(item.qrCode, {
-                  width: 100,
-                  margin: 0,
+                  width: 150,
+                  margin: 1,
                   color: { dark: '#000000', light: '#ffffff' }
               });
           } catch (err) {
@@ -419,61 +419,62 @@ const InventoryScreen: React.FC = () => {
           const col = positionOnPage % labelsPerRow;
           const row = Math.floor(positionOnPage / labelsPerRow);
           const x = marginX + col * labelWidth;
-          const y = marginY + 6 + row * labelHeight;
+          const y = marginY + 8 + row * labelHeight;
 
-          // Page header on first row only
+          // Page header on first row
           if (positionOnPage === 0) {
-              doc.setFontSize(7);
+              doc.setFontSize(10);
               doc.setTextColor(100, 116, 139);
-              const title = categoryToExport ? `${categoryToExport} Labels` : 'QR Labels';
+              const title = categoryToExport ? `${categoryToExport} QR Labels` : 'Inventory QR Labels';
               doc.text(title, marginX, marginY);
-              doc.text(date, pageWidth - marginX - 25, marginY);
+              doc.text(`Generated: ${date}`, pageWidth - marginX - 50, marginY);
           }
 
           const item = sortedItems[i];
           const qrDataUrl = qrCodes[item.qrCode];
 
           // Draw label border (dashed for cutting guide)
-          doc.setDrawColor(220, 220, 220);
-          doc.setLineDashPattern([1, 1], 0);
-          doc.rect(x, y, labelWidth - 0.5, labelHeight - 0.5);
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineDashPattern([2, 2], 0);
+          doc.rect(x + 2, y, labelWidth - 4, labelHeight - 4);
           doc.setLineDashPattern([], 0);
 
-          // QR Code (0.5" x 0.5" centered)
-          const qrX = x + (labelWidth - qrSize) / 2 - 0.25;
-          const qrY = y + 0.5;
+          // QR Code (0.5" x 0.5" = 12.7mm, centered in label)
+          const qrX = x + (labelWidth - qrSize) / 2;
+          const qrY = y + 3;
 
           if (qrDataUrl) {
               doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
           }
 
-          // Item name (tiny, below QR code)
-          doc.setFontSize(4);
+          // Item name (below QR code, truncated if needed)
+          doc.setFontSize(7);
           doc.setTextColor(30, 41, 59);
-          const maxNameWidth = labelWidth - 1;
+          const maxNameWidth = labelWidth - 8;
           let displayName = item.name;
           while (doc.getTextWidth(displayName) > maxNameWidth && displayName.length > 3) {
               displayName = displayName.slice(0, -4) + '...';
           }
-          doc.text(displayName, x + labelWidth / 2 - 0.25, y + qrSize + 2.5, { align: 'center' });
+          doc.text(displayName, x + labelWidth / 2, y + qrSize + 7, { align: 'center' });
 
-          // QR code value (even tinier, below name)
-          doc.setFontSize(3);
+          // QR code value (smaller, below name)
+          doc.setFontSize(5);
           doc.setTextColor(100, 116, 139);
-          let displayCode = item.qrCode;
-          while (doc.getTextWidth(displayCode) > maxNameWidth && displayCode.length > 3) {
-              displayCode = displayCode.slice(0, -4) + '...';
-          }
-          doc.text(displayCode, x + labelWidth / 2 - 0.25, y + qrSize + 4.5, { align: 'center' });
+          doc.text(item.qrCode, x + labelWidth / 2, y + qrSize + 11, { align: 'center' });
+
+          // Category (tiny, at bottom)
+          doc.setFontSize(4);
+          doc.setTextColor(148, 163, 184);
+          doc.text(item.category, x + labelWidth / 2, y + qrSize + 14, { align: 'center' });
       }
 
       // Footer on all pages
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
           doc.setPage(i);
-          doc.setFontSize(6);
+          doc.setFontSize(7);
           doc.setTextColor(148, 163, 184);
-          doc.text(`Page ${i}/${pageCount} - ${sortedItems.length} labels`, marginX, pageHeight - 4);
+          doc.text(`Gear Base - Page ${i} of ${pageCount} - ${sortedItems.length} labels`, marginX, pageHeight - 5);
       }
 
       const filename = categoryToExport
