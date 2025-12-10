@@ -228,7 +228,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   }, [state.theme]);
 
-  const refreshData = async (silent = false) => {
+  const refreshData = async (silent = false, overrideOrgId?: string) => {
       if (!silent) dispatch({ type: 'SET_LOADING', payload: true });
       try {
           if (!isConfigured) {
@@ -236,27 +236,52 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               return;
           }
 
-          console.log('Starting data refresh...');
+          // Get organization ID - use override if provided, otherwise from current user
+          // CRITICAL for data isolation between organizations
+          const orgId = overrideOrgId || state.currentUser?.active_organization_id || state.currentUser?.organization_id;
 
-          // 1. Fetch Raw Data
-          const { data: items, error: itemsError } = await supabase.from('inventory').select('*').order('id');
+          if (!orgId) {
+              console.warn('No organization ID found - cannot load data');
+              if (!silent) dispatch({ type: 'SET_LOADING', payload: false });
+              return;
+          }
+
+          console.log('Starting data refresh for organization:', orgId);
+
+          // 1. Fetch Raw Data - FILTERED BY ORGANIZATION
+          const { data: items, error: itemsError } = await supabase
+              .from('inventory')
+              .select('*')
+              .eq('organization_id', orgId)
+              .order('id');
           console.log('Inventory fetched:', items?.length, 'items');
           if (itemsError) throw itemsError;
 
-          const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*');
+          // Profiles: fetch users in this organization (via organization_members or same org_id)
+          const { data: profiles, error: profilesError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('organization_id', orgId);
           console.log('Profiles fetched:', profiles?.length, 'profiles');
           if (profilesError) console.warn("Profiles fetch error", profilesError);
 
-          const { data: jobsData, error: jobsError } = await supabase.from('jobs').select(`*, job_items(item_id)`);
+          const { data: jobsData, error: jobsError } = await supabase
+              .from('jobs')
+              .select(`*, job_items(item_id)`)
+              .eq('organization_id', orgId);
           console.log('Jobs fetched:', jobsData?.length, 'jobs');
           if (jobsError) throw jobsError;
 
-          const { data: kitsData } = await supabase.from('kits').select(`*, kit_items(item_id)`);
+          const { data: kitsData } = await supabase
+              .from('kits')
+              .select(`*, kit_items(item_id)`)
+              .eq('organization_id', orgId);
           console.log('Kits fetched:', kitsData?.length, 'kits');
 
           const { data: transactionsData, error: txError } = await supabase
               .from('transactions')
               .select(`*, transaction_items(*)`)
+              .eq('organization_id', orgId)
               .order('timestamp', { ascending: false });
           console.log('Transactions fetched:', transactionsData?.length, 'transactions');
 
@@ -377,7 +402,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
     try {
         console.log('Processing user session for:', session.user.email);
 
-        // 1. Fetch user profile from database to get theme preference
+        // 1. Fetch user profile from database to get theme preference and organization
         console.log('Fetching profile for user ID:', session.user.id);
 
         let profileData = null;
@@ -385,7 +410,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
             // Add timeout to profile fetch
             const fetchPromise = supabase
                 .from('profiles')
-                .select('full_name, role, theme, organization_id')
+                .select('full_name, role, theme, organization_id, active_organization_id')
                 .eq('id', session.user.id)
                 .maybeSingle();
 
@@ -412,7 +437,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
         // Default organization_id if not set (for backwards compatibility with existing users)
         const defaultOrgId = '00000000-0000-0000-0000-000000000000';
-        const orgId = profileData?.organization_id || defaultOrgId;
+        // Use active_organization_id if set, otherwise fall back to organization_id
+        const orgId = profileData?.active_organization_id || profileData?.organization_id || defaultOrgId;
 
         const userProfile = {
             id: session.user.id,
@@ -420,17 +446,18 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
             email: email,
             role: (profileData?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || 'Crew',
             theme: userTheme,
-            organization_id: orgId
+            organization_id: profileData?.organization_id || defaultOrgId,
+            active_organization_id: orgId
         };
 
         // Set theme from user profile
         dispatch({ type: 'SET_DATA', payload: { theme: userTheme } });
         dispatch({ type: 'SET_CURRENT_USER', payload: userProfile });
 
-        console.log('User profile set, starting background data refresh...');
+        console.log('User profile set, starting background data refresh for org:', orgId);
 
-        // 2. Load Data in Background
-        refreshData(true).catch(e => console.error("Background refresh failed", e));
+        // 2. Load Data in Background - pass orgId to ensure correct data is loaded
+        refreshData(true, orgId).catch(e => console.error("Background refresh failed", e));
 
         console.log('processUserSession completed successfully');
         return true;
