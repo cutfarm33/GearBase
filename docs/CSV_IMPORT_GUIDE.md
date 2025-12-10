@@ -181,6 +181,44 @@ After importing:
 
 ---
 
+## Exporting & Downloading Inventory
+
+GearBase offers multiple export options from the Inventory screen:
+
+### Download Options
+
+Click the **"Download"** button in the Inventory screen to access:
+
+| Format | Description | Best For |
+|--------|-------------|----------|
+| **CSV Report** | Full spreadsheet with all details & summary stats | Excel/Sheets analysis, insurance |
+| **PDF Report** | Formatted document grouped by category | Printing, sharing, insurance |
+| **Transfer CSV** | Import-ready format (Name, Category, Value, QR, Notes) | Backup, moving to another account |
+| **QR Code Labels** | Printable stickers with QR codes & names | Labeling equipment |
+| **Export by Category** | Download individual categories | Department-specific reports |
+
+### CSV Report Includes
+- Summary: Total items, available, checked out, total value
+- Columns: Name, Category, QR Code, Status, Condition, Value, Weight, Storage Case, Purchase Date, Notes
+
+### QR Code Labels
+- 12 labels per page (3 columns x 4 rows)
+- 0.5" x 0.5" QR codes
+- Item name and category on each label
+- Dashed cutting guides
+- Print on adhesive label paper
+
+### Filtered Exports
+If you have a search filter active, exports will only include the filtered items. Clear the filter to export your complete inventory.
+
+### Package PDF Downloads
+You can also download PDFs for individual Packages:
+1. Go to **Packages** screen
+2. Click the document icon (📄) on any package card
+3. PDF includes: Package name, all items by category, values, weights, conditions
+
+---
+
 ## Best Practices
 
 1. **Test with small batch first** - Import 5-10 items to verify format

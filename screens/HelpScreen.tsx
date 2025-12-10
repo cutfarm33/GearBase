@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Search, Book, Package, QrCode, Users, Calendar, FileText, CheckCircle } from 'lucide-react';
+import { Search, Book, Package, QrCode, Users, Calendar, FileText, CheckCircle, Download } from 'lucide-react';
 
 const HelpScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -195,6 +195,67 @@ const HelpScreen: React.FC = () => {
                 'Use subcategories in the item name if needed',
                 'Limit yourself to 10-15 main categories'
               ]
+            }
+          ]
+        },
+        {
+          title: 'Downloading & Exporting Inventory',
+          steps: [
+            {
+              heading: 'Download Options',
+              description: 'Click the "Download" button in the Inventory screen to access multiple export formats.',
+              items: []
+            },
+            {
+              heading: 'CSV Report',
+              items: [
+                'Full inventory spreadsheet with all details',
+                'Includes summary stats (total items, available, checked out)',
+                'Shows total inventory value',
+                'Columns: Name, Category, QR Code, Status, Condition, Value, Weight, Storage Case, Purchase Date, Notes',
+                'Perfect for spreadsheet analysis in Excel or Google Sheets'
+              ]
+            },
+            {
+              heading: 'PDF Report',
+              items: [
+                'Formatted document organized by category',
+                'Professional layout with your gear organized visually',
+                'Includes summary statistics at the top',
+                'Great for printing or sharing with insurance companies'
+              ]
+            },
+            {
+              heading: 'Transfer CSV',
+              items: [
+                'Import-ready format matching GearBase import template',
+                'Columns: Name, Category, Value, QR Code, Notes',
+                'Use this to move inventory to another GearBase account',
+                'Perfect for backup or sharing with collaborators'
+              ]
+            },
+            {
+              heading: 'QR Code Labels',
+              items: [
+                'Printable PDF with QR codes for each item',
+                '12 labels per page (3 columns x 4 rows)',
+                '0.5" x 0.5" QR codes with item name and category',
+                'Dashed borders for cutting guides',
+                'Print on adhesive label paper for easy application'
+              ]
+            },
+            {
+              heading: 'Export by Category',
+              items: [
+                'Download specific categories separately',
+                'Choose between CSV, PDF, or QR Labels for each category',
+                'Great for organizing gear by department',
+                'Quick access icons: CSV (spreadsheet), QR (labels), PDF (document)'
+              ]
+            },
+            {
+              heading: 'Filtered Exports',
+              description: 'If you have a search filter active, exports will only include filtered items. Clear the filter to export everything.'
             }
           ]
         }
@@ -510,6 +571,126 @@ const HelpScreen: React.FC = () => {
       ]
     },
     {
+      id: 'packages',
+      icon: <Package size={24} />,
+      title: 'Packages & Kits',
+      color: 'teal',
+      articles: [
+        {
+          title: 'Creating Packages',
+          steps: [
+            {
+              heading: 'What are Packages?',
+              description: 'Packages (or Kits) are pre-defined groups of equipment that commonly go together. Create a package once and quickly add all items to a job.',
+              items: []
+            },
+            {
+              heading: 'Step 1: Create a Package',
+              items: [
+                'Navigate to Packages in the sidebar',
+                'Click "Create Package"',
+                'Give your package a descriptive name (e.g., "A-Cam Package", "Interview Lighting Kit")'
+              ]
+            },
+            {
+              heading: 'Step 2: Add Items',
+              items: [
+                'Search or browse your inventory',
+                'Click items to add them to the package',
+                'Add as many items as needed',
+                'Save your package'
+              ]
+            },
+            {
+              heading: 'Package Ideas',
+              items: [
+                'A-Cam Package: Camera body, lenses, batteries, cards',
+                'Interview Kit: Camera, lights, tripod, audio gear',
+                'B-Roll Package: Gimbal, compact camera, small light',
+                'Audio Kit: Boom, lavs, recorder, cables',
+                'Lighting Package: Key light, fill, backlight, stands, gels'
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Using Packages in Jobs',
+          steps: [
+            {
+              heading: 'Quick Add to Jobs',
+              description: 'When creating or editing a job, you can add entire packages with one click.',
+              items: []
+            },
+            {
+              heading: 'Adding Packages',
+              items: [
+                'Open a job in edit mode',
+                'Find "Quick Add Kits" section',
+                'Click any package button to add all its items',
+                'Items appear grouped under the package name'
+              ]
+            },
+            {
+              heading: 'Conflict Detection',
+              items: [
+                'System checks if items are booked on other jobs',
+                'Conflicting packages show a warning icon',
+                'You cannot add packages with conflicting items',
+                'Helps prevent double-booking equipment'
+              ]
+            },
+            {
+              heading: 'Removing Packages',
+              items: [
+                'Click the trash icon on any package group',
+                'All items from that package are removed',
+                'Individual items can be removed separately'
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Downloading Package PDFs',
+          steps: [
+            {
+              heading: 'Package PDF Downloads',
+              description: 'Generate a professional PDF of any package contents for sharing or printing.',
+              items: []
+            },
+            {
+              heading: 'How to Download',
+              items: [
+                'Go to Packages screen',
+                'Find the package you want',
+                'Click the document icon (📄) on the package card',
+                'PDF downloads automatically'
+              ]
+            },
+            {
+              heading: 'PDF Contents Include',
+              items: [
+                'Package name and generation date',
+                'Total items, total value, and total weight',
+                'Items organized by category',
+                'For each item: Name, QR Code, Condition, Value, Weight',
+                'Professional formatting with page numbers'
+              ]
+            },
+            {
+              heading: 'Use Cases',
+              items: [
+                'Share package contents with clients',
+                'Print packing lists for crew',
+                'Insurance documentation',
+                'Equipment manifests for shipping',
+                'Internal reference documents'
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       id: 'reports',
       icon: <FileText size={24} />,
       title: 'Reports & Analytics',
@@ -543,6 +724,36 @@ const HelpScreen: React.FC = () => {
                 'PDF: Formatted reports for sharing',
                 'CSV: Data for Excel or Google Sheets',
                 'Print: Hard copies for filing'
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Download Options Summary',
+          steps: [
+            {
+              heading: 'Inventory Downloads',
+              items: [
+                'CSV Report: Full spreadsheet with all details and summary',
+                'PDF Report: Formatted document grouped by category',
+                'Transfer CSV: Import-ready format for backup or sharing',
+                'QR Code Labels: Printable stickers with QR codes',
+                'Export by Category: Download individual categories'
+              ]
+            },
+            {
+              heading: 'Package Downloads',
+              items: [
+                'PDF per Package: Click document icon on any package card',
+                'Includes item details, values, weights, and conditions'
+              ]
+            },
+            {
+              heading: 'Job Documents',
+              items: [
+                'Check-out receipts with signatures',
+                'Check-in documentation',
+                'Job equipment manifests'
               ]
             }
           ]
