@@ -233,11 +233,22 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   }, [state.theme]);
 
+  // Track if a refresh is in progress to prevent race conditions
+  const refreshInProgress = React.useRef(false);
+
   const refreshData = async (silent = false, overrideOrgId?: string) => {
+      // Prevent concurrent refreshes that could cause data overwrites
+      if (refreshInProgress.current) {
+          console.log('Refresh already in progress, skipping...');
+          return;
+      }
+      refreshInProgress.current = true;
+
       if (!silent) dispatch({ type: 'SET_LOADING', payload: true });
       try {
           if (!isConfigured) {
               if (!silent) dispatch({ type: 'SET_LOADING', payload: false });
+              refreshInProgress.current = false;
               return;
           }
 
@@ -248,6 +259,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           if (!orgId) {
               console.warn('No organization ID found - cannot load data');
               if (!silent) dispatch({ type: 'SET_LOADING', payload: false });
+              refreshInProgress.current = false;
               return;
           }
 
@@ -261,6 +273,13 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               .order('id');
           console.log('Inventory fetched:', items?.length, 'items');
           if (itemsError) throw itemsError;
+
+          // CRITICAL: Don't proceed if we got no items AND there was an issue
+          // This prevents wiping existing data on network/RLS errors
+          if (items === null) {
+              console.warn('Inventory fetch returned null - possible RLS or network issue');
+              throw new Error('Failed to fetch inventory data');
+          }
 
           // Profiles: fetch users in this organization (via organization_members or same org_id)
           const { data: profiles, error: profilesError } = await supabase
@@ -398,7 +417,9 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           // FIX: Safely log error string to prevent [object Object]
           const message = err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
           console.error("Error fetching data:", message);
+          // DO NOT dispatch SET_DATA on error - preserve existing data
       } finally {
+          refreshInProgress.current = false;
           if (!silent) dispatch({ type: 'SET_LOADING', payload: false });
       }
   };
@@ -799,11 +820,28 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
       init();
 
+      // Track the last processed session to prevent duplicate processing
+      let lastProcessedSessionId: string | null = null;
+
       const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state change:', event, session?.user?.email);
+
           if (event === 'SIGNED_IN' && session) {
+               // Prevent processing the same session multiple times (token refresh, etc.)
+               const sessionId = session.access_token;
+               if (lastProcessedSessionId === sessionId) {
+                   console.log('Session already processed, skipping...');
+                   return;
+               }
+               lastProcessedSessionId = sessionId;
                await processUserSession(session);
           } else if (event === 'SIGNED_OUT') {
+               lastProcessedSessionId = null;
                dispatch({ type: 'LOGOUT' });
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+               // Token refresh shouldn't re-fetch all data, just update the session
+               console.log('Token refreshed, keeping existing data');
+               lastProcessedSessionId = session.access_token;
           }
       });
 
