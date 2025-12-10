@@ -681,9 +681,13 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
           const id = crypto.randomUUID();
-          const fakeEmail = email || `${name.toLowerCase().replace(/\s/g, '.')}@offline.user`;
+          // Generate unique email with timestamp to avoid duplicate constraint violations
+          const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+          const fakeEmail = email || `${name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}.${uniqueSuffix}@offline.user`;
           // CRITICAL: Use the same organization ID logic as refreshData
           const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
+
+          console.log('Adding team member:', { name, role, email: fakeEmail, organizationId });
 
           const { error } = await supabase.from('profiles').insert({
               id,
@@ -693,7 +697,12 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               organization_id: organizationId
           });
 
-          if (error) throw error;
+          if (error) {
+              console.error('Supabase insert error:', error);
+              throw error;
+          }
+
+          console.log('Team member added to database, updating local state');
 
           // Immediately add to local state so UI updates without waiting for refresh
           const newUser: User = {
@@ -709,8 +718,11 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               payload: { users: [...state.users, newUser] }
           });
 
-          // Also refresh data in background (won't block)
-          refreshData(true);
+          console.log('Local state updated, returning ID:', id);
+
+          // NOTE: We do NOT call refreshData here because it could race with
+          // the database insert and overwrite our local state before the DB
+          // has committed. The local state update above is sufficient.
           return id;
       } catch (e: any) {
           console.error("Error adding team member:", e);

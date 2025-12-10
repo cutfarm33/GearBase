@@ -141,18 +141,24 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
     const handleQuickAddProducer = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newProducerName.trim()) return;
-        
+
         setIsAddingProducer(true);
         try {
-            const newId = await addTeamMember(newProducerName, 'Producer', newProducerEmail);
+            console.log('Quick adding producer:', newProducerName);
+            const newId = await addTeamMember(newProducerName, 'Producer', newProducerEmail || undefined);
+            console.log('Producer added with ID:', newId);
             if (newId) {
                 setFormData(prev => ({ ...prev, producerId: newId }));
                 setShowProducerModal(false);
                 setNewProducerName('');
                 setNewProducerEmail('');
+            } else {
+                alert("Failed to add producer - no ID returned");
             }
         } catch (error: any) {
-            alert("Failed to add producer: " + error.message);
+            console.error('Quick add producer error:', error);
+            const msg = error?.message || error?.details || JSON.stringify(error) || 'Unknown error';
+            alert("Failed to add producer: " + msg);
         } finally {
             setIsAddingProducer(false);
         }
