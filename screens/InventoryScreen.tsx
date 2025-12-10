@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { InventoryItem, ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const StatusBadge: React.FC<{ status: ItemStatus }> = ({ status }) => {
   // Strict check for checked out status
@@ -44,6 +46,7 @@ const InventoryScreen: React.FC = () => {
 
   // Download Dropdown State
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showCategorySubmenu, setShowCategorySubmenu] = useState(false);
 
   // Combine PREDEFINED categories with any custom ones used in the database
   const categories = ['All', ...Array.from(new Set([
@@ -222,6 +225,141 @@ const InventoryScreen: React.FC = () => {
       setShowDownloadMenu(false);
   };
 
+  // Download PDF inventory report
+  const downloadPDF = (categoryToExport?: string) => {
+      const items = categoryToExport
+          ? state.inventory.filter(i => i.category === categoryToExport)
+          : (filteredInventory.length > 0 ? filteredInventory : state.inventory);
+
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const doc = new jsPDF();
+
+      // Title
+      const title = categoryToExport ? `${categoryToExport} Inventory` : 'Inventory Report';
+      doc.setFontSize(20);
+      doc.setTextColor(16, 185, 129); // Emerald color
+      doc.text(title, 14, 20);
+
+      // Subtitle with date
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139); // Slate color
+      doc.text(`Generated: ${date}`, 14, 28);
+
+      // Summary stats
+      const available = items.filter(i => i.status === ItemStatus.AVAILABLE).length;
+      const checkedOut = items.filter(i => i.status === ItemStatus.CHECKED_OUT).length;
+      const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
+
+      doc.setFontSize(9);
+      doc.text(`Total Items: ${items.length}  |  Available: ${available}  |  Checked Out: ${checkedOut}  |  Total Value: $${totalValue.toLocaleString()}`, 14, 35);
+
+      // Group by category
+      const byCategory: Record<string, InventoryItem[]> = {};
+      items.forEach(item => {
+          if (!byCategory[item.category]) byCategory[item.category] = [];
+          byCategory[item.category].push(item);
+      });
+
+      let yPosition = 45;
+
+      Object.keys(byCategory).sort().forEach(category => {
+          const categoryItems = byCategory[category].sort((a, b) => a.name.localeCompare(b.name));
+
+          // Category header
+          doc.setFontSize(12);
+          doc.setTextColor(30, 41, 59); // Slate-800
+          doc.text(`${category} (${categoryItems.length})`, 14, yPosition);
+          yPosition += 2;
+
+          // Table for this category
+          autoTable(doc, {
+              startY: yPosition,
+              head: [['Name', 'QR Code', 'Status', 'Condition', 'Value']],
+              body: categoryItems.map(item => [
+                  item.name,
+                  item.qrCode,
+                  item.status === ItemStatus.CHECKED_OUT ? 'Checked Out' : item.status,
+                  item.condition,
+                  item.value ? `$${item.value.toLocaleString()}` : '-'
+              ]),
+              theme: 'striped',
+              headStyles: {
+                  fillColor: [16, 185, 129], // Emerald
+                  fontSize: 8,
+                  fontStyle: 'bold'
+              },
+              bodyStyles: { fontSize: 8 },
+              columnStyles: {
+                  0: { cellWidth: 60 },
+                  1: { cellWidth: 30 },
+                  2: { cellWidth: 30 },
+                  3: { cellWidth: 30 },
+                  4: { cellWidth: 25 }
+              },
+              margin: { left: 14, right: 14 }
+          });
+
+          yPosition = (doc as any).lastAutoTable.finalY + 10;
+
+          // Add new page if needed
+          if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+          }
+      });
+
+      // Footer on last page
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`Gear Base - Page ${i} of ${pageCount}`, 14, 290);
+      }
+
+      const filename = categoryToExport
+          ? `inventory_${categoryToExport.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+          : `inventory_report_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      doc.save(filename);
+      setShowDownloadMenu(false);
+      setShowCategorySubmenu(false);
+  };
+
+  // Download CSV for specific category
+  const downloadCategoryCSV = (category: string) => {
+      const items = state.inventory.filter(i => i.category === category);
+
+      let csv = `Name,Category,Value,QR Code,Status,Condition,Notes\n`;
+
+      items.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+          csv += [
+              escapeCSV(item.name),
+              escapeCSV(item.category),
+              item.value || '',
+              escapeCSV(item.qrCode),
+              escapeCSV(item.status),
+              escapeCSV(item.condition),
+              escapeCSV(item.notes || '')
+          ].join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${category.toLowerCase().replace(/[^a-z0-9]/g, '_')}_inventory_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setShowDownloadMenu(false);
+      setShowCategorySubmenu(false);
+  };
+
+  // Get categories that have items
+  const categoriesWithItems = categories.filter(c => c !== 'All' && state.inventory.some(i => i.category === c));
+
   return (
     <div>
       <ConfirmModal
@@ -299,13 +437,14 @@ const InventoryScreen: React.FC = () => {
                                     {/* Backdrop to close dropdown */}
                                     <div
                                         className="fixed inset-0 z-40"
-                                        onClick={() => setShowDownloadMenu(false)}
+                                        onClick={() => { setShowDownloadMenu(false); setShowCategorySubmenu(false); }}
                                     />
                                     <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
                                         <div className="p-2 border-b border-slate-100 dark:border-slate-700">
                                             <p className="text-xs text-slate-500 dark:text-slate-400 px-2 py-1 font-medium">Export Options</p>
                                         </div>
 
+                                        {/* CSV Report */}
                                         <button
                                             onClick={downloadFormattedReport}
                                             className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
@@ -314,11 +453,26 @@ const InventoryScreen: React.FC = () => {
                                                 <FileText size={20} className="text-emerald-600 dark:text-emerald-400" />
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-slate-900 dark:text-white">Inventory Report</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Complete list with status, condition, values & summary</p>
+                                                <p className="font-semibold text-slate-900 dark:text-white">CSV Report</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Spreadsheet with all details & summary</p>
                                             </div>
                                         </button>
 
+                                        {/* PDF Report */}
+                                        <button
+                                            onClick={() => downloadPDF()}
+                                            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
+                                        >
+                                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <FileImage size={20} className="text-red-600 dark:text-red-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-900 dark:text-white">PDF Report</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Formatted document grouped by category</p>
+                                            </div>
+                                        </button>
+
+                                        {/* Transfer CSV */}
                                         <button
                                             onClick={downloadImportCSV}
                                             className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
@@ -331,6 +485,48 @@ const InventoryScreen: React.FC = () => {
                                                 <p className="text-xs text-slate-500 dark:text-slate-400">Import-ready format for another account</p>
                                             </div>
                                         </button>
+
+                                        {/* Export by Category */}
+                                        <div className="relative border-t border-slate-100 dark:border-slate-700">
+                                            <button
+                                                onClick={() => setShowCategorySubmenu(!showCategorySubmenu)}
+                                                className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+                                            >
+                                                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <FolderDown size={20} className="text-purple-600 dark:text-purple-400" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-slate-900 dark:text-white">Export by Category</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">Download individual categories</p>
+                                                </div>
+                                                <ChevronDown size={16} className={`text-slate-400 transition-transform mt-2 ${showCategorySubmenu ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            {showCategorySubmenu && (
+                                                <div className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 max-h-48 overflow-y-auto">
+                                                    {categoriesWithItems.map(cat => (
+                                                        <div key={cat} className="flex items-center border-b border-slate-100 dark:border-slate-800 last:border-b-0">
+                                                            <button
+                                                                onClick={() => downloadCategoryCSV(cat)}
+                                                                className="flex-1 px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                            >
+                                                                <span className="font-medium">{cat}</span>
+                                                                <span className="text-xs text-slate-400 ml-2">
+                                                                    ({state.inventory.filter(i => i.category === cat).length})
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => downloadPDF(cat)}
+                                                                className="px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                                title={`Download ${cat} as PDF`}
+                                                            >
+                                                                <FileImage size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {filteredInventory.length > 0 && filteredInventory.length !== state.inventory.length && (
                                             <div className="p-2 border-t border-slate-100 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/20">
