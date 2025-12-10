@@ -106,6 +106,9 @@ const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({ currentUser
 
           <div className="max-h-64 overflow-y-auto">
             {userOrganizations.map((member: any) => {
+              // Skip if organization data is missing
+              if (!member.organization) return null;
+
               const isActive = member.organization_id === activeOrgId;
               return (
                 <button
@@ -123,7 +126,7 @@ const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({ currentUser
                       <Building2 size={20} className="text-white" />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold">{member.organization.name}</p>
+                      <p className="font-semibold text-white">{member.organization.name}</p>
                       <p className="text-xs text-slate-400 capitalize">{member.role}</p>
                     </div>
                   </div>
