@@ -86,7 +86,7 @@ const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({ currentUser
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg transition-colors text-white"
       >
         <Building2 size={18} className="text-emerald-500" />
         <span className="font-semibold max-w-[150px] truncate">

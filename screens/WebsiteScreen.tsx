@@ -97,6 +97,191 @@ const WebsiteScreen: React.FC = () => {
                     </div>
                 </section>
 
+                {/* About Section */}
+                <section id="about" className="py-24 px-6">
+                    <div className="container mx-auto max-w-6xl">
+                        <div className="flex flex-col md:flex-row items-center gap-16">
+
+                            {/* Content */}
+                            <div className="md:w-1/2 order-2 md:order-1">
+                                <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
+                                    🎬 About Us
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
+                                    Built by filmmakers,<br/>
+                                    <span className="text-teal-600 dark:text-teal-400">for filmmakers.</span>
+                                </h2>
+                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                                    Gear Base started on a feature film set when we lost track of a $15,000 lens. That moment of panic led us to build what became the industry's most trusted inventory system.
+                                </p>
+                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
+                                    Today, we're helping productions of all sizes—from indie shoots to blockbuster features—keep their gear organized, accounted for, and ready to roll.
+                                </p>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-emerald">
+                                            <CheckSquare size={16} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Production-First Design</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Built specifically for the chaos of on-set workflows</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-teal">
+                                            <Shield size={16} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Battle-Tested Reliability</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Used on sets around the world, from commercials to features</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-blue">
+                                            <Users size={16} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Community Driven</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Every feature requested by real crew members and producers</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Animated Camera Illustration */}
+                            <div className="md:w-1/2 order-1 md:order-2 relative">
+                                <style dangerouslySetInnerHTML={{
+                                    __html: `
+                                        @keyframes float {
+                                            0%, 100% { transform: translateY(0px); }
+                                            50% { transform: translateY(-20px); }
+                                        }
+                                        @keyframes rotate-slow {
+                                            from { transform: rotate(0deg); }
+                                            to { transform: rotate(360deg); }
+                                        }
+                                        @keyframes pulse-glow {
+                                            0%, 100% { opacity: 0.2; }
+                                            50% { opacity: 0.4; }
+                                        }
+                                        @keyframes blink {
+                                            0%, 49%, 100% { opacity: 1; }
+                                            50%, 99% { opacity: 0.3; }
+                                        }
+                                        .float-animation { animation: float 6s ease-in-out infinite; }
+                                        .rotate-animation { animation: rotate-slow 20s linear infinite; }
+                                        .pulse-glow-animation { animation: pulse-glow 3s ease-in-out infinite; }
+                                        .blink-animation { animation: blink 2s ease-in-out infinite; }
+                                    `
+                                }} />
+
+                                {/* Background glow */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-3xl opacity-20 pulse-glow-animation"></div>
+
+                                {/* Main illustration container */}
+                                <div className="relative aspect-square max-w-md mx-auto">
+                                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                                        {/* Grid background */}
+                                        <g opacity="0.1">
+                                            <line x1="0" y1="100" x2="400" y2="100" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                            <line x1="0" y1="200" x2="400" y2="200" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                            <line x1="0" y1="300" x2="400" y2="300" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                            <line x1="100" y1="0" x2="100" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                            <line x1="200" y1="0" x2="200" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                            <line x1="300" y1="0" x2="300" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
+                                        </g>
+
+                                        {/* Inventory Card 1 - Camera */}
+                                        <g className="float-animation" style={{ animation: 'float 4s ease-in-out infinite' }}>
+                                            <rect x="50" y="80" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(16, 185, 129)" strokeWidth="2" />
+                                            <circle cx="80" cy="110" r="15" className="fill-emerald-100 dark:fill-emerald-900/50" />
+                                            <rect x="75" y="105" width="10" height="10" rx="2" className="fill-emerald-600 dark:fill-emerald-500" />
+                                            <rect x="105" y="105" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
+                                            <rect x="105" y="117" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
+                                            <circle cx="155" cy="145" r="8" className="fill-emerald-500 dark:fill-emerald-400" />
+                                            <path d="M 152 145 L 155 148 L 160 143" className="stroke-white dark:stroke-slate-900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                        </g>
+
+                                        {/* Inventory Card 2 - Lighting */}
+                                        <g className="float-animation" style={{ animation: 'float 5s ease-in-out infinite 0.5s' }}>
+                                            <rect x="230" y="100" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(251, 191, 36)" strokeWidth="2" />
+                                            <circle cx="260" cy="130" r="15" className="fill-amber-100 dark:fill-amber-900/50" />
+                                            <circle cx="260" cy="130" r="8" className="fill-amber-500 dark:fill-amber-400" />
+                                            <rect x="285" y="125" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
+                                            <rect x="285" y="137" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
+                                            <circle cx="335" cy="165" r="8" className="fill-amber-500 dark:fill-amber-400" />
+                                            <path d="M 335 161 L 335 169 M 331 165 L 339 165" className="stroke-white dark:stroke-slate-900" strokeWidth="2" strokeLinecap="round" />
+                                        </g>
+
+                                        {/* Inventory Card 3 - Audio */}
+                                        <g className="float-animation" style={{ animation: 'float 4.5s ease-in-out infinite 1s' }}>
+                                            <rect x="140" y="220" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(59, 130, 246)" strokeWidth="2" />
+                                            <circle cx="170" cy="250" r="15" className="fill-blue-100 dark:fill-blue-900/50" />
+                                            <rect x="167" y="245" width="6" height="10" rx="1" className="fill-blue-600 dark:fill-blue-500" />
+                                            <rect x="195" y="245" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
+                                            <rect x="195" y="257" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
+                                            <rect x="235" y="283" width="16" height="6" rx="3" className="fill-blue-500 dark:fill-blue-400" />
+                                        </g>
+
+                                        {/* Center organizing element - Checkmark circle */}
+                                        <g className="float-animation" style={{ animation: 'float 6s ease-in-out infinite 0.2s' }}>
+                                            <circle cx="200" cy="200" r="35" className="fill-emerald-600 dark:fill-emerald-500" />
+                                            <circle cx="200" cy="200" r="28" className="fill-white dark:fill-slate-900" />
+                                            <path d="M 190 200 L 197 207 L 212 192" className="stroke-emerald-600 dark:stroke-emerald-500" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                        </g>
+
+                                        {/* Connecting lines with animation */}
+                                        <g className="pulse-glow-animation">
+                                            <line x1="110" y1="120" x2="165" y2="180" className="stroke-emerald-400 dark:stroke-emerald-600" strokeWidth="2" strokeDasharray="5 5" />
+                                            <line x1="290" y1="140" x2="235" y2="185" className="stroke-amber-400 dark:stroke-amber-600" strokeWidth="2" strokeDasharray="5 5" />
+                                            <line x1="200" y1="260" x2="200" y2="235" className="stroke-blue-400 dark:stroke-blue-600" strokeWidth="2" strokeDasharray="5 5" />
+                                        </g>
+
+                                        {/* Status indicators */}
+                                        <g className="blink-animation">
+                                            <circle cx="165" cy="85" r="4" className="fill-emerald-500" />
+                                            <circle cx="345" cy="105" r="4" className="fill-amber-500" />
+                                            <circle cx="255" cy="225" r="4" className="fill-blue-500" />
+                                        </g>
+
+                                        {/* Floating count bubbles */}
+                                        <g className="float-animation" style={{ animation: 'float 3.5s ease-in-out infinite' }}>
+                                            <circle cx="60" cy="220" r="20" className="fill-teal-500 dark:fill-teal-400" opacity="0.9" />
+                                            <text x="60" y="227" textAnchor="middle" className="fill-white dark:fill-slate-900" fontSize="16" fontWeight="bold">24</text>
+                                        </g>
+
+                                        <g className="float-animation" style={{ animation: 'float 4.2s ease-in-out infinite 0.8s' }}>
+                                            <circle cx="360" cy="260" r="20" className="fill-emerald-500 dark:fill-emerald-400" opacity="0.9" />
+                                            <text x="360" y="267" textAnchor="middle" className="fill-white dark:fill-slate-900" fontSize="16" fontWeight="bold">89</text>
+                                        </g>
+                                    </svg>
+
+                                    {/* Floating stats badges */}
+                                    <div className="absolute -bottom-4 left-0 right-0 mx-auto max-w-sm">
+                                        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-emerald-100 dark:border-emerald-900/30">
+                                            <div className="grid grid-cols-3 gap-4 text-center">
+                                                <div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">2.5k+</div>
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Items</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">150+</div>
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Productions</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">99.9%</div>
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Uptime</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Feature Grid */}
                 <section id="features" className="py-24">
                     <div className="container mx-auto px-6">
@@ -350,191 +535,6 @@ const WebsiteScreen: React.FC = () => {
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                                         Built for the set. Works perfectly on phones and tablets so you can manage inventory from the camera truck.
                                     </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* About Section */}
-                <section id="about" className="py-24 px-6">
-                    <div className="container mx-auto max-w-6xl">
-                        <div className="flex flex-col md:flex-row items-center gap-16">
-
-                            {/* Content */}
-                            <div className="md:w-1/2 order-2 md:order-1">
-                                <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
-                                    🎬 About Us
-                                </div>
-                                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
-                                    Built by filmmakers,<br/>
-                                    <span className="text-teal-600 dark:text-teal-400">for filmmakers.</span>
-                                </h2>
-                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                                    Gear Base started on a feature film set when we lost track of a $15,000 lens. That moment of panic led us to build what became the industry's most trusted inventory system.
-                                </p>
-                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
-                                    Today, we're helping productions of all sizes—from indie shoots to blockbuster features—keep their gear organized, accounted for, and ready to roll.
-                                </p>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-emerald">
-                                            <CheckSquare size={16} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Production-First Design</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Built specifically for the chaos of on-set workflows</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-teal">
-                                            <Shield size={16} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Battle-Tested Reliability</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Used on sets around the world, from commercials to features</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-glow-blue">
-                                            <Users size={16} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Community Driven</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Every feature requested by real crew members and producers</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Animated Camera Illustration */}
-                            <div className="md:w-1/2 order-1 md:order-2 relative">
-                                <style dangerouslySetInnerHTML={{
-                                    __html: `
-                                        @keyframes float {
-                                            0%, 100% { transform: translateY(0px); }
-                                            50% { transform: translateY(-20px); }
-                                        }
-                                        @keyframes rotate-slow {
-                                            from { transform: rotate(0deg); }
-                                            to { transform: rotate(360deg); }
-                                        }
-                                        @keyframes pulse-glow {
-                                            0%, 100% { opacity: 0.2; }
-                                            50% { opacity: 0.4; }
-                                        }
-                                        @keyframes blink {
-                                            0%, 49%, 100% { opacity: 1; }
-                                            50%, 99% { opacity: 0.3; }
-                                        }
-                                        .float-animation { animation: float 6s ease-in-out infinite; }
-                                        .rotate-animation { animation: rotate-slow 20s linear infinite; }
-                                        .pulse-glow-animation { animation: pulse-glow 3s ease-in-out infinite; }
-                                        .blink-animation { animation: blink 2s ease-in-out infinite; }
-                                    `
-                                }} />
-
-                                {/* Background glow */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-3xl opacity-20 pulse-glow-animation"></div>
-
-                                {/* Main illustration container */}
-                                <div className="relative aspect-square max-w-md mx-auto">
-                                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                                        {/* Grid background */}
-                                        <g opacity="0.1">
-                                            <line x1="0" y1="100" x2="400" y2="100" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                            <line x1="0" y1="200" x2="400" y2="200" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                            <line x1="0" y1="300" x2="400" y2="300" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                            <line x1="100" y1="0" x2="100" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                            <line x1="200" y1="0" x2="200" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                            <line x1="300" y1="0" x2="300" y2="400" className="stroke-emerald-500" strokeWidth="1" strokeDasharray="5 5" />
-                                        </g>
-
-                                        {/* Inventory Card 1 - Camera */}
-                                        <g className="float-animation" style={{ animation: 'float 4s ease-in-out infinite' }}>
-                                            <rect x="50" y="80" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(16, 185, 129)" strokeWidth="2" />
-                                            <circle cx="80" cy="110" r="15" className="fill-emerald-100 dark:fill-emerald-900/50" />
-                                            <rect x="75" y="105" width="10" height="10" rx="2" className="fill-emerald-600 dark:fill-emerald-500" />
-                                            <rect x="105" y="105" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
-                                            <rect x="105" y="117" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
-                                            <circle cx="155" cy="145" r="8" className="fill-emerald-500 dark:fill-emerald-400" />
-                                            <path d="M 152 145 L 155 148 L 160 143" className="stroke-white dark:stroke-slate-900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                        </g>
-
-                                        {/* Inventory Card 2 - Lighting */}
-                                        <g className="float-animation" style={{ animation: 'float 5s ease-in-out infinite 0.5s' }}>
-                                            <rect x="230" y="100" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(251, 191, 36)" strokeWidth="2" />
-                                            <circle cx="260" cy="130" r="15" className="fill-amber-100 dark:fill-amber-900/50" />
-                                            <circle cx="260" cy="130" r="8" className="fill-amber-500 dark:fill-amber-400" />
-                                            <rect x="285" y="125" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
-                                            <rect x="285" y="137" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
-                                            <circle cx="335" cy="165" r="8" className="fill-amber-500 dark:fill-amber-400" />
-                                            <path d="M 335 161 L 335 169 M 331 165 L 339 165" className="stroke-white dark:stroke-slate-900" strokeWidth="2" strokeLinecap="round" />
-                                        </g>
-
-                                        {/* Inventory Card 3 - Audio */}
-                                        <g className="float-animation" style={{ animation: 'float 4.5s ease-in-out infinite 1s' }}>
-                                            <rect x="140" y="220" width="120" height="80" rx="12" className="fill-white dark:fill-slate-800" stroke="rgb(59, 130, 246)" strokeWidth="2" />
-                                            <circle cx="170" cy="250" r="15" className="fill-blue-100 dark:fill-blue-900/50" />
-                                            <rect x="167" y="245" width="6" height="10" rx="1" className="fill-blue-600 dark:fill-blue-500" />
-                                            <rect x="195" y="245" width="50" height="6" rx="3" className="fill-slate-300 dark:fill-slate-600" />
-                                            <rect x="195" y="257" width="35" height="4" rx="2" className="fill-slate-200 dark:fill-slate-700" />
-                                            <rect x="235" y="283" width="16" height="6" rx="3" className="fill-blue-500 dark:fill-blue-400" />
-                                        </g>
-
-                                        {/* Center organizing element - Checkmark circle */}
-                                        <g className="float-animation" style={{ animation: 'float 6s ease-in-out infinite 0.2s' }}>
-                                            <circle cx="200" cy="200" r="35" className="fill-emerald-600 dark:fill-emerald-500" />
-                                            <circle cx="200" cy="200" r="28" className="fill-white dark:fill-slate-900" />
-                                            <path d="M 190 200 L 197 207 L 212 192" className="stroke-emerald-600 dark:stroke-emerald-500" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                        </g>
-
-                                        {/* Connecting lines with animation */}
-                                        <g className="pulse-glow-animation">
-                                            <line x1="110" y1="120" x2="165" y2="180" className="stroke-emerald-400 dark:stroke-emerald-600" strokeWidth="2" strokeDasharray="5 5" />
-                                            <line x1="290" y1="140" x2="235" y2="185" className="stroke-amber-400 dark:stroke-amber-600" strokeWidth="2" strokeDasharray="5 5" />
-                                            <line x1="200" y1="260" x2="200" y2="235" className="stroke-blue-400 dark:stroke-blue-600" strokeWidth="2" strokeDasharray="5 5" />
-                                        </g>
-
-                                        {/* Status indicators */}
-                                        <g className="blink-animation">
-                                            <circle cx="165" cy="85" r="4" className="fill-emerald-500" />
-                                            <circle cx="345" cy="105" r="4" className="fill-amber-500" />
-                                            <circle cx="255" cy="225" r="4" className="fill-blue-500" />
-                                        </g>
-
-                                        {/* Floating count bubbles */}
-                                        <g className="float-animation" style={{ animation: 'float 3.5s ease-in-out infinite' }}>
-                                            <circle cx="60" cy="220" r="20" className="fill-teal-500 dark:fill-teal-400" opacity="0.9" />
-                                            <text x="60" y="227" textAnchor="middle" className="fill-white dark:fill-slate-900" fontSize="16" fontWeight="bold">24</text>
-                                        </g>
-
-                                        <g className="float-animation" style={{ animation: 'float 4.2s ease-in-out infinite 0.8s' }}>
-                                            <circle cx="360" cy="260" r="20" className="fill-emerald-500 dark:fill-emerald-400" opacity="0.9" />
-                                            <text x="360" y="267" textAnchor="middle" className="fill-white dark:fill-slate-900" fontSize="16" fontWeight="bold">89</text>
-                                        </g>
-                                    </svg>
-
-                                    {/* Floating stats badges */}
-                                    <div className="absolute -bottom-4 left-0 right-0 mx-auto max-w-sm">
-                                        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-emerald-100 dark:border-emerald-900/30">
-                                            <div className="grid grid-cols-3 gap-4 text-center">
-                                                <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">2.5k+</div>
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Items</div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">150+</div>
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Productions</div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">99.9%</div>
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Uptime</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

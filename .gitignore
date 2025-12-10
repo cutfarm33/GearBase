@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Large files
+public/animations/Main_LOTTE.json
+public/images/*.psd
