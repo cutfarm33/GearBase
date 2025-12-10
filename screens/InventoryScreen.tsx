@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { InventoryItem, ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2 } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
 const StatusBadge: React.FC<{ status: ItemStatus }> = ({ status }) => {
@@ -41,6 +41,9 @@ const InventoryScreen: React.FC = () => {
 
   // Inline Edit State
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+
+  // Download Dropdown State
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
   // Combine PREDEFINED categories with any custom ones used in the database
   const categories = ['All', ...Array.from(new Set([
@@ -124,6 +127,101 @@ const InventoryScreen: React.FC = () => {
       await updateInventoryItem(updatedItem);
   };
 
+  // Helper to escape CSV values
+  const escapeCSV = (value: string | number | undefined | null): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+  };
+
+  // Download formatted inventory report (all details, human-readable)
+  const downloadFormattedReport = () => {
+      const items = filteredInventory.length > 0 ? filteredInventory : state.inventory;
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      // Group items by category for better organization
+      const byCategory: Record<string, InventoryItem[]> = {};
+      items.forEach(item => {
+          if (!byCategory[item.category]) byCategory[item.category] = [];
+          byCategory[item.category].push(item);
+      });
+
+      // Build CSV with headers and summary
+      let csv = `GEAR BASE INVENTORY REPORT\n`;
+      csv += `Generated: ${date}\n`;
+      csv += `Total Items: ${items.length}\n`;
+      csv += `Available: ${items.filter(i => i.status === ItemStatus.AVAILABLE).length}\n`;
+      csv += `Checked Out: ${items.filter(i => i.status === ItemStatus.CHECKED_OUT).length}\n\n`;
+
+      // Calculate total value
+      const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
+      csv += `Total Inventory Value: $${totalValue.toLocaleString()}\n\n`;
+
+      csv += `Name,Category,QR Code,Status,Condition,Value,Weight (lbs),Storage Case,Purchase Date,Notes\n`;
+
+      // Sort categories and items within categories
+      Object.keys(byCategory).sort().forEach(category => {
+          byCategory[category].sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+              csv += [
+                  escapeCSV(item.name),
+                  escapeCSV(item.category),
+                  escapeCSV(item.qrCode),
+                  escapeCSV(item.status),
+                  escapeCSV(item.condition),
+                  item.value ? `$${item.value}` : '',
+                  item.weight || '',
+                  escapeCSV(item.storageCase || ''),
+                  item.purchaseDate || '',
+                  escapeCSV(item.notes || '')
+              ].join(',') + '\n';
+          });
+      });
+
+      // Download the file
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventory_report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setShowDownloadMenu(false);
+  };
+
+  // Download import-ready CSV (matches GearBase import format)
+  const downloadImportCSV = () => {
+      const items = filteredInventory.length > 0 ? filteredInventory : state.inventory;
+
+      // Format: Name, Category, Value, QR Code, Notes (matches import template)
+      let csv = `Name,Category,Value,QR Code,Notes\n`;
+
+      items.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+          csv += [
+              escapeCSV(item.name),
+              escapeCSV(item.category),
+              item.value || '',
+              escapeCSV(item.qrCode),
+              escapeCSV(item.notes || '')
+          ].join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventory_transfer_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setShowDownloadMenu(false);
+  };
+
   return (
     <div>
       <ConfirmModal
@@ -183,6 +281,68 @@ const InventoryScreen: React.FC = () => {
                             <Upload size={20} />
                             Import
                         </button>
+
+                        {/* Download Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                                className="w-full sm:w-auto bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-3 px-5 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all flex items-center justify-center gap-2"
+                                title="Download Inventory"
+                            >
+                                <Download size={20} />
+                                Download
+                                <ChevronDown size={16} className={`transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {showDownloadMenu && (
+                                <>
+                                    {/* Backdrop to close dropdown */}
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setShowDownloadMenu(false)}
+                                    />
+                                    <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                                        <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 px-2 py-1 font-medium">Export Options</p>
+                                        </div>
+
+                                        <button
+                                            onClick={downloadFormattedReport}
+                                            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+                                        >
+                                            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <FileText size={20} className="text-emerald-600 dark:text-emerald-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-900 dark:text-white">Inventory Report</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Complete list with status, condition, values & summary</p>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            onClick={downloadImportCSV}
+                                            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
+                                        >
+                                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <FileSpreadsheet size={20} className="text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-900 dark:text-white">Transfer CSV</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Import-ready format for another account</p>
+                                            </div>
+                                        </button>
+
+                                        {filteredInventory.length > 0 && filteredInventory.length !== state.inventory.length && (
+                                            <div className="p-2 border-t border-slate-100 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/20">
+                                                <p className="text-xs text-amber-700 dark:text-amber-300 px-2">
+                                                    Exporting {filteredInventory.length} filtered items
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </>
                 )}
             </div>
