@@ -151,7 +151,7 @@ const WebsiteScreen: React.FC = () => {
 
                             {/* About Image */}
                             <div className="md:w-1/2 order-1 md:order-2 relative">
-                                <div className="relative max-w-lg mx-auto">
+                                <div className="relative max-w-2xl mx-auto">
                                     <img
                                         src="/images/homepage.png"
                                         alt="Gear Base in action on set"
