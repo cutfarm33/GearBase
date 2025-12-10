@@ -682,7 +682,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       try {
           const id = crypto.randomUUID();
           const fakeEmail = email || `${name.toLowerCase().replace(/\s/g, '.')}@offline.user`;
-          const organizationId = state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
+          // CRITICAL: Use the same organization ID logic as refreshData
+          const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
 
           const { error } = await supabase.from('profiles').insert({
               id,
@@ -693,7 +694,23 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           });
 
           if (error) throw error;
-          await refreshData(true);
+
+          // Immediately add to local state so UI updates without waiting for refresh
+          const newUser: User = {
+              id,
+              name,
+              email: fakeEmail,
+              role,
+              organization_id: organizationId,
+              theme: 'dark'
+          };
+          dispatch({
+              type: 'SET_DATA',
+              payload: { users: [...state.users, newUser] }
+          });
+
+          // Also refresh data in background (won't block)
+          refreshData(true);
           return id;
       } catch (e: any) {
           console.error("Error adding team member:", e);
