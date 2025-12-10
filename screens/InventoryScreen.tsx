@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { InventoryItem, ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 const StatusBadge: React.FC<{ status: ItemStatus }> = ({ status }) => {
   // Strict check for checked out status
@@ -357,6 +358,133 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
+  // Generate QR Code Labels PDF (printable stickers)
+  const downloadQRLabels = async (categoryToExport?: string) => {
+      const items = categoryToExport
+          ? state.inventory.filter(i => i.category === categoryToExport)
+          : (filteredInventory.length > 0 ? filteredInventory : state.inventory);
+
+      const doc = new jsPDF();
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+      // Label layout settings (3 columns x 4 rows per page = 12 labels per page)
+      const labelsPerRow = 3;
+      const labelsPerColumn = 4;
+      const labelsPerPage = labelsPerRow * labelsPerColumn;
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 10;
+      const marginY = 15;
+
+      const labelWidth = (pageWidth - 2 * marginX) / labelsPerRow;
+      const labelHeight = (pageHeight - 2 * marginY - 10) / labelsPerColumn; // Reserve space for header
+
+      // Sort items by category then name
+      const sortedItems = [...items].sort((a, b) => {
+          if (a.category !== b.category) return a.category.localeCompare(b.category);
+          return a.name.localeCompare(b.name);
+      });
+
+      // Generate QR codes for all items
+      const qrCodes: { [key: string]: string } = {};
+      for (const item of sortedItems) {
+          try {
+              // QR code contains the item's QR code value (barcode/serial)
+              qrCodes[item.qrCode] = await QRCode.toDataURL(item.qrCode, {
+                  width: 150,
+                  margin: 1,
+                  color: { dark: '#000000', light: '#ffffff' }
+              });
+          } catch (err) {
+              console.error('Error generating QR code for:', item.name, err);
+          }
+      }
+
+      // Generate pages
+      let currentPage = 0;
+      for (let i = 0; i < sortedItems.length; i++) {
+          const pageIndex = Math.floor(i / labelsPerPage);
+          const positionOnPage = i % labelsPerPage;
+
+          // Add new page if needed
+          if (pageIndex > currentPage) {
+              doc.addPage();
+              currentPage = pageIndex;
+          }
+
+          // Calculate position
+          const col = positionOnPage % labelsPerRow;
+          const row = Math.floor(positionOnPage / labelsPerRow);
+          const x = marginX + col * labelWidth;
+          const y = marginY + 8 + row * labelHeight; // +8 for header space
+
+          // Page header on first row
+          if (positionOnPage === 0) {
+              doc.setFontSize(10);
+              doc.setTextColor(100, 116, 139);
+              const title = categoryToExport ? `${categoryToExport} QR Labels` : 'Inventory QR Labels';
+              doc.text(title, marginX, marginY);
+              doc.text(`Generated: ${date}`, pageWidth - marginX - 50, marginY);
+          }
+
+          const item = sortedItems[i];
+          const qrDataUrl = qrCodes[item.qrCode];
+
+          // Draw label border (dashed for cutting guide)
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineDashPattern([2, 2], 0);
+          doc.rect(x + 2, y, labelWidth - 4, labelHeight - 4);
+          doc.setLineDashPattern([], 0);
+
+          // QR Code (centered in label)
+          const qrSize = Math.min(labelWidth - 10, labelHeight - 25);
+          const qrX = x + (labelWidth - qrSize) / 2;
+          const qrY = y + 3;
+
+          if (qrDataUrl) {
+              doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+          }
+
+          // Item name (below QR code, truncated if needed)
+          doc.setFontSize(7);
+          doc.setTextColor(30, 41, 59);
+          const maxNameWidth = labelWidth - 8;
+          let displayName = item.name;
+          while (doc.getTextWidth(displayName) > maxNameWidth && displayName.length > 3) {
+              displayName = displayName.slice(0, -4) + '...';
+          }
+          doc.text(displayName, x + labelWidth / 2, y + qrSize + 7, { align: 'center' });
+
+          // QR code value (smaller, below name)
+          doc.setFontSize(5);
+          doc.setTextColor(100, 116, 139);
+          doc.text(item.qrCode, x + labelWidth / 2, y + qrSize + 11, { align: 'center' });
+
+          // Category (tiny, at bottom)
+          doc.setFontSize(4);
+          doc.setTextColor(148, 163, 184);
+          doc.text(item.category, x + labelWidth / 2, y + qrSize + 14, { align: 'center' });
+      }
+
+      // Footer on all pages
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(7);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`Gear Base - Page ${i} of ${pageCount} - ${sortedItems.length} labels`, marginX, pageHeight - 5);
+      }
+
+      const filename = categoryToExport
+          ? `qr_labels_${categoryToExport.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+          : `qr_labels_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      doc.save(filename);
+      setShowDownloadMenu(false);
+      setShowCategorySubmenu(false);
+  };
+
   // Get categories that have items
   const categoriesWithItems = categories.filter(c => c !== 'All' && state.inventory.some(i => i.category === c));
 
@@ -486,6 +614,20 @@ const InventoryScreen: React.FC = () => {
                                             </div>
                                         </button>
 
+                                        {/* QR Code Labels */}
+                                        <button
+                                            onClick={() => downloadQRLabels()}
+                                            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
+                                        >
+                                            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <QrCode size={20} className="text-amber-600 dark:text-amber-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-900 dark:text-white">QR Code Labels</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Printable stickers with QR codes & names</p>
+                                            </div>
+                                        </button>
+
                                         {/* Export by Category */}
                                         <div className="relative border-t border-slate-100 dark:border-slate-700">
                                             <button
@@ -516,8 +658,15 @@ const InventoryScreen: React.FC = () => {
                                                                 </span>
                                                             </button>
                                                             <button
+                                                                onClick={() => downloadQRLabels(cat)}
+                                                                className="px-2 py-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                                                title={`Download ${cat} QR labels`}
+                                                            >
+                                                                <QrCode size={14} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => downloadPDF(cat)}
-                                                                className="px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                                className="px-2 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                                                 title={`Download ${cat} as PDF`}
                                                             >
                                                                 <FileImage size={14} />
