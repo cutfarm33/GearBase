@@ -1,8 +1,11 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Edit, Trash2, Package, Search, Weight } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Weight, FileText } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Kit, InventoryItem } from '../types';
 
 const PackagesScreen: React.FC = () => {
     const { state, navigateTo, deleteKit } = useAppContext();
@@ -18,6 +21,99 @@ const PackagesScreen: React.FC = () => {
             await deleteKit(kitToDelete.id);
             setKitToDelete(null);
         }
+    };
+
+    // Download PDF for a specific package
+    const downloadPackagePDF = (kit: Kit) => {
+        const items = kit.itemIds
+            .map(id => state.inventory.find(i => i.id === id))
+            .filter((item): item is InventoryItem => item !== undefined);
+
+        const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const doc = new jsPDF();
+
+        // Title
+        doc.setFontSize(20);
+        doc.setTextColor(79, 70, 229); // Indigo color
+        doc.text(kit.name, 14, 20);
+
+        // Subtitle
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Package Contents - Generated: ${date}`, 14, 28);
+
+        // Summary stats
+        const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
+        const totalWeight = items.reduce((sum, i) => sum + (i.weight || 0), 0);
+
+        doc.setFontSize(9);
+        doc.text(`Total Items: ${items.length}  |  Total Value: $${totalValue.toLocaleString()}  |  Total Weight: ${totalWeight.toFixed(1)} lbs`, 14, 35);
+
+        // Group by category
+        const byCategory: Record<string, InventoryItem[]> = {};
+        items.forEach(item => {
+            if (!byCategory[item.category]) byCategory[item.category] = [];
+            byCategory[item.category].push(item);
+        });
+
+        let yPosition = 45;
+
+        Object.keys(byCategory).sort().forEach(category => {
+            const categoryItems = byCategory[category].sort((a, b) => a.name.localeCompare(b.name));
+
+            // Category header
+            doc.setFontSize(12);
+            doc.setTextColor(30, 41, 59);
+            doc.text(`${category} (${categoryItems.length})`, 14, yPosition);
+            yPosition += 2;
+
+            // Table for this category
+            autoTable(doc, {
+                startY: yPosition,
+                head: [['Name', 'QR Code', 'Condition', 'Value', 'Weight']],
+                body: categoryItems.map(item => [
+                    item.name,
+                    item.qrCode,
+                    item.condition,
+                    item.value ? `$${item.value.toLocaleString()}` : '-',
+                    item.weight ? `${item.weight} lbs` : '-'
+                ]),
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [79, 70, 229], // Indigo
+                    fontSize: 8,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: { fontSize: 8 },
+                columnStyles: {
+                    0: { cellWidth: 60 },
+                    1: { cellWidth: 35 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: 25 },
+                    4: { cellWidth: 25 }
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            yPosition = (doc as any).lastAutoTable.finalY + 10;
+
+            if (yPosition > 270) {
+                doc.addPage();
+                yPosition = 20;
+            }
+        });
+
+        // Footer
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(`Gear Base - ${kit.name} - Page ${i} of ${pageCount}`, 14, 290);
+        }
+
+        const filename = `package_${kit.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(filename);
     };
 
     return (
@@ -70,16 +166,25 @@ const PackagesScreen: React.FC = () => {
                                 <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
                                     <Package size={24} />
                                 </div>
-                                <div className="flex gap-2">
-                                    <button 
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => downloadPackagePDF(kit)}
+                                        className="p-2 text-slate-400 hover:text-indigo-500 transition-colors"
+                                        title="Download PDF"
+                                    >
+                                        <FileText size={18} />
+                                    </button>
+                                    <button
                                         onClick={() => navigateTo('PACKAGE_FORM', { kitId: kit.id })}
                                         className="p-2 text-slate-400 hover:text-sky-500 transition-colors"
+                                        title="Edit Package"
                                     >
                                         <Edit size={18} />
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setKitToDelete({id: kit.id, name: kit.name})}
                                         className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                        title="Delete Package"
                                     >
                                         <Trash2 size={18} />
                                     </button>
