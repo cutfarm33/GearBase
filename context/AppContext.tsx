@@ -370,7 +370,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   value: i.value,
                   weight: i.weight,
                   storageCase: i.storage_case,
-                  imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/\s/g,'')}/200`,
+                  imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
                   history: itemHistory,
                   organization_id: i.organization_id || defaultOrgId
               };

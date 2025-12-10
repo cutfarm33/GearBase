@@ -83,7 +83,7 @@ const AddItemScreen: React.FC = () => {
 
         // Fallback image
         if (!finalImageUrl) {
-            finalImageUrl = `https://picsum.photos/seed/${formData.name.replace(/\s/g,'')}/200`;
+            finalImageUrl = `https://picsum.photos/seed/${formData.name.replace(/[^a-zA-Z0-9]/g,'')}/200`;
         }
 
         const newItem = {

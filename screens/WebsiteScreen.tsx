@@ -105,13 +105,211 @@ const WebsiteScreen: React.FC = () => {
                         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">We built this specifically for producers, camera assistants, and rental houses.</p>
                         </div>
 
-                        {/* Animation Container - Placeholder */}
-                        <div className="mb-16 flex justify-center">
-                            <div className="w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                                <div className="aspect-video flex items-center justify-center text-slate-400 dark:text-slate-500">
-                                    <div className="text-center">
-                                        <p className="text-lg font-semibold mb-2">Animation Placeholder</p>
-                                        <p className="text-sm">Add optimized animation here (target: under 500KB)</p>
+                        {/* 3 Phone Mockups */}
+                        <div className="mb-16 flex justify-center items-center gap-6 flex-wrap lg:flex-nowrap">
+                            {/* Left Phone - Import Inventory */}
+                            <div className="relative transform hover:scale-105 transition-transform duration-300">
+                                <div className="w-[260px] h-[520px] bg-slate-900 rounded-[2.5rem] p-2.5 shadow-2xl">
+                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden relative">
+                                        {/* Notch */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-900 rounded-b-xl z-10"></div>
+
+                                        {/* Content */}
+                                        <div className="p-5 pt-8">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center shadow-lg">
+                                                    <Package className="text-white" size={16} />
+                                                </div>
+                                                <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">Done</span>
+                                            </div>
+
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-0.5">Import Inventory</h3>
+                                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Upload your gear list</p>
+
+                                            {/* Upload Card */}
+                                            <div className="rounded-xl p-4 bg-slate-50 dark:bg-slate-700/50 border-2 border-dashed border-slate-300 dark:border-slate-600 mb-3">
+                                                <div className="flex flex-col items-center text-center">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center mb-3 animate-pulse">
+                                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                        </svg>
+                                                    </div>
+                                                    <p className="text-slate-900 dark:text-white font-bold text-xs mb-0.5">Drop CSV file here</p>
+                                                    <p className="text-slate-500 dark:text-slate-400 text-[10px] mb-2">or tap to browse</p>
+                                                    <button className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-lg">
+                                                        Choose File
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress */}
+                                            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3 mb-3">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-slate-900 dark:text-white text-xs font-medium">inventory_list.csv</span>
+                                                    <span className="text-teal-600 dark:text-teal-400 text-[10px]">78%</span>
+                                                </div>
+                                                <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-1.5 overflow-hidden">
+                                                    <div className="bg-gradient-to-r from-blue-500 to-teal-500 h-full rounded-full" style={{ width: '78%' }}></div>
+                                                </div>
+                                                <p className="text-slate-500 dark:text-slate-400 text-[10px] mt-1">247 items uploading...</p>
+                                            </div>
+
+                                            {/* Tip */}
+                                            <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg p-2">
+                                                <p className="text-blue-700 dark:text-blue-300 text-[10px]">💡 Include serial numbers for better tracking</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Navigation */}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 px-4 py-3">
+                                            <div className="flex items-center justify-around">
+                                                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                                    <Package className="text-blue-600 dark:text-blue-400" size={16} />
+                                                </div>
+                                                <Camera className="text-slate-400" size={16} />
+                                                <Users className="text-slate-400" size={16} />
+                                                <span className="text-slate-400 text-lg">⋯</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Center Phone - Checkout (Larger) */}
+                            <div className="relative transform scale-105 hover:scale-110 transition-transform duration-300 z-10">
+                                <div className="w-[280px] h-[560px] bg-slate-900 rounded-[2.5rem] p-2.5 shadow-2xl ring-2 ring-emerald-500/30">
+                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden relative">
+                                        {/* Notch */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-900 rounded-b-xl z-10"></div>
+
+                                        {/* Content */}
+                                        <div className="p-5 pt-8">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Checkout</div>
+                                                    <div className="text-sm font-bold text-slate-900 dark:text-white">John Smith</div>
+                                                </div>
+                                                <button className="w-6 h-6 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                                                    <X size={12} className="text-slate-600 dark:text-slate-300" />
+                                                </button>
+                                            </div>
+
+                                            {/* Selected Items */}
+                                            <div className="mb-4">
+                                                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-2">Selected Items (3)</div>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-2 border border-emerald-200 dark:border-emerald-700">
+                                                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white animate-pulse">
+                                                            <Camera size={14} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-[10px] font-bold text-slate-900 dark:text-white truncate">RED Camera</div>
+                                                            <div className="text-[8px] text-slate-500 dark:text-slate-400">#SN-2847</div>
+                                                        </div>
+                                                        <CheckSquare size={12} className="text-emerald-600 dark:text-emerald-400" />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2">
+                                                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center font-bold text-[10px] text-blue-600 dark:text-blue-400">L1</div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-[10px] font-bold text-slate-900 dark:text-white truncate">LED Light Kit</div>
+                                                            <div className="text-[8px] text-slate-500 dark:text-slate-400">#SN-1293</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2">
+                                                        <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center font-bold text-[10px] text-amber-600 dark:text-amber-400">T1</div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-[10px] font-bold text-slate-900 dark:text-white truncate">Tripod</div>
+                                                            <div className="text-[8px] text-slate-500 dark:text-slate-400">#SN-4521</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Signature Area */}
+                                            <div className="mb-4">
+                                                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Signature</div>
+                                                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3 h-20 border-2 border-dashed border-slate-300 dark:border-slate-600 relative overflow-hidden">
+                                                    <svg className="w-full h-full" viewBox="0 0 200 60" preserveAspectRatio="none">
+                                                        <path d="M 10 40 Q 30 15, 50 35 T 90 25 Q 110 40, 140 30 T 190 38" stroke="rgb(16, 185, 129)" strokeWidth="2" fill="none" className="animate-pulse"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            {/* Checkout Button */}
+                                            <button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 text-sm">
+                                                Complete Check Out →
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Phone - Check In */}
+                            <div className="relative transform hover:scale-105 transition-transform duration-300">
+                                <div className="w-[260px] h-[520px] bg-slate-900 rounded-[2.5rem] p-2.5 shadow-2xl">
+                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden relative">
+                                        {/* Notch */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-900 rounded-b-xl z-10"></div>
+
+                                        {/* Content */}
+                                        <div className="p-5 pt-10">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Check In</h3>
+                                                <span className="text-teal-600 dark:text-teal-400 text-xs font-bold">Scan QR</span>
+                                            </div>
+
+                                            {/* Scan Result */}
+                                            <div className="mb-4 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-teal-200 dark:border-teal-700">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center text-white shadow-lg animate-bounce">
+                                                        <Camera size={18} />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="text-xs font-bold text-slate-900 dark:text-white">RED Camera</div>
+                                                        <div className="text-[10px] text-slate-600 dark:text-slate-400">#SN-2847</div>
+                                                    </div>
+                                                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center animate-pulse">
+                                                        <CheckSquare size={12} className="text-white" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-[10px] text-teal-700 dark:text-teal-300 font-medium">
+                                                    ✓ Checked out to John Smith
+                                                </div>
+                                            </div>
+
+                                            {/* Condition Check */}
+                                            <div className="mb-4">
+                                                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-2">Condition Check</div>
+                                                <div className="space-y-2">
+                                                    <button className="w-full bg-emerald-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-lg">
+                                                        <CheckSquare size={12} />
+                                                        Good Condition
+                                                    </button>
+                                                    <button className="w-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium py-2 px-3 rounded-lg text-xs">
+                                                        Report Damage
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Notes */}
+                                            <div className="mb-4">
+                                                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Return Notes</div>
+                                                <div className="w-full bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-[10px] text-slate-400 border border-slate-200 dark:border-slate-600 h-12">
+                                                    Add any notes...
+                                                </div>
+                                            </div>
+
+                                            {/* Success Message */}
+                                            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-lg p-2 flex items-center gap-2 animate-pulse">
+                                                <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <CheckSquare size={12} className="text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Ready to check in</p>
+                                                    <p className="text-[8px] text-emerald-600 dark:text-emerald-400">Tap confirm to complete</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -152,252 +350,6 @@ const WebsiteScreen: React.FC = () => {
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                                         Built for the set. Works perfectly on phones and tablets so you can manage inventory from the camera truck.
                                     </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Mobile App Preview Section */}
-                <section className="py-32 px-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-blue-500/5 dark:from-emerald-900/10 dark:via-emerald-900/10 dark:to-blue-900/10"></div>
-                    <div className="container mx-auto max-w-7xl relative z-10">
-                        <div className="text-center mb-20">
-                            <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
-                                📱 Mobile Experience
-                            </div>
-                            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">
-                                Manage gear from anywhere
-                            </h2>
-                            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                                Track inventory, check out equipment, and manage your production on the go with our beautifully designed mobile interface.
-                            </p>
-                        </div>
-
-                        <div className="relative flex justify-center items-center gap-6 flex-wrap lg:flex-nowrap max-w-6xl mx-auto">
-                            {/* Left Phone - Upload Inventory */}
-                            <div className="relative">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
-                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
-                                        {/* Notch */}
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
-
-                                        {/* Content */}
-                                        <div className="p-6 pt-10">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
-                                                    <Package className="text-white" size={20} />
-                                                </div>
-                                                <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">Done</button>
-                                            </div>
-
-                                            {/* Main Title */}
-                                            <div className="mb-6">
-                                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Import Inventory</h3>
-                                                <p className="text-slate-500 dark:text-slate-400 text-sm">Upload your gear list</p>
-                                            </div>
-
-                                            {/* Upload Card */}
-                                            <div className="mb-4 rounded-2xl p-6 bg-slate-50 dark:bg-slate-700/50 border-2 border-dashed border-slate-300 dark:border-slate-600">
-                                                <div className="flex flex-col items-center text-center">
-                                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
-                                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                                        </svg>
-                                                    </div>
-                                                    <p className="text-slate-900 dark:text-white font-bold mb-1 text-sm">Drop CSV file here</p>
-                                                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">or tap to browse</p>
-                                                    <button className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-xs font-bold px-5 py-2 rounded-lg">
-                                                        Choose File
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Progress */}
-                                            <div className="mb-4">
-                                                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-slate-900 dark:text-white text-sm font-medium">inventory_list.csv</span>
-                                                        <span className="text-teal-600 dark:text-teal-400 text-xs">78%</span>
-                                                    </div>
-                                                    <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2 overflow-hidden">
-                                                        <div className="bg-gradient-to-r from-blue-500 to-teal-500 h-full rounded-full" style={{ width: '78%', animation: 'progress 2s ease-in-out infinite' }}></div>
-                                                    </div>
-                                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2">247 items uploading...</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Tips */}
-                                            <div>
-                                                <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4">
-                                                    <p className="text-blue-700 dark:text-blue-300 text-xs">💡 Tip: Include serial numbers for better tracking</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Bottom Navigation */}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-800/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 px-6 py-4">
-                                            <div className="flex items-center justify-around">
-                                                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
-                                                    <Package className="text-blue-600 dark:text-blue-400" size={20} />
-                                                </div>
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                                                    <Camera className="text-slate-400 dark:text-slate-500" size={20} />
-                                                </div>
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                                                    <Users className="text-slate-400 dark:text-slate-500" size={20} />
-                                                </div>
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                                                    <span className="text-slate-400 dark:text-slate-500 text-xl">⋯</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Center Phone - Check Out */}
-                            <div className="relative">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
-                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
-                                        {/* Notch */}
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
-
-                                        {/* Content */}
-                                        <div className="p-6 pt-10">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">Checkout</div>
-                                                    <div className="text-lg font-bold text-slate-900 dark:text-white">John Smith</div>
-                                                </div>
-                                                <button className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                                                    <X size={16} className="text-slate-600 dark:text-slate-300" />
-                                                </button>
-                                            </div>
-
-                                            {/* Selected Items */}
-                                            <div className="mb-6">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Selected Items (3)</div>
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border-2 border-emerald-200 dark:border-emerald-700">
-                                                        <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg animate-pulse">
-                                                            <Camera size={18} />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">RED Camera</div>
-                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-2847</div>
-                                                        </div>
-                                                        <CheckSquare size={16} className="text-emerald-600 dark:text-emerald-400" />
-                                                    </div>
-                                                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
-                                                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center font-bold text-xs text-blue-600 dark:text-blue-400">
-                                                            L1
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">LED Light Kit</div>
-                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-1293</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
-                                                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center font-bold text-xs text-amber-600 dark:text-amber-400">
-                                                            T1
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">Tripod</div>
-                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400">#SN-4521</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Signature Area */}
-                                            <div className="mb-6">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Signature</div>
-                                                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 h-28 border-2 border-dashed border-slate-300 dark:border-slate-600 relative overflow-hidden">
-                                                    <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
-                                                        <path d="M 10 50 Q 30 20, 50 40 T 90 30 Q 110 50, 140 35 T 190 45" stroke="rgb(16, 185, 129)" strokeWidth="2" fill="none" className="animate-pulse"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-
-                                            {/* Checkout Button */}
-                                            <button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/30 animate-pulse">
-                                                Complete Check Out →
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Phone - Check In */}
-                            <div className="relative">
-                                <div className="w-[280px] h-[580px] bg-slate-900 rounded-[3rem] p-3 shadow-2xl">
-                                    <div className="w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden relative">
-                                        {/* Notch */}
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
-
-                                        {/* Content */}
-                                        <div className="p-6 pt-12">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Check In</h3>
-                                                <button className="text-teal-600 dark:text-teal-400 text-sm font-bold">Scan QR</button>
-                                            </div>
-
-                                            {/* Scan Result */}
-                                            <div className="mb-6 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-2xl p-5 border-2 border-teal-200 dark:border-teal-700">
-                                                <div className="flex items-center gap-3 mb-4">
-                                                    <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg animate-bounce">
-                                                        <Camera size={24} />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-bold text-slate-900 dark:text-white">RED Camera</div>
-                                                        <div className="text-xs text-slate-600 dark:text-slate-400">#SN-2847</div>
-                                                    </div>
-                                                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center animate-pulse">
-                                                        <CheckSquare size={16} className="text-white" />
-                                                    </div>
-                                                </div>
-                                                <div className="text-xs text-teal-700 dark:text-teal-300 font-medium">
-                                                    ✓ Checked out to John Smith
-                                                </div>
-                                            </div>
-
-                                            {/* Condition Check */}
-                                            <div className="mb-6">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Condition Check</div>
-                                                <div className="space-y-2">
-                                                    <button className="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
-                                                        <CheckSquare size={16} />
-                                                        Good Condition
-                                                    </button>
-                                                    <button className="w-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium py-3 px-4 rounded-xl text-sm">
-                                                        Report Damage
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Notes */}
-                                            <div className="mb-6">
-                                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Return Notes</div>
-                                                <textarea
-                                                    className="w-full bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3 text-xs text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600 resize-none"
-                                                    rows={3}
-                                                    placeholder="Add any notes about the return..."
-                                                ></textarea>
-                                            </div>
-
-                                            {/* Success Message */}
-                                            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl p-4 flex items-center gap-3 animate-pulse">
-                                                <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                                    <CheckSquare size={16} className="text-white" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Ready to check in</p>
-                                                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Tap confirm to complete</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -232,7 +232,7 @@ const ImportInventoryScreen: React.FC = () => {
             notes: getVal(noteIdx) || '',
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
-            image_url: `https://picsum.photos/seed/${name.replace(/\s/g,'')}/200`,
+            image_url: `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
             organization_id: state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
             purchase_date: new Date().toISOString().split('T')[0] // Default to today
             // Note: history is not a database column, it's computed from transactions table
