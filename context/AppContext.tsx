@@ -102,10 +102,15 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'NAVIGATE':
       return { ...state, currentView: action.payload };
     case 'SET_CURRENT_USER':
-      return { 
-          ...state, 
+      // Only navigate to DASHBOARD if user is logging in for the first time (no previous user)
+      // Don't change view if user is already logged in (token refresh, reconnect, etc.)
+      const shouldNavigate = action.payload && !state.currentUser;
+      return {
+          ...state,
           currentUser: action.payload,
-          currentView: action.payload ? { view: 'DASHBOARD' } : { view: 'LANDING' }
+          currentView: shouldNavigate
+            ? { view: 'DASHBOARD' }
+            : (action.payload ? state.currentView : { view: 'LANDING' })
       };
     case 'LOGOUT':
         return {
