@@ -135,7 +135,39 @@ const TeamScreen: React.FC = () => {
 
     const getInviteMessage = () => {
         if (!inviteDetails) return '';
-        return `Hi ${inviteDetails.name}!\n\nYou've been invited to join our team on Gear Base - a gear tracking app for production crews.\n\nTo get started:\n1. Go to: ${window.location.origin}\n2. Click "Create Account"\n3. Sign up using this email: ${inviteDetails.email}\n\nOnce you sign up, you'll automatically be connected to our team and can start viewing and managing gear.\n\nSee you there!`;
+        return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎬 GEAR BASE - Team Invitation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hi ${inviteDetails.name}!
+
+You've been invited to join our team on Gear Base - the gear tracking app for production crews.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 GETTING STARTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Go to: ${window.location.origin}
+2️⃣  Click "Create Account"
+3️⃣  Sign up using this email: ${inviteDetails.email}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 TIP: LOAD DEMO DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Want to explore before adding your own gear?
+
+After signing up, click the purple "Load Demo Data"
+button on your Dashboard to instantly populate your
+account with sample cameras, lenses, audio gear,
+lighting, drones, and more!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+See you on set! 🎥
+
+— The Gear Base Team
+`;
     };
 
     const copyInviteMessage = () => {
@@ -145,7 +177,37 @@ const TeamScreen: React.FC = () => {
     };
 
     const getQuickInviteMessage = () => {
-        return `You're invited to join our team on Gear Base!\n\nGear Base is a gear tracking app for production crews.\n\nTo get started:\n1. Go to: ${window.location.origin}\n2. Click "Create Account"\n3. Sign up with your email\n\nOnce you sign up, you'll be able to view and manage gear.\n\nSee you there!`;
+        return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎬 GEAR BASE - Team Invitation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You're invited to join our team on Gear Base - the gear tracking app for production crews.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 GETTING STARTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Go to: ${window.location.origin}
+2️⃣  Click "Create Account"
+3️⃣  Sign up with your email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 TIP: LOAD DEMO DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Want to explore before adding your own gear?
+
+After signing up, click the purple "Load Demo Data"
+button on your Dashboard to instantly populate your
+account with sample cameras, lenses, audio gear,
+lighting, drones, and more!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+See you on set! 🎥
+
+— The Gear Base Team
+`;
     };
 
     const copyQuickInvite = () => {

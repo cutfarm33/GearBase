@@ -1,7 +1,8 @@
 
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
-import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole } from '../types';
+import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus } from '../types';
+import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
 
 // --- 1. CONFIGURATION ---
 
@@ -212,6 +213,7 @@ interface AppContextType {
   updateInventoryItem: (item: InventoryItem) => Promise<void>;
   signOut: () => Promise<void>;
   toggleTheme: () => Promise<void>;
+  loadDemoData: () => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -896,6 +898,141 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   };
 
+  const loadDemoData = async (): Promise<boolean> => {
+      if (!state.currentUser) {
+          alert('You must be logged in to load demo data');
+          return false;
+      }
+
+      const organizationId = state.currentUser.active_organization_id || state.currentUser.organization_id;
+      if (!organizationId) {
+          alert('No organization found');
+          return false;
+      }
+
+      // Confirm with user
+      const confirmed = window.confirm(
+          'This will add sample inventory items, jobs, and packages to your account.\n\n' +
+          'Your existing data will NOT be deleted.\n\n' +
+          'Continue?'
+      );
+      if (!confirmed) return false;
+
+      dispatch({ type: 'SET_LOADING', payload: true });
+
+      try {
+          console.log('Loading demo data for organization:', organizationId);
+
+          // 1. Insert inventory items
+          const inventoryPayload = demoInventory.map(item => ({
+              name: item.name,
+              category: item.category,
+              status: item.status,
+              condition: item.condition,
+              value: item.value,
+              weight: item.weight,
+              storage_case: item.storageCase,
+              notes: item.notes,
+              qr_code: item.qrCode,
+              organization_id: organizationId,
+              image_url: `https://picsum.photos/seed/${item.name.replace(/[^a-zA-Z0-9]/g, '')}/200`
+          }));
+
+          const { data: insertedItems, error: inventoryError } = await supabase
+              .from('inventory')
+              .insert(inventoryPayload)
+              .select('id, name');
+
+          if (inventoryError) {
+              console.error('Inventory insert error:', inventoryError);
+              throw inventoryError;
+          }
+
+          console.log('Inserted', insertedItems?.length, 'inventory items');
+
+          // Create name-to-id map for kits
+          const nameToIdMap: Record<string, number> = {};
+          (insertedItems || []).forEach((item: { id: number; name: string }) => {
+              nameToIdMap[item.name] = item.id;
+          });
+
+          // 2. Insert jobs
+          const jobsPayload = demoJobs.map(job => ({
+              name: job.name,
+              status: job.status,
+              start_date: job.startDate,
+              end_date: job.endDate,
+              producer_id: state.currentUser!.id,
+              organization_id: organizationId
+          }));
+
+          const { data: insertedJobs, error: jobsError } = await supabase
+              .from('jobs')
+              .insert(jobsPayload)
+              .select('id');
+
+          if (jobsError) {
+              console.error('Jobs insert error:', jobsError);
+              throw jobsError;
+          }
+
+          console.log('Inserted', insertedJobs?.length, 'jobs');
+
+          // 3. Insert kits
+          for (const kit of demoKits) {
+              const { data: insertedKit, error: kitError } = await supabase
+                  .from('kits')
+                  .insert({
+                      name: kit.name,
+                      organization_id: organizationId
+                  })
+                  .select('id')
+                  .single();
+
+              if (kitError) {
+                  console.error('Kit insert error:', kitError);
+                  continue;
+              }
+
+              // Insert kit items
+              const kitItemIds = kit.itemNames
+                  .map(name => nameToIdMap[name])
+                  .filter(id => id !== undefined);
+
+              if (kitItemIds.length > 0) {
+                  const kitItemsPayload = kitItemIds.map(itemId => ({
+                      kit_id: insertedKit.id,
+                      item_id: itemId
+                  }));
+
+                  const { error: kitItemsError } = await supabase
+                      .from('kit_items')
+                      .insert(kitItemsPayload);
+
+                  if (kitItemsError) {
+                      console.error('Kit items insert error:', kitItemsError);
+                  }
+              }
+
+              console.log('Created kit:', kit.name, 'with', kitItemIds.length, 'items');
+          }
+
+          // 4. Refresh data to show new items
+          await refreshData(true);
+
+          alert(`Demo data loaded successfully!\n\n• ${insertedItems?.length || 0} inventory items\n• ${insertedJobs?.length || 0} jobs\n• ${demoKits.length} packages`);
+          return true;
+
+      } catch (error: any) {
+          console.error('Load demo data error:', error);
+          const message = error.message || JSON.stringify(error);
+          alert('Failed to load demo data: ' + message);
+          return false;
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
   // Initial Load & Auth Check
   useEffect(() => {
       const init = async () => {
@@ -974,7 +1111,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData }}>
       {children}
     </AppContext.Provider>
   );
