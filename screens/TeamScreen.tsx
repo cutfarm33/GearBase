@@ -29,6 +29,9 @@ const TeamScreen: React.FC = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteDetails, setInviteDetails] = useState<{name: string, email: string} | null>(null);
     const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+
+    // Quick Invite State
+    const [quickInviteCopied, setQuickInviteCopied] = useState(false);
     
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -139,6 +142,16 @@ const TeamScreen: React.FC = () => {
         navigator.clipboard.writeText(getInviteMessage());
         setInviteLinkCopied(true);
         setTimeout(() => setInviteLinkCopied(false), 2000);
+    };
+
+    const getQuickInviteMessage = () => {
+        return `You're invited to join our team on Gear Base!\n\nGear Base is a gear tracking app for production crews.\n\nTo get started:\n1. Go to: ${window.location.origin}\n2. Click "Create Account"\n3. Sign up with your email\n\nOnce you sign up, you'll be able to view and manage gear.\n\nSee you there!`;
+    };
+
+    const copyQuickInvite = () => {
+        navigator.clipboard.writeText(getQuickInviteMessage());
+        setQuickInviteCopied(true);
+        setTimeout(() => setQuickInviteCopied(false), 2000);
     };
 
     const startEdit = (user: User) => {
@@ -301,6 +314,21 @@ const TeamScreen: React.FC = () => {
                         {selectMode ? <X size={20} /> : <CheckSquare size={20} />}
                         {selectMode ? 'Cancel' : 'Select'}
                     </button>
+
+                    {/* Copy Invite Button - hidden in select mode */}
+                    {!selectMode && (
+                        <button
+                            onClick={copyQuickInvite}
+                            className={`font-bold py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2 ${
+                                quickInviteCopied
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-white'
+                            }`}
+                        >
+                            {quickInviteCopied ? <Check size={20} /> : <Copy size={20} />}
+                            {quickInviteCopied ? 'Copied!' : 'Copy Invite'}
+                        </button>
+                    )}
 
                     {/* Add Person Button - hidden in select mode */}
                     {!selectMode && (
