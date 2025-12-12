@@ -1,10 +1,41 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, JobStatus, ItemCondition, Job } from '../types';
-import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity } from 'lucide-react';
+import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity, Download, Check } from 'lucide-react';
 
 const DashboardScreen: React.FC = () => {
   const { state, navigateTo } = useAppContext();
+  const [exportCopied, setExportCopied] = useState(false);
+
+  const exportData = () => {
+    const exportPayload = {
+      inventory: state.inventory.map(item => ({
+        name: item.name,
+        category: item.category,
+        status: item.status,
+        condition: item.condition,
+        value: item.value,
+        weight: item.weight,
+        storageCase: item.storageCase,
+        notes: item.notes,
+        qrCode: item.qrCode
+      })),
+      jobs: state.jobs.map(job => ({
+        name: job.name,
+        status: job.status,
+        startDate: job.startDate,
+        endDate: job.endDate,
+        gearListCount: job.gearList.length
+      })),
+      kits: state.kits.map(kit => ({
+        name: kit.name,
+        itemCount: kit.itemIds.length
+      }))
+    };
+    navigator.clipboard.writeText(JSON.stringify(exportPayload, null, 2));
+    setExportCopied(true);
+    setTimeout(() => setExportCopied(false), 3000);
+  };
   
   // Stats Calculation
   const upcomingJobs = state.jobs.filter(j => j.status === JobStatus.UPCOMING);
@@ -77,6 +108,18 @@ const DashboardScreen: React.FC = () => {
             <p className="text-lg text-slate-600 dark:text-slate-400">Overview for {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <div className="flex gap-3">
+            <button
+                onClick={exportData}
+                className={`font-bold py-3 px-5 rounded-xl transition-all flex items-center gap-2 ${
+                    exportCopied
+                        ? 'bg-green-500 text-white'
+                        : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-white'
+                }`}
+                title="Export data for demo"
+            >
+                {exportCopied ? <Check size={20} /> : <Download size={20} />}
+                {exportCopied ? 'Copied!' : 'Export'}
+            </button>
             <button
                 onClick={() => navigateTo('ADD_JOB')}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2"
