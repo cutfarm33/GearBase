@@ -487,15 +487,46 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         // 2. Load Data in Background - pass orgId to ensure correct data is loaded
         refreshData(true, orgId).catch(e => console.error("Background refresh failed", e));
 
-        // 3. AUTO-MERGE: Check for offline profiles with matching email (runs in background, non-blocking)
-        // This merges any offline profiles created for this user before they signed up
+        // 3. AUTO-MERGE: Check for pre-created profiles with matching email (runs in background, non-blocking)
+        // This merges any profiles created for this user before they signed up
         (async () => {
             try {
-                console.log('Checking for offline profiles to merge...');
+                console.log('Checking for profiles to merge for email:', email);
+
+                // First, check for exact email match (invited with real email)
+                const { data: exactMatch } = await supabase
+                    .from('profiles')
+                    .select('id, email, organization_id')
+                    .eq('email', email.toLowerCase())
+                    .neq('id', session.user.id)
+                    .limit(1);
+
+                if (exactMatch && exactMatch.length > 0) {
+                    const matchingProfile = exactMatch[0];
+                    console.log('Found exact email match to merge:', matchingProfile.id);
+
+                    // Merge the pre-created profile into the real user
+                    await supabase.from('jobs').update({ producer_id: session.user.id }).eq('producer_id', matchingProfile.id);
+                    await supabase.from('transactions').update({ user_id: session.user.id }).eq('user_id', matchingProfile.id);
+                    await supabase.from('transactions').update({ assigned_to_id: session.user.id }).eq('assigned_to_id', matchingProfile.id);
+                    await supabase.from('profiles').delete().eq('id', matchingProfile.id);
+
+                    // Add user to organization_members for the merged organization
+                    await supabase.from('organization_members').upsert({
+                        organization_id: matchingProfile.organization_id,
+                        user_id: session.user.id,
+                        role: 'member'
+                    }, { onConflict: 'organization_id,user_id' });
+
+                    console.log('Exact email merge completed successfully');
+                    return; // Done - no need to check offline profiles
+                }
+
+                // Also check for offline profiles (legacy flow - invited without real email)
                 const { data: offlineProfiles } = await Promise.race([
                     supabase
                         .from('profiles')
-                        .select('id, email')
+                        .select('id, email, organization_id')
                         .eq('organization_id', orgId)
                         .like('email', '%@offline.user')
                         .limit(50),
@@ -522,12 +553,12 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
                         // Add user to organization_members so they can switch organizations
                         await supabase.from('organization_members').upsert({
-                            organization_id: orgId,
+                            organization_id: matchingProfile.organization_id,
                             user_id: session.user.id,
                             role: 'member'
                         }, { onConflict: 'organization_id,user_id' });
 
-                        console.log('Auto-merge completed successfully');
+                        console.log('Offline profile merge completed successfully');
                     }
                 }
             } catch (mergeError) {
@@ -756,7 +787,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           const id = crypto.randomUUID();
           // Generate unique email with timestamp to avoid duplicate constraint violations
           const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-          const fakeEmail = email || `${name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}.${uniqueSuffix}@offline.user`;
+          // Store email lowercase for consistent matching during auto-merge
+          const fakeEmail = email?.toLowerCase() || `${name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}.${uniqueSuffix}@offline.user`;
           // CRITICAL: Use the same organization ID logic as refreshData
           const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
 
