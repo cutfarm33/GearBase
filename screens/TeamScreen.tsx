@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2 } from 'lucide-react';
+import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, Square, X } from 'lucide-react';
 import { User, UserRole } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -29,9 +29,48 @@ const TeamScreen: React.FC = () => {
     
     // Delete State
     const [memberToDelete, setMemberToDelete] = useState<{id: string, name: string} | null>(null);
-    
+
+    // Multi-select State
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
     // Error Handling State
     const [showSqlModal, setShowSqlModal] = useState(false);
+
+    // Multi-select handlers
+    const toggleSelectMode = () => {
+        setSelectMode(!selectMode);
+        setSelectedIds(new Set()); // Clear selections when toggling
+    };
+
+    const toggleSelection = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const selectAll = () => {
+        const allIds = new Set(state.users.map(u => u.id));
+        setSelectedIds(allIds);
+    };
+
+    const deselectAll = () => {
+        setSelectedIds(new Set());
+    };
+
+    const confirmBulkDelete = async () => {
+        for (const id of selectedIds) {
+            await deleteTeamMember(id);
+        }
+        setSelectedIds(new Set());
+        setShowBulkDeleteModal(false);
+        setSelectMode(false);
+    };
 
     const copySql = () => {
         navigator.clipboard.writeText(REQUIRED_SQL);
@@ -196,19 +235,83 @@ const TeamScreen: React.FC = () => {
                 </div>
             )}
 
+            {/* Bulk Delete Modal */}
+            <ConfirmModal
+                isOpen={showBulkDeleteModal}
+                title="Delete Selected Members"
+                message={`Are you sure you want to delete ${selectedIds.size} team member${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
+                confirmText={`Delete ${selectedIds.size} Member${selectedIds.size > 1 ? 's' : ''}`}
+                isDestructive={true}
+                onConfirm={confirmBulkDelete}
+                onCancel={() => setShowBulkDeleteModal(false)}
+            />
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Team Management</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage producers and crew members for your jobs.</p>
                 </div>
-                <button 
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2"
-                >
-                    <Plus size={20} />
-                    {isAdding ? 'Cancel' : 'Add Person'}
-                </button>
+                <div className="flex gap-2">
+                    {/* Select Mode Toggle */}
+                    <button
+                        onClick={toggleSelectMode}
+                        className={`font-bold py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2 ${
+                            selectMode
+                                ? 'bg-slate-600 hover:bg-slate-700 text-white'
+                                : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-white'
+                        }`}
+                    >
+                        {selectMode ? <X size={20} /> : <CheckSquare size={20} />}
+                        {selectMode ? 'Cancel' : 'Select'}
+                    </button>
+
+                    {/* Add Person Button - hidden in select mode */}
+                    {!selectMode && (
+                        <button
+                            onClick={() => setIsAdding(!isAdding)}
+                            className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            <Plus size={20} />
+                            {isAdding ? 'Cancel' : 'Add Person'}
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {/* Selection Bar - shows when in select mode */}
+            {selectMode && (
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-4">
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">
+                            {selectedIds.size} of {state.users.length} selected
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={selectAll}
+                                className="text-sm text-sky-600 dark:text-sky-400 hover:underline"
+                            >
+                                Select All
+                            </button>
+                            <span className="text-slate-400">|</span>
+                            <button
+                                onClick={deselectAll}
+                                className="text-sm text-slate-600 dark:text-slate-400 hover:underline"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    {selectedIds.size > 0 && (
+                        <button
+                            onClick={() => setShowBulkDeleteModal(true)}
+                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                            <Trash2 size={18} />
+                            Delete Selected ({selectedIds.size})
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Add Member Form */}
             {isAdding && (
@@ -265,9 +368,36 @@ const TeamScreen: React.FC = () => {
                 {state.users.map(user => {
                     const isEditing = editingId === user.id;
                     const isOffline = user.email.includes('offline.user');
-                    
+                    const isSelected = selectedIds.has(user.id);
+
                     return (
-                        <div key={user.id} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-slate-200 dark:border-slate-700 relative group">
+                        <div
+                            key={user.id}
+                            className={`bg-white dark:bg-slate-800 rounded-lg shadow p-6 border relative group transition-all ${
+                                selectMode && isSelected
+                                    ? 'border-sky-500 ring-2 ring-sky-500/20'
+                                    : 'border-slate-200 dark:border-slate-700'
+                            } ${selectMode ? 'cursor-pointer' : ''}`}
+                            onClick={selectMode ? () => toggleSelection(user.id) : undefined}
+                        >
+                            {/* Selection Checkbox */}
+                            {selectMode && (
+                                <div className="absolute top-4 left-4 z-20">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleSelection(user.id);
+                                        }}
+                                        className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                            isSelected
+                                                ? 'bg-sky-500 border-sky-500 text-white'
+                                                : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500'
+                                        }`}
+                                    >
+                                        {isSelected && <Check size={14} />}
+                                    </button>
+                                </div>
+                            )}
                             
                             {/* Edit Form */}
                             {isEditing ? (
@@ -318,13 +448,13 @@ const TeamScreen: React.FC = () => {
                                 </div>
                             ) : (
                                 // View Mode
-                                <div className="flex items-start gap-4">
+                                <div className={`flex items-start gap-4 ${selectMode ? 'ml-8' : ''}`}>
                                     <div className="relative">
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${getRoleColor(user.role)}`}>
                                             {user.name.charAt(0)}
                                         </div>
                                         {/* Status Dot */}
-                                        <div 
+                                        <div
                                             className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ${isOffline ? 'bg-slate-400' : 'bg-green-500'}`}
                                             title={isOffline ? "Offline Profile" : "Active User"}
                                         ></div>
@@ -339,35 +469,40 @@ const TeamScreen: React.FC = () => {
                                         <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
                                             <Mail size={12} /> {isOffline ? 'Offline User' : user.email}
                                         </div>
-                                        
-                                        {isOffline && (
-                                            <button 
-                                                onClick={() => copyInvite(user.email, user.id)}
+
+                                        {isOffline && !selectMode && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    copyInvite(user.email, user.id);
+                                                }}
                                                 className="mt-2 text-xs flex items-center gap-1 text-sky-600 hover:text-sky-500 dark:text-sky-400 transition-colors"
                                             >
-                                                {inviteCopied === user.id ? <Check size={12}/> : <Share2 size={12}/>} 
+                                                {inviteCopied === user.id ? <Check size={12}/> : <Share2 size={12}/>}
                                                 {inviteCopied === user.id ? 'Copied!' : 'Copy Invite'}
                                             </button>
                                         )}
                                     </div>
-                                    
-                                    {/* Action Buttons - ALWAYS VISIBLE on mobile/touch with z-10 */}
-                                    <div className="absolute top-4 right-4 flex gap-2 bg-white dark:bg-slate-800 pl-2 z-10">
-                                        <button 
-                                            onClick={() => startEdit(user)}
-                                            className="text-slate-400 hover:text-sky-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                                            title="Edit"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button 
-                                            onClick={() => setMemberToDelete({ id: user.id, name: user.name })}
-                                            className="text-slate-400 hover:text-red-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
+
+                                    {/* Action Buttons - Hidden in select mode */}
+                                    {!selectMode && (
+                                        <div className="absolute top-4 right-4 flex gap-2 bg-white dark:bg-slate-800 pl-2 z-10">
+                                            <button
+                                                onClick={() => startEdit(user)}
+                                                className="text-slate-400 hover:text-sky-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => setMemberToDelete({ id: user.id, name: user.name })}
+                                                className="text-slate-400 hover:text-red-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
