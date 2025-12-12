@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, Square, X, Send, Loader } from 'lucide-react';
+import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, X, Loader } from 'lucide-react';
 import { User, UserRole } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -15,16 +15,20 @@ alter table profiles drop constraint if exists profiles_role_check;
 `;
 
 const TeamScreen: React.FC = () => {
-    const { state, addTeamMember, updateTeamMember, deleteTeamMember, supabase } = useAppContext();
+    const { state, addTeamMember, updateTeamMember, deleteTeamMember } = useAppContext();
     const [isAdding, setIsAdding] = useState(false);
     const [newName, setNewName] = useState('');
     const [newRole, setNewRole] = useState<UserRole>('Crew');
     const [newEmail, setNewEmail] = useState('');
-    const [sendInvite, setSendInvite] = useState(false);
-    const [isSending, setIsSending] = useState(false);
-    const [inviteStatus, setInviteStatus] = useState<{success: boolean, message: string} | null>(null);
+    const [generateInvite, setGenerateInvite] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [copied, setCopied] = useState(false);
     const [inviteCopied, setInviteCopied] = useState<string | null>(null);
+
+    // Invite Modal State
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteDetails, setInviteDetails] = useState<{name: string, email: string} | null>(null);
+    const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
     
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,51 +96,27 @@ const TeamScreen: React.FC = () => {
         e.preventDefault();
         if (!newName.trim()) return;
 
-        // If send invite is checked, email is required
-        if (sendInvite && !newEmail.trim()) {
-            alert('Email is required to send an invitation');
+        // If generate invite is checked, email is required
+        if (generateInvite && !newEmail.trim()) {
+            alert('Email is required to generate an invitation');
             return;
         }
 
-        setIsSending(true);
-        setInviteStatus(null);
+        setIsSaving(true);
 
         try {
-            // First, add the team member profile
+            // Add the team member profile with their real email
             await addTeamMember(newName, newRole, newEmail);
 
-            // If send invite is checked, send the magic link email
-            if (sendInvite && newEmail.trim()) {
-                const { error: inviteError } = await supabase.auth.signInWithOtp({
-                    email: newEmail.trim(),
-                    options: {
-                        shouldCreateUser: true,
-                        emailRedirectTo: `${window.location.origin}`,
-                        data: {
-                            full_name: newName,
-                            role: newRole,
-                            invited: true
-                        }
-                    }
-                });
-
-                if (inviteError) {
-                    console.error('Invite error:', inviteError);
-                    setInviteStatus({
-                        success: false,
-                        message: `Team member added, but invitation failed: ${inviteError.message}`
-                    });
-                } else {
-                    setInviteStatus({
-                        success: true,
-                        message: `Invitation sent to ${newEmail}! They'll receive an email with signup instructions.`
-                    });
-                }
+            // If generate invite is checked, show the invite modal
+            if (generateInvite && newEmail.trim()) {
+                setInviteDetails({ name: newName, email: newEmail.trim() });
+                setShowInviteModal(true);
             }
 
             setNewName('');
             setNewEmail('');
-            setSendInvite(false);
+            setGenerateInvite(false);
             setIsAdding(false);
         } catch (error: any) {
             // Check for foreign key constraint OR check constraint violation (role name)
@@ -146,8 +126,19 @@ const TeamScreen: React.FC = () => {
                 alert("Failed to add member: " + error.message);
             }
         } finally {
-            setIsSending(false);
+            setIsSaving(false);
         }
+    };
+
+    const getInviteMessage = () => {
+        if (!inviteDetails) return '';
+        return `Hi ${inviteDetails.name}!\n\nYou've been invited to join our team on Gear Base - a gear tracking app for production crews.\n\nTo get started:\n1. Go to: ${window.location.origin}\n2. Click "Create Account"\n3. Sign up using this email: ${inviteDetails.email}\n\nOnce you sign up, you'll automatically be connected to our team and can start viewing and managing gear.\n\nSee you there!`;
+    };
+
+    const copyInviteMessage = () => {
+        navigator.clipboard.writeText(getInviteMessage());
+        setInviteLinkCopied(true);
+        setTimeout(() => setInviteLinkCopied(false), 2000);
     };
 
     const startEdit = (user: User) => {
@@ -359,21 +350,55 @@ const TeamScreen: React.FC = () => {
                 </div>
             )}
 
-            {/* Invite Status Toast */}
-            {inviteStatus && (
-                <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg border max-w-md animate-in slide-in-from-bottom-5 ${
-                    inviteStatus.success
-                        ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
-                        : 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200'
-                }`}>
-                    <div className="flex items-start gap-3">
-                        {inviteStatus.success ? <Check size={20} /> : <Mail size={20} />}
-                        <div className="flex-grow">
-                            <p className="text-sm font-medium">{inviteStatus.message}</p>
+            {/* Invite Message Modal */}
+            {showInviteModal && inviteDetails && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-lg shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                                <Check size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Team Member Added!</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Send them this invitation to join</p>
+                            </div>
                         </div>
-                        <button onClick={() => setInviteStatus(null)} className="text-current opacity-50 hover:opacity-100">
-                            <X size={16} />
-                        </button>
+
+                        <div className="p-6 overflow-y-auto flex-grow">
+                            <p className="text-slate-700 dark:text-slate-300 mb-4 text-sm">
+                                Copy the message below and send it to <strong>{inviteDetails.email}</strong> via email or text:
+                            </p>
+
+                            <div className="relative">
+                                <pre className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 p-4 rounded-lg text-sm font-mono overflow-x-auto whitespace-pre-wrap border border-slate-200 dark:border-slate-700">
+                                    {getInviteMessage()}
+                                </pre>
+                                <button
+                                    onClick={copyInviteMessage}
+                                    className="absolute top-2 right-2 bg-sky-500 hover:bg-sky-600 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium flex items-center gap-1.5"
+                                >
+                                    {inviteLinkCopied ? <Check size={14} /> : <Copy size={14} />}
+                                    {inviteLinkCopied ? 'Copied!' : 'Copy'}
+                                </button>
+                            </div>
+
+                            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                                When they sign up with <strong>{inviteDetails.email}</strong>, they'll automatically be linked to this team profile.
+                            </p>
+                        </div>
+
+                        <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50 rounded-b-lg">
+                            <button
+                                onClick={() => {
+                                    setShowInviteModal(false);
+                                    setInviteDetails(null);
+                                    setInviteLinkCopied(false);
+                                }}
+                                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors"
+                            >
+                                Done
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -407,11 +432,11 @@ const TeamScreen: React.FC = () => {
                             </div>
                             <div className="flex-grow">
                                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                                    Email {sendInvite ? <span className="text-red-500">*</span> : '(Optional)'}
+                                    Email {generateInvite ? <span className="text-red-500">*</span> : '(Optional)'}
                                 </label>
                                 <input
                                     type="email"
-                                    required={sendInvite}
+                                    required={generateInvite}
                                     className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
                                     placeholder="john@example.com"
                                     value={newEmail}
@@ -420,40 +445,40 @@ const TeamScreen: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Send Invite Checkbox */}
+                        {/* Generate Invite Checkbox */}
                         <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <input
                                     type="checkbox"
-                                    checked={sendInvite}
-                                    onChange={e => setSendInvite(e.target.checked)}
+                                    checked={generateInvite}
+                                    onChange={e => setGenerateInvite(e.target.checked)}
                                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-sky-500 focus:ring-sky-500 dark:bg-slate-700"
                                 />
                                 <div>
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-2">
-                                        <Send size={14} />
-                                        Send email invitation
+                                        <Mail size={14} />
+                                        Generate invite message
                                     </span>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        They'll receive an email with a link to create their account
+                                        Get a copyable message to send them via email or text
                                     </p>
                                 </div>
                             </label>
 
                             <button
                                 type="submit"
-                                disabled={isSending}
+                                disabled={isSaving}
                                 className="bg-green-500 hover:bg-green-600 disabled:bg-slate-400 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
                             >
-                                {isSending ? (
+                                {isSaving ? (
                                     <>
                                         <Loader size={16} className="animate-spin" />
-                                        {sendInvite ? 'Sending...' : 'Saving...'}
+                                        Saving...
                                     </>
                                 ) : (
                                     <>
-                                        {sendInvite ? <Send size={16} /> : <Check size={16} />}
-                                        {sendInvite ? 'Save & Send Invite' : 'Save'}
+                                        <Check size={16} />
+                                        {generateInvite ? 'Save & Get Invite' : 'Save'}
                                     </>
                                 )}
                             </button>
@@ -461,7 +486,7 @@ const TeamScreen: React.FC = () => {
                     </form>
 
                     <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                        <strong>Note:</strong> Team members can be assigned to jobs immediately. If you send an invitation, they can create an account to access GearBase themselves.
+                        <strong>Note:</strong> Team members can be assigned to jobs immediately. Generate an invite to let them create their own account and access GearBase.
                     </div>
                 </div>
             )}
