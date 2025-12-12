@@ -19,3 +19,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/1aeZgXyfCbUNCix7y-uHm97
 3. Run the app:
    `npm run dev`
 # GearBase
+
