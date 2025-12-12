@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, Square, X } from 'lucide-react';
+import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, Square, X, Send, Loader } from 'lucide-react';
 import { User, UserRole } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -15,11 +15,14 @@ alter table profiles drop constraint if exists profiles_role_check;
 `;
 
 const TeamScreen: React.FC = () => {
-    const { state, addTeamMember, updateTeamMember, deleteTeamMember } = useAppContext();
+    const { state, addTeamMember, updateTeamMember, deleteTeamMember, supabase } = useAppContext();
     const [isAdding, setIsAdding] = useState(false);
     const [newName, setNewName] = useState('');
     const [newRole, setNewRole] = useState<UserRole>('Crew');
     const [newEmail, setNewEmail] = useState('');
+    const [sendInvite, setSendInvite] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [inviteStatus, setInviteStatus] = useState<{success: boolean, message: string} | null>(null);
     const [copied, setCopied] = useState(false);
     const [inviteCopied, setInviteCopied] = useState<string | null>(null);
     
@@ -88,11 +91,52 @@ const TeamScreen: React.FC = () => {
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newName.trim()) return;
-        
+
+        // If send invite is checked, email is required
+        if (sendInvite && !newEmail.trim()) {
+            alert('Email is required to send an invitation');
+            return;
+        }
+
+        setIsSending(true);
+        setInviteStatus(null);
+
         try {
+            // First, add the team member profile
             await addTeamMember(newName, newRole, newEmail);
+
+            // If send invite is checked, send the magic link email
+            if (sendInvite && newEmail.trim()) {
+                const { error: inviteError } = await supabase.auth.signInWithOtp({
+                    email: newEmail.trim(),
+                    options: {
+                        shouldCreateUser: true,
+                        emailRedirectTo: `${window.location.origin}`,
+                        data: {
+                            full_name: newName,
+                            role: newRole,
+                            invited: true
+                        }
+                    }
+                });
+
+                if (inviteError) {
+                    console.error('Invite error:', inviteError);
+                    setInviteStatus({
+                        success: false,
+                        message: `Team member added, but invitation failed: ${inviteError.message}`
+                    });
+                } else {
+                    setInviteStatus({
+                        success: true,
+                        message: `Invitation sent to ${newEmail}! They'll receive an email with signup instructions.`
+                    });
+                }
+            }
+
             setNewName('');
             setNewEmail('');
+            setSendInvite(false);
             setIsAdding(false);
         } catch (error: any) {
             // Check for foreign key constraint OR check constraint violation (role name)
@@ -101,6 +145,8 @@ const TeamScreen: React.FC = () => {
             } else {
                 alert("Failed to add member: " + error.message);
             }
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -313,52 +359,109 @@ const TeamScreen: React.FC = () => {
                 </div>
             )}
 
+            {/* Invite Status Toast */}
+            {inviteStatus && (
+                <div className={`fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg border max-w-md animate-in slide-in-from-bottom-5 ${
+                    inviteStatus.success
+                        ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+                        : 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200'
+                }`}>
+                    <div className="flex items-start gap-3">
+                        {inviteStatus.success ? <Check size={20} /> : <Mail size={20} />}
+                        <div className="flex-grow">
+                            <p className="text-sm font-medium">{inviteStatus.message}</p>
+                        </div>
+                        <button onClick={() => setInviteStatus(null)} className="text-current opacity-50 hover:opacity-100">
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Add Member Form */}
             {isAdding && (
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-slate-700 mb-8 animate-in slide-in-from-top-5">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add New Team Member</h3>
-                    <form onSubmit={handleAdd} className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="flex-grow w-full">
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Full Name</label>
-                            <input 
-                                type="text" 
-                                required
-                                className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
-                                placeholder="e.g. John Doe"
-                                value={newName}
-                                onChange={e => setNewName(e.target.value)}
-                            />
+                    <form onSubmit={handleAdd} className="space-y-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-grow">
+                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
+                                    placeholder="e.g. John Doe"
+                                    value={newName}
+                                    onChange={e => setNewName(e.target.value)}
+                                />
+                            </div>
+                            <div className="w-full md:w-48">
+                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Role</label>
+                                <select
+                                    className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
+                                    value={newRole}
+                                    onChange={e => setNewRole(e.target.value as UserRole)}
+                                >
+                                    <RoleOptions />
+                                </select>
+                            </div>
+                            <div className="flex-grow">
+                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                                    Email {sendInvite ? <span className="text-red-500">*</span> : '(Optional)'}
+                                </label>
+                                <input
+                                    type="email"
+                                    required={sendInvite}
+                                    className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
+                                    placeholder="john@example.com"
+                                    value={newEmail}
+                                    onChange={e => setNewEmail(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <div className="w-full md:w-48">
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Role</label>
-                            <select 
-                                className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
-                                value={newRole}
-                                onChange={e => setNewRole(e.target.value as UserRole)}
+
+                        {/* Send Invite Checkbox */}
+                        <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={sendInvite}
+                                    onChange={e => setSendInvite(e.target.checked)}
+                                    className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-sky-500 focus:ring-sky-500 dark:bg-slate-700"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-2">
+                                        <Send size={14} />
+                                        Send email invitation
+                                    </span>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        They'll receive an email with a link to create their account
+                                    </p>
+                                </div>
+                            </label>
+
+                            <button
+                                type="submit"
+                                disabled={isSending}
+                                className="bg-green-500 hover:bg-green-600 disabled:bg-slate-400 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
                             >
-                                <RoleOptions />
-                            </select>
+                                {isSending ? (
+                                    <>
+                                        <Loader size={16} className="animate-spin" />
+                                        {sendInvite ? 'Sending...' : 'Saving...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        {sendInvite ? <Send size={16} /> : <Check size={16} />}
+                                        {sendInvite ? 'Save & Send Invite' : 'Save'}
+                                    </>
+                                )}
+                            </button>
                         </div>
-                         <div className="flex-grow w-full">
-                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Email (Optional)</label>
-                            <input 
-                                type="email" 
-                                className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600"
-                                placeholder="john@example.com"
-                                value={newEmail}
-                                onChange={e => setNewEmail(e.target.value)}
-                            />
-                        </div>
-                        <button 
-                            type="submit"
-                            className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                        >
-                            Save
-                        </button>
                     </form>
-                    
+
                     <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                         <strong>Note:</strong> Team members added here are "offline" profiles for tracking jobs and transactions. They don't need a GearBase account to be assigned to jobs.
+                        <strong>Note:</strong> Team members can be assigned to jobs immediately. If you send an invitation, they can create an account to access GearBase themselves.
                     </div>
                 </div>
             )}

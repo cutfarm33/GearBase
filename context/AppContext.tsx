@@ -466,11 +466,6 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         // Use active_organization_id if set, otherwise fall back to organization_id
         const orgId = profileData?.active_organization_id || profileData?.organization_id || defaultOrgId;
 
-        // AUTO-MERGE: Check for offline profiles with matching email
-        // Skip for now to ensure login works - can be done later in background
-        // This was causing login to hang due to database operations timing out
-        console.log('Skipping auto-merge check to speed up login');
-
         const userProfile = {
             id: session.user.id,
             name: full_name || 'Unknown User',
@@ -489,6 +484,47 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
         // 2. Load Data in Background - pass orgId to ensure correct data is loaded
         refreshData(true, orgId).catch(e => console.error("Background refresh failed", e));
+
+        // 3. AUTO-MERGE: Check for offline profiles with matching email (runs in background, non-blocking)
+        // This merges any offline profiles created for this user before they signed up
+        (async () => {
+            try {
+                console.log('Checking for offline profiles to merge...');
+                const { data: offlineProfiles } = await Promise.race([
+                    supabase
+                        .from('profiles')
+                        .select('id, email')
+                        .eq('organization_id', orgId)
+                        .like('email', '%@offline.user')
+                        .limit(50),
+                    new Promise<{ data: null }>((_, reject) =>
+                        setTimeout(() => reject(new Error('Auto-merge query timeout')), 5000)
+                    )
+                ]) as { data: any[] | null };
+
+                if (offlineProfiles && offlineProfiles.length > 0) {
+                    // Find offline profiles where the name part matches the real user's email prefix
+                    const emailPrefix = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const matchingProfile = offlineProfiles.find(p => {
+                        const offlinePrefix = p.email.split('@')[0].toLowerCase().replace(/[^a-z0-9.]/g, '').split('.')[0];
+                        return offlinePrefix === emailPrefix || p.email.toLowerCase().includes(emailPrefix);
+                    });
+
+                    if (matchingProfile && matchingProfile.id !== session.user.id) {
+                        console.log('Found matching offline profile to merge:', matchingProfile.id);
+                        // Run merge silently in background
+                        await supabase.from('jobs').update({ producer_id: session.user.id }).eq('producer_id', matchingProfile.id);
+                        await supabase.from('transactions').update({ user_id: session.user.id }).eq('user_id', matchingProfile.id);
+                        await supabase.from('transactions').update({ assigned_to_id: session.user.id }).eq('assigned_to_id', matchingProfile.id);
+                        await supabase.from('profiles').delete().eq('id', matchingProfile.id);
+                        console.log('Auto-merge completed successfully');
+                    }
+                }
+            } catch (mergeError) {
+                // Silently fail - auto-merge is a convenience feature, not critical
+                console.log('Auto-merge check skipped or failed (non-critical):', mergeError);
+            }
+        })();
 
         console.log('processUserSession completed successfully');
         return true;
