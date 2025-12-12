@@ -519,6 +519,14 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                         await supabase.from('transactions').update({ user_id: session.user.id }).eq('user_id', matchingProfile.id);
                         await supabase.from('transactions').update({ assigned_to_id: session.user.id }).eq('assigned_to_id', matchingProfile.id);
                         await supabase.from('profiles').delete().eq('id', matchingProfile.id);
+
+                        // Add user to organization_members so they can switch organizations
+                        await supabase.from('organization_members').upsert({
+                            organization_id: orgId,
+                            user_id: session.user.id,
+                            role: 'member'
+                        }, { onConflict: 'organization_id,user_id' });
+
                         console.log('Auto-merge completed successfully');
                     }
                 }
@@ -765,6 +773,19 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           if (error) {
               console.error('Supabase insert error:', error);
               throw error;
+          }
+
+          // Also add to organization_members so they can switch organizations
+          const { error: memberError } = await supabase.from('organization_members').insert({
+              organization_id: organizationId,
+              user_id: id,
+              role: 'member',
+              invited_by: state.currentUser?.id
+          });
+
+          if (memberError) {
+              console.warn('Could not add to organization_members:', memberError);
+              // Don't throw - profile was created, this is non-critical
           }
 
           console.log('Team member added to database, updating local state');
