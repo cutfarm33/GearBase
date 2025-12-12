@@ -32,10 +32,18 @@ const LoginScreen: React.FC = () => {
 
     try {
         console.log("Attempting login for:", email);
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
+
+        // Add timeout to prevent hanging forever
+        const authPromise = supabase.auth.signInWithPassword({
             email: email.trim(),
             password: password.trim()
         });
+
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Login request timed out. Please check your internet connection.')), 15000)
+        );
+
+        const { data, error: authError } = await Promise.race([authPromise, timeoutPromise]) as any;
 
         console.log("Auth response received:", { hasSession: !!data?.session, error: authError });
 
@@ -57,15 +65,17 @@ const LoginScreen: React.FC = () => {
         // Manually trigger auth check which updates GLOBAL state
         const success = await checkAuth(data.session);
         console.log("checkAuth completed, success:", success);
-        
-        if (!success) {
-            // This should logically never happen with the new fail-safe processUserSession
+
+        // Always stop the loading spinner
+        setLoading(false);
+
+        if (success) {
+            // Force navigation to dashboard - don't rely on context re-render
+            console.log("Login successful, navigating to dashboard");
+            navigateTo('DASHBOARD');
+        } else {
             setError("Session established but profile loading failed.");
-            setLoading(false);
         }
-        // If success is true, the AppContext will trigger a re-render 
-        // and App.tsx will see currentUser is set, switching to DASHBOARD.
-        // We do NOT need to navigate manually here, which caused the race condition.
 
     } catch (err: any) {
         console.error("Login Error Catch:", err);
