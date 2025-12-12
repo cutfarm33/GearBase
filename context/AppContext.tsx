@@ -466,6 +466,37 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         // Use active_organization_id if set, otherwise fall back to organization_id
         const orgId = profileData?.active_organization_id || profileData?.organization_id || defaultOrgId;
 
+        // AUTO-MERGE: Check for offline profiles with matching email
+        // If an admin added a team member with this email before the user signed up,
+        // we should merge that offline profile into this real account
+        try {
+            const { data: offlineProfiles } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .eq('email', email)
+                .neq('id', session.user.id); // Don't match self
+
+            if (offlineProfiles && offlineProfiles.length > 0) {
+                console.log('Found offline profiles to merge:', offlineProfiles.length);
+                for (const offlineProfile of offlineProfiles) {
+                    console.log('Merging offline profile:', offlineProfile.id, 'into', session.user.id);
+
+                    // Transfer all jobs, transactions to the real user
+                    await supabase.from('jobs').update({ producer_id: session.user.id }).eq('producer_id', offlineProfile.id);
+                    await supabase.from('transactions').update({ user_id: session.user.id }).eq('user_id', offlineProfile.id);
+                    await supabase.from('transactions').update({ assigned_to_id: session.user.id }).eq('assigned_to_id', offlineProfile.id);
+
+                    // Delete the offline profile
+                    await supabase.from('profiles').delete().eq('id', offlineProfile.id);
+
+                    console.log('Merged and deleted offline profile:', offlineProfile.id);
+                }
+            }
+        } catch (mergeError) {
+            console.error('Auto-merge failed (non-fatal):', mergeError);
+            // Don't fail login if merge fails
+        }
+
         const userProfile = {
             id: session.user.id,
             name: full_name || 'Unknown User',

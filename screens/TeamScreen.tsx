@@ -254,8 +254,8 @@ const TeamScreen: React.FC = () => {
                         </button>
                     </form>
                     
-                    <div className="mt-4 p-3 bg-sky-50 dark:bg-sky-900/20 rounded border border-sky-100 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
-                         <strong>Tip:</strong> Enter their real email address. If they sign up later with the same email, their accounts will merge automatically!
+                    <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
+                         <strong>Note:</strong> Team members added here are "offline" profiles for tracking jobs and transactions. They don't need a GearBase account to be assigned to jobs.
                     </div>
                 </div>
             )}

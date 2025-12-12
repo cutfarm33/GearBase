@@ -174,13 +174,20 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
         setIsSaving(true);
         
         try {
+            // Get organization ID for the job
+            const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id;
+            if (!organizationId) {
+                throw new Error('No organization found. Please log in again.');
+            }
+
             // 1. Upsert Job in Supabase
             const jobPayload = {
                 name: formData.name,
                 producer_id: formData.producerId,
                 start_date: formData.startDate,
                 end_date: formData.endDate,
-                status: formData.status
+                status: formData.status,
+                organization_id: organizationId
             };
 
             let activeJobId = jobId;
