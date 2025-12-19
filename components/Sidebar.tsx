@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { state, dispatch, navigateTo, signOut, toggleTheme } = useAppContext();
@@ -15,10 +15,11 @@ const Sidebar: React.FC = () => {
       if (target === 'PACKAGES') return ['PACKAGES', 'PACKAGE_FORM'].includes(view);
       if (target === 'TEAM') return view === 'TEAM';
       if (target === 'CALENDAR') return view === 'CALENDAR';
+      if (target === 'RECEIPTS') return ['RECEIPTS', 'ADD_RECEIPT'].includes(view);
       return false;
   };
 
-  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
+  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
       const isActive = isNavActive(target);
       return (
           <button
@@ -53,6 +54,7 @@ const Sidebar: React.FC = () => {
           <NavItem target="JOB_LIST" icon={<Briefcase size={20} />} label="Jobs" />
           <NavItem target="INVENTORY" icon={<Camera size={20} />} label="Inventory" />
           <NavItem target="PACKAGES" icon={<Package size={20} />} label="Packages" />
+          <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
           <NavItem target="TEAM" icon={<Users size={20} />} label="Team" />
       </div>
 

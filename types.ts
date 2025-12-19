@@ -27,6 +27,39 @@ export enum TransactionType {
   CHECKIN = 'Check-in',
 }
 
+// Expense Categories for Receipt Tracking (matching production spreadsheet)
+export enum ExpenseCategory {
+  SUPPLIES = 'Supplies',
+  TAXI_TRAIN_BUS = 'Taxi/Train/Bus',
+  GAS = 'Gas',
+  TOLLS = 'Tolls',
+  PARKING = 'Parking',
+  MEALS_TRAVEL = 'Meals Travel',
+  CRAFTY = 'Crafty',
+  CLIENT_MEALS = 'Client Meals',
+  HOTEL = 'Hotel',
+  CAR_RENTAL = 'Car Rental',
+  TIPS_GRATUITIES = 'Tips & Gratuities',
+  AIR_TRAVEL = 'Air Travel',
+  EQUIPMENT_RENTAL = 'Equipment Rental',
+  MILEAGE = 'Mileage',
+  OTHER = 'Other',
+}
+
+// Payment Methods for Receipt Tracking
+export enum PaymentMethod {
+  CASH = 'Cash',
+  CREDIT_CARD = 'Credit Card',
+  DEBIT_CARD = 'Debit Card',
+  COMPANY_CARD = 'Company Card',
+  PERSONAL_CARD = 'Personal Card',
+  VENMO = 'Venmo',
+  PAYPAL = 'PayPal',
+  CHECK = 'Check',
+  WIRE_TRANSFER = 'Wire Transfer',
+  OTHER = 'Other',
+}
+
 export type UserRole = 'Admin' | 'Producer' | 'Director' | 'DP' | 'Gaffer' | 'Grip' | 'AC' | 'PA' | 'Crew';
 
 export type SubscriptionTier = 'free' | 'pro' | 'team' | 'enterprise';
@@ -151,8 +184,35 @@ export interface TransactionLog {
     notes?: string;
 }
 
+// Receipt Interface for Expense Tracking
+export interface Receipt {
+  id: number;
+  organization_id: string;
+  job_id: number | null;
+  user_id: string;           // The crew member the expense is for
+  submitted_by_id: string;   // Who entered the receipt (may differ if admin adds)
+
+  amount: number;
+  description: string;
+  expense_date: string;      // ISO date string YYYY-MM-DD
+  category: ExpenseCategory;
+  vendor_name?: string;
+  payment_method: PaymentMethod;
+  receipt_image_url?: string;
+  notes?: string;
+  mileage_miles?: number;    // Number of miles (for Mileage category, auto-calculates amount)
+
+  created_at: string;
+  updated_at?: string;
+
+  // Expanded fields from joins (optional)
+  user?: User;
+  submitted_by?: User;
+  job?: Job;
+}
+
 export interface ViewState {
-  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT';
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'RECEIPTS' | 'ADD_RECEIPT';
   params?: any;
 }
 

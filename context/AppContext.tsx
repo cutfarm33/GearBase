@@ -1,7 +1,7 @@
 
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
-import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus } from '../types';
+import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus, Receipt, ExpenseCategory, PaymentMethod } from '../types';
 import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
 
 // --- 1. CONFIGURATION ---
@@ -47,6 +47,7 @@ interface AppState {
   users: User[];
   kits: Kit[];
   transactions: Transaction[];
+  receipts: Receipt[];
   currentView: ViewState;
   currentUser: User | null;
   theme: Theme;
@@ -68,13 +69,16 @@ type Action =
   | { type: 'UPDATE_JOB_LOCAL'; payload: Job }
   | { type: 'DELETE_JOB_LOCAL'; payload: number }
   | { type: 'DELETE_TEAM_MEMBER_LOCAL'; payload: string }
-  | { 
-      type: 'COMPLETE_TRANSACTION'; 
-      payload: { 
-          transaction: Omit<Transaction, 'id' | 'timestamp'>; 
-          updatedItems: { itemId: number; newStatus: ItemStatus; newCondition: ItemCondition; notes?: string; isMissing?: boolean }[] 
-      } 
-    };
+  | {
+      type: 'COMPLETE_TRANSACTION';
+      payload: {
+          transaction: Omit<Transaction, 'id' | 'timestamp'>;
+          updatedItems: { itemId: number; newStatus: ItemStatus; newCondition: ItemCondition; notes?: string; isMissing?: boolean }[]
+      }
+    }
+  | { type: 'ADD_RECEIPT_LOCAL'; payload: Receipt }
+  | { type: 'UPDATE_RECEIPT_LOCAL'; payload: Receipt }
+  | { type: 'DELETE_RECEIPT_LOCAL'; payload: number };
 
 const initialState: AppState = {
   jobs: [],
@@ -82,6 +86,7 @@ const initialState: AppState = {
   users: [],
   kits: [],
   transactions: [],
+  receipts: [],
   currentView: { view: 'LANDING' },
   currentUser: null,
   theme: 'dark',
@@ -142,6 +147,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
         return { ...state, jobs: state.jobs.filter(j => j.id !== action.payload) };
     case 'DELETE_TEAM_MEMBER_LOCAL':
         return { ...state, users: state.users.filter(u => u.id !== action.payload) };
+    case 'ADD_RECEIPT_LOCAL':
+        return { ...state, receipts: [...state.receipts, action.payload] };
+    case 'UPDATE_RECEIPT_LOCAL':
+        return { ...state, receipts: state.receipts.map(r => r.id === action.payload.id ? action.payload : r) };
+    case 'DELETE_RECEIPT_LOCAL':
+        return { ...state, receipts: state.receipts.filter(r => r.id !== action.payload) };
     case 'COMPLETE_TRANSACTION': {
         const { transaction, updatedItems } = action.payload;
         const newTransaction: Transaction = {
@@ -214,6 +225,11 @@ interface AppContextType {
   signOut: () => Promise<void>;
   toggleTheme: () => Promise<void>;
   loadDemoData: () => Promise<boolean>;
+  // Receipt methods
+  createReceipt: (receipt: Omit<Receipt, 'id' | 'created_at' | 'updated_at'>) => Promise<Receipt | null>;
+  updateReceipt: (receipt: Receipt) => Promise<void>;
+  deleteReceipt: (receiptId: number) => Promise<void>;
+  uploadReceiptImage: (file: File) => Promise<string>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -313,6 +329,15 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
           if (txError) console.warn("Transactions fetch error", txError);
 
+          // Fetch receipts
+          const { data: receiptsData, error: receiptsError } = await supabase
+              .from('receipts')
+              .select('*')
+              .eq('organization_id', orgId)
+              .order('expense_date', { ascending: false });
+          console.log('Receipts fetched:', receiptsData?.length, 'receipts');
+          if (receiptsError) console.warn("Receipts fetch error", receiptsError);
+
           console.log('Starting data formatting...');
 
           // 2. Format Data
@@ -362,6 +387,25 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               organization_id: t.organization_id || defaultOrgId
           }));
 
+          // Format receipts
+          const formattedReceipts: Receipt[] = (receiptsData || []).map((r: any) => ({
+              id: r.id,
+              organization_id: r.organization_id || defaultOrgId,
+              job_id: r.job_id,
+              user_id: r.user_id,
+              submitted_by_id: r.submitted_by_id,
+              amount: parseFloat(r.amount),
+              description: r.description,
+              expense_date: r.expense_date,
+              category: r.category as ExpenseCategory,
+              vendor_name: r.vendor_name,
+              payment_method: r.payment_method as PaymentMethod,
+              receipt_image_url: r.receipt_image_url,
+              notes: r.notes,
+              created_at: r.created_at,
+              updated_at: r.updated_at
+          }));
+
           const formattedInventory: InventoryItem[] = (items || []).map((i: any) => {
               // Build History
               const itemHistory: TransactionLog[] = transactions
@@ -409,7 +453,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   users: formattedUsers || [],
                   jobs: formattedJobs || [],
                   kits: formattedKits || [],
-                  transactions: transactions
+                  transactions: transactions,
+                  receipts: formattedReceipts
               }
           });
 
@@ -951,6 +996,100 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   };
 
+  // --- RECEIPT METHODS ---
+
+  const uploadReceiptImage = async (file: File): Promise<string> => {
+      if (!state.currentUser) throw new Error("Must be logged in to upload");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `receipts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('inventory').upload(fileName, file);
+      if (uploadError) throw new Error("Upload failed. " + uploadError.message);
+      const { data } = supabase.storage.from('inventory').getPublicUrl(fileName);
+      return data.publicUrl;
+  };
+
+  const createReceipt = async (
+      receipt: Omit<Receipt, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Receipt | null> => {
+      try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+
+          const { data, error } = await supabase.from('receipts').insert({
+              organization_id: receipt.organization_id,
+              job_id: receipt.job_id,
+              user_id: receipt.user_id,
+              submitted_by_id: receipt.submitted_by_id,
+              amount: receipt.amount,
+              description: receipt.description,
+              expense_date: receipt.expense_date,
+              category: receipt.category,
+              vendor_name: receipt.vendor_name,
+              payment_method: receipt.payment_method,
+              receipt_image_url: receipt.receipt_image_url,
+              notes: receipt.notes
+          }).select().single();
+
+          if (error) throw error;
+
+          const newReceipt: Receipt = {
+              ...receipt,
+              id: data.id,
+              created_at: data.created_at
+          };
+          dispatch({ type: 'ADD_RECEIPT_LOCAL', payload: newReceipt });
+
+          return newReceipt;
+      } catch (error: any) {
+          console.error("Create Receipt Failed:", error);
+          alert('Failed to save receipt: ' + (error.message || JSON.stringify(error)));
+          return null;
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
+  const updateReceipt = async (receipt: Receipt): Promise<void> => {
+      try {
+          dispatch({ type: 'UPDATE_RECEIPT_LOCAL', payload: receipt });
+
+          const { error } = await supabase.from('receipts').update({
+              job_id: receipt.job_id,
+              user_id: receipt.user_id,
+              amount: receipt.amount,
+              description: receipt.description,
+              expense_date: receipt.expense_date,
+              category: receipt.category,
+              vendor_name: receipt.vendor_name,
+              payment_method: receipt.payment_method,
+              receipt_image_url: receipt.receipt_image_url,
+              notes: receipt.notes,
+              updated_at: new Date().toISOString()
+          }).eq('id', receipt.id);
+
+          if (error) throw error;
+      } catch (error: any) {
+          console.error("Update Receipt Failed:", error);
+          alert('Failed to update receipt: ' + (error.message || JSON.stringify(error)));
+          refreshData(true);
+      }
+  };
+
+  const deleteReceipt = async (receiptId: number): Promise<void> => {
+      try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+
+          const { error } = await supabase.from('receipts').delete().eq('id', receiptId);
+          if (error) throw error;
+
+          dispatch({ type: 'DELETE_RECEIPT_LOCAL', payload: receiptId });
+      } catch (error: any) {
+          console.error("Delete Receipt Failed:", error);
+          alert('Failed to delete receipt: ' + (error.message || JSON.stringify(error)));
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
   const loadDemoData = async (): Promise<boolean> => {
       if (!state.currentUser) {
           alert('You must be logged in to load demo data');
@@ -1164,7 +1303,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage }}>
       {children}
     </AppContext.Provider>
   );

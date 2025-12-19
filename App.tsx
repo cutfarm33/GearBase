@@ -23,6 +23,8 @@ import TeamScreen from './screens/TeamScreen';
 import TeamManagementScreen from './screens/TeamManagementScreen';
 import AcceptInvitationScreen from './screens/AcceptInvitationScreen';
 import CalendarScreen from './screens/CalendarScreen';
+import ReceiptsScreen from './screens/ReceiptsScreen';
+import AddReceiptScreen from './screens/AddReceiptScreen';
 import FeaturesScreen from './screens/FeaturesScreen';
 import PricingScreen from './screens/PricingScreen';
 import HelpScreen from './screens/HelpScreen';
@@ -179,6 +181,10 @@ const App: React.FC = () => {
         return <TeamScreen />;
       case 'TEAM_MANAGEMENT':
         return <TeamManagementScreen />;
+      case 'RECEIPTS':
+        return <ReceiptsScreen />;
+      case 'ADD_RECEIPT':
+        return <AddReceiptScreen receiptId={params?.receiptId} />;
       default:
         return <DashboardScreen />;
     }

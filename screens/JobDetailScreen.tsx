@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, JobStatus, TransactionType } from '../types';
-import { ArrowLeft, Edit, Trash2, CheckSquare, Square, FileSignature, X, Clock, User as UserIcon, FileText, Download, Weight } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, CheckSquare, Square, FileSignature, X, Clock, User as UserIcon, FileText, Download, Weight, Receipt, Plus, DollarSign } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -27,6 +27,13 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
   const jobTransactions = state.transactions
     .filter(t => t.jobId === jobId)
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  // Get Receipts for this job
+  const jobReceipts = state.receipts
+    .filter(r => r.job_id === jobId)
+    .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime());
+
+  const totalExpenses = jobReceipts.reduce((sum, r) => sum + r.amount, 0);
 
   const checkedOutItems = state.inventory
       .filter(item => item.status === ItemStatus.CHECKED_OUT && 
@@ -389,11 +396,11 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                         const user = findUser(tx.userId);
                         const assignedTo = tx.assignedToId ? findUser(tx.assignedToId) : null;
                         const isCheckout = tx.type === TransactionType.CHECKOUT;
-                        
+
                         return (
                             <div key={tx.id} className="border-l-4 border-slate-200 dark:border-slate-700 pl-4 py-1 relative">
                                 <div className={`absolute -left-[9px] top-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ${isCheckout ? 'bg-amber-500' : 'bg-green-500'}`}></div>
-                                
+
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                     <div>
                                         <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -414,9 +421,9 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     {tx.signature && (
-                                        <button 
+                                        <button
                                             onClick={() => setViewSignature(tx.signature || null)}
                                             className="flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white px-3 py-2 rounded-lg transition-colors border border-slate-200 dark:border-slate-600"
                                         >
@@ -432,6 +439,84 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                     <p className="text-slate-500 dark:text-slate-400 italic">No activity recorded yet.</p>
                 )}
             </div>
+        </div>
+
+        {/* EXPENSES SECTION */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Receipt size={20} className="text-emerald-500" />
+                    Expenses ({jobReceipts.length})
+                    {totalExpenses > 0 && (
+                        <span className="text-sm font-normal text-slate-500 ml-2">
+                            ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                    )}
+                </h3>
+                <button
+                    onClick={() => navigateTo('ADD_RECEIPT', { jobId: job.id })}
+                    className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                >
+                    <Plus size={16}/> Add Receipt
+                </button>
+            </div>
+
+            {jobReceipts.length > 0 ? (
+                <div className="space-y-3">
+                    {jobReceipts.map(receipt => {
+                        const receiptUser = findUser(receipt.user_id);
+                        return (
+                            <div
+                                key={receipt.id}
+                                onClick={() => navigateTo('ADD_RECEIPT', { receiptId: receipt.id })}
+                                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    {receipt.receipt_image_url ? (
+                                        <img src={receipt.receipt_image_url} alt="Receipt" className="w-12 h-12 object-cover rounded" />
+                                    ) : (
+                                        <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
+                                            <FileText className="text-slate-400" size={20} />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <p className="font-medium text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{receipt.description}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {receipt.vendor_name && `${receipt.vendor_name} · `}
+                                            {receipt.category} · {receiptUser?.name || 'Unknown'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-emerald-600 dark:text-emerald-400">
+                                        ${receipt.amount.toFixed(2)}
+                                    </p>
+                                    <p className="text-xs text-slate-500">{new Date(receipt.expense_date).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {/* Total Row */}
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-200 dark:border-slate-700">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Total Expenses</span>
+                        <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                            ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div className="text-center py-8">
+                    <DollarSign size={32} className="text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                    <p className="text-slate-500 dark:text-slate-400 italic mb-2">No expenses recorded for this job.</p>
+                    <button
+                        onClick={() => navigateTo('ADD_RECEIPT', { jobId: job.id })}
+                        className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                    >
+                        Add the first receipt
+                    </button>
+                </div>
+            )}
         </div>
 
       </div>
