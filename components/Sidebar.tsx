@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
-import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music, Share2 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { state, dispatch, navigateTo, signOut, toggleTheme } = useAppContext();
@@ -18,10 +18,11 @@ const Sidebar: React.FC = () => {
       if (target === 'TEAM') return view === 'TEAM';
       if (target === 'CALENDAR') return view === 'CALENDAR';
       if (target === 'RECEIPTS') return ['RECEIPTS', 'ADD_RECEIPT'].includes(view);
+      if (target === 'GALLERY_SETTINGS') return view === 'GALLERY_SETTINGS';
       return false;
   };
 
-  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
+  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS' | 'GALLERY_SETTINGS'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
       const isActive = isNavActive(target);
       return (
           <button
@@ -70,6 +71,7 @@ const Sidebar: React.FC = () => {
           {features.receipts && (
             <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
           )}
+          <NavItem target="GALLERY_SETTINGS" icon={<Share2 size={20} />} label="Public Gallery" />
       </div>
 
       {/* Bottom Actions */}

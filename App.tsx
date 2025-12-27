@@ -25,6 +25,8 @@ import AcceptInvitationScreen from './screens/AcceptInvitationScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import ReceiptsScreen from './screens/ReceiptsScreen';
 import AddReceiptScreen from './screens/AddReceiptScreen';
+import GallerySettingsScreen from './screens/GallerySettingsScreen';
+import PublicGalleryScreen from './screens/PublicGalleryScreen';
 import FeaturesScreen from './screens/FeaturesScreen';
 import PricingScreen from './screens/PricingScreen';
 import HelpScreen from './screens/HelpScreen';
@@ -132,6 +134,9 @@ const App: React.FC = () => {
     if (view === 'ABOUT') return <AboutScreen />;
     if (view === 'CONTACT') return <ContactScreen />;
 
+    // Public Gallery (no auth required)
+    if (view === 'PUBLIC_GALLERY') return <PublicGalleryScreen token={params?.token} />;
+
     // Guard: If not logged in, force login
     if (!state.currentUser) {
         return <LoginScreen />;
@@ -185,6 +190,8 @@ const App: React.FC = () => {
         return <ReceiptsScreen />;
       case 'ADD_RECEIPT':
         return <AddReceiptScreen receiptId={params?.receiptId} />;
+      case 'GALLERY_SETTINGS':
+        return <GallerySettingsScreen />;
       default:
         return <DashboardScreen />;
     }

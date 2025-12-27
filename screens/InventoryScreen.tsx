@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
 import { getCategoriesForVertical } from '../lib/verticalConfig';
 import { InventoryItem, ItemStatus, ItemCondition } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, FolderDown as ExportIcon, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -815,10 +815,10 @@ const InventoryScreen: React.FC = () => {
                             <button
                                 onClick={() => setShowDownloadMenu(!showDownloadMenu)}
                                 className="w-full sm:w-auto bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-3 px-5 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all flex items-center justify-center gap-2"
-                                title="Download Inventory"
+                                title="Export Inventory"
                             >
-                                <Download size={20} />
-                                Download
+                                <ExportIcon size={20} />
+                                Export
                                 <ChevronDown size={16} className={`transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
                             </button>
 
