@@ -486,46 +486,61 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
-  // Helper function to load image as base64
+  // Helper function to load image as base64 using fetch (better CORS handling)
   const loadImageAsBase64 = async (url: string): Promise<string | null> => {
-      return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => {
-              try {
-                  const canvas = document.createElement('canvas');
-                  const maxSize = 200; // Max dimension for performance
-                  let width = img.width;
-                  let height = img.height;
+      try {
+          // Use fetch to get the image as a blob (bypasses some CORS issues)
+          const response = await fetch(url, { mode: 'cors' });
+          if (!response.ok) {
+              console.error('Failed to fetch image:', url, response.status);
+              return null;
+          }
 
-                  // Scale down if needed
-                  if (width > maxSize || height > maxSize) {
-                      const ratio = Math.min(maxSize / width, maxSize / height);
-                      width *= ratio;
-                      height *= ratio;
-                  }
+          const blob = await response.blob();
 
-                  canvas.width = width;
-                  canvas.height = height;
-                  const ctx = canvas.getContext('2d');
-                  if (ctx) {
-                      ctx.drawImage(img, 0, 0, width, height);
-                      resolve(canvas.toDataURL('image/jpeg', 0.8));
-                  } else {
-                      resolve(null);
-                  }
-              } catch (err) {
-                  console.error('Error converting image:', err);
+          // Convert blob to base64 using FileReader
+          return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                  const base64 = reader.result as string;
+
+                  // Optionally resize the image for smaller PDF size
+                  const img = new Image();
+                  img.onload = () => {
+                      const canvas = document.createElement('canvas');
+                      const maxSize = 200;
+                      let width = img.width;
+                      let height = img.height;
+
+                      if (width > maxSize || height > maxSize) {
+                          const ratio = Math.min(maxSize / width, maxSize / height);
+                          width *= ratio;
+                          height *= ratio;
+                      }
+
+                      canvas.width = width;
+                      canvas.height = height;
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                          ctx.drawImage(img, 0, 0, width, height);
+                          resolve(canvas.toDataURL('image/jpeg', 0.8));
+                      } else {
+                          resolve(base64); // Return original if canvas fails
+                      }
+                  };
+                  img.onerror = () => resolve(base64); // Return original if resize fails
+                  img.src = base64;
+              };
+              reader.onerror = () => {
+                  console.error('FileReader error for:', url);
                   resolve(null);
-              }
-          };
-          img.onerror = () => {
-              console.error('Error loading image:', url);
-              resolve(null);
-          };
-          // Add timestamp to bust cache for CORS
-          img.src = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
-      });
+              };
+              reader.readAsDataURL(blob);
+          });
+      } catch (err) {
+          console.error('Error loading image:', url, err);
+          return null;
+      }
   };
 
   // Download Catalog PDF with images
