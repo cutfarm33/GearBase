@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { InventoryItem, ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
+import { useVertical } from '../hooks/useVertical';
+import { getCategoriesForVertical } from '../lib/verticalConfig';
+import { InventoryItem, ItemStatus, ItemCondition } from '../types';
 import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, Download, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
@@ -30,10 +32,11 @@ const StatusBadge: React.FC<{ status: ItemStatus }> = ({ status }) => {
 
 const InventoryScreen: React.FC = () => {
   const { state, navigateTo, supabase, refreshData, dispatch, deleteInventoryItem, updateInventoryItem } = useAppContext();
+  const { vertical } = useVertical();
   const [filter, setFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-  
+
   // Multi-select State
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -49,9 +52,10 @@ const InventoryScreen: React.FC = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showCategorySubmenu, setShowCategorySubmenu] = useState(false);
 
-  // Combine PREDEFINED categories with any custom ones used in the database
+  // Get vertical-specific categories plus any custom ones from database
+  const verticalCategories = getCategoriesForVertical(vertical);
   const categories = ['All', ...Array.from(new Set([
-      ...PREDEFINED_CATEGORIES,
+      ...verticalCategories,
       ...state.inventory.map(i => i.category)
   ])).sort()];
 
