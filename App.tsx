@@ -199,6 +199,11 @@ const App: React.FC = () => {
 
   // --- LAYOUT LOGIC ---
 
+  // 0. PUBLIC GALLERY (Standalone full-page view, no app chrome)
+  if (view === 'PUBLIC_GALLERY') {
+    return <PublicGalleryScreen token={params?.token} />;
+  }
+
   // 1. WEBSITE PAGES (Landing, Features, Pricing, Help, About, Contact)
   if (isWebsitePage) {
     return (
