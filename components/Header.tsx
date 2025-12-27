@@ -1,19 +1,21 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar } from 'lucide-react';
+import { useVertical } from '../hooks/useVertical';
+import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar, Receipt, Music } from 'lucide-react';
 import OrganizationSwitcher from './OrganizationSwitcher';
 import { OfflineIndicatorCompact } from './OfflineIndicator';
 
 const Header: React.FC = () => {
   const { state, navigateTo, signOut, toggleTheme } = useAppContext();
+  const { t, features, vertical } = useVertical();
   const isLoggedIn = !!state.currentUser;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const currentView = state.currentView.view;
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(currentView);
 
   // Helper for mobile nav items
-  const MobileNavItem: React.FC<{ view: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR'; icon: React.ReactNode; label: string }> = ({ view, icon, label }) => (
+  const MobileNavItem: React.FC<{ view: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS'; icon: React.ReactNode; label: string }> = ({ view, icon, label }) => (
     <button
       onClick={() => {
         navigateTo(view);
@@ -204,12 +206,21 @@ const Header: React.FC = () => {
 
                 {isLoggedIn && !isWebsitePage && (
                     <>
+                        <MobileNavItem view="INVENTORY" icon={vertical === 'music' ? <Music size={18}/> : <Camera size={18}/>} label={t.inventory} />
+                        {features.jobs && (
+                            <MobileNavItem view="JOB_LIST" icon={<Briefcase size={18}/>} label={t.jobPlural} />
+                        )}
+                        {features.packages && (
+                            <MobileNavItem view="PACKAGES" icon={<Package size={18}/>} label={t.packages} />
+                        )}
+                        <MobileNavItem view="TEAM" icon={<Users size={18}/>} label={t.team} />
+                        {features.calendar && (
+                            <MobileNavItem view="CALENDAR" icon={<Calendar size={18}/>} label="Calendar" />
+                        )}
                         <MobileNavItem view="DASHBOARD" icon={<LayoutDashboard size={18}/>} label="Dashboard" />
-                        <MobileNavItem view="CALENDAR" icon={<Calendar size={18}/>} label="Calendar" />
-                        <MobileNavItem view="JOB_LIST" icon={<Briefcase size={18}/>} label="Jobs" />
-                        <MobileNavItem view="INVENTORY" icon={<Camera size={18}/>} label="Inventory" />
-                        <MobileNavItem view="PACKAGES" icon={<Package size={18}/>} label="Packages" />
-                        <MobileNavItem view="TEAM" icon={<Users size={18}/>} label="Team" />
+                        {features.receipts && (
+                            <MobileNavItem view="RECEIPTS" icon={<Receipt size={18}/>} label="Receipts" />
+                        )}
                         <div className="border-t border-slate-100 dark:border-slate-800 my-2 pt-2">
                              <button
                                 onClick={() => {
