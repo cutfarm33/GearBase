@@ -486,24 +486,31 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
-  // Helper function to load image as base64
-  const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+  // Helper function to load image as base64 with dimensions
+  const loadImageAsBase64 = async (url: string): Promise<{ data: string; width: number; height: number } | null> => {
       console.log('Loading image:', url);
 
-      // First try with fetch (works better for some servers)
+      // First try with fetch, then load into Image to get dimensions
       try {
           const response = await fetch(url);
           if (response.ok) {
               const blob = await response.blob();
-              return new Promise((resolve) => {
+              const base64 = await new Promise<string>((resolve, reject) => {
                   const reader = new FileReader();
-                  reader.onloadend = () => {
-                      const base64 = reader.result as string;
-                      console.log('Image loaded via fetch:', url.substring(0, 50));
-                      resolve(base64);
-                  };
-                  reader.onerror = () => resolve(null);
+                  reader.onloadend = () => resolve(reader.result as string);
+                  reader.onerror = reject;
                   reader.readAsDataURL(blob);
+              });
+
+              // Load into Image to get dimensions
+              return new Promise((resolve) => {
+                  const img = new Image();
+                  img.onload = () => {
+                      console.log('Image loaded via fetch:', url.substring(0, 50), img.width, 'x', img.height);
+                      resolve({ data: base64, width: img.width, height: img.height });
+                  };
+                  img.onerror = () => resolve(null);
+                  img.src = base64;
               });
           }
       } catch (fetchErr) {
@@ -524,8 +531,8 @@ const InventoryScreen: React.FC = () => {
                   if (ctx) {
                       ctx.drawImage(img, 0, 0);
                       const result = canvas.toDataURL('image/jpeg', 0.8);
-                      console.log('Image loaded via canvas:', url.substring(0, 50));
-                      resolve(result);
+                      console.log('Image loaded via canvas:', url.substring(0, 50), img.width, 'x', img.height);
+                      resolve({ data: result, width: img.width, height: img.height });
                   } else {
                       resolve(null);
                   }
@@ -581,7 +588,7 @@ const InventoryScreen: React.FC = () => {
       });
 
       // Pre-load all images and QR codes
-      const imageCache: { [key: number]: string | null } = {};
+      const imageCache: { [key: number]: { data: string; width: number; height: number } | null } = {};
       const qrCache: { [key: string]: string } = {};
 
       // Show loading state (update button text temporarily)
@@ -643,12 +650,27 @@ const InventoryScreen: React.FC = () => {
               doc.roundedRect(x, y, cardWidth, cardHeight - 3, 3, 3, 'FD');
 
               // Item image
-              const imageData = imageCache[item.id];
-              if (imageData) {
+              const imageInfo = imageCache[item.id];
+              if (imageInfo) {
                   try {
                       // Calculate image dimensions to fit in card while maintaining aspect ratio
-                      const imgWidth = cardWidth - 2 * cardPadding;
-                      doc.addImage(imageData, 'JPEG', x + cardPadding, y + cardPadding, imgWidth, imageHeight - cardPadding);
+                      const maxWidth = cardWidth - 2 * cardPadding;
+                      const maxHeight = imageHeight - cardPadding;
+                      const aspectRatio = imageInfo.width / imageInfo.height;
+
+                      let imgWidth = maxWidth;
+                      let imgHeight = imgWidth / aspectRatio;
+
+                      // If too tall, scale by height instead
+                      if (imgHeight > maxHeight) {
+                          imgHeight = maxHeight;
+                          imgWidth = imgHeight * aspectRatio;
+                      }
+
+                      // Center the image horizontally in the card
+                      const imgX = x + cardPadding + (maxWidth - imgWidth) / 2;
+
+                      doc.addImage(imageInfo.data, 'JPEG', imgX, y + cardPadding, imgWidth, imgHeight);
                   } catch (err) {
                       // Draw placeholder if image fails
                       doc.setFillColor(203, 213, 225);
