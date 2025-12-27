@@ -486,6 +486,225 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
+  // Helper function to load image as base64
+  const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+      return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+              try {
+                  const canvas = document.createElement('canvas');
+                  const maxSize = 200; // Max dimension for performance
+                  let width = img.width;
+                  let height = img.height;
+
+                  // Scale down if needed
+                  if (width > maxSize || height > maxSize) {
+                      const ratio = Math.min(maxSize / width, maxSize / height);
+                      width *= ratio;
+                      height *= ratio;
+                  }
+
+                  canvas.width = width;
+                  canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  if (ctx) {
+                      ctx.drawImage(img, 0, 0, width, height);
+                      resolve(canvas.toDataURL('image/jpeg', 0.8));
+                  } else {
+                      resolve(null);
+                  }
+              } catch (err) {
+                  console.error('Error converting image:', err);
+                  resolve(null);
+              }
+          };
+          img.onerror = () => {
+              console.error('Error loading image:', url);
+              resolve(null);
+          };
+          // Add timestamp to bust cache for CORS
+          img.src = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+      });
+  };
+
+  // Download Catalog PDF with images
+  const downloadCatalogPDF = async (categoryToExport?: string) => {
+      const items = categoryToExport
+          ? state.inventory.filter(i => i.category === categoryToExport)
+          : (filteredInventory.length > 0 ? filteredInventory : state.inventory);
+
+      if (items.length === 0) {
+          alert('No items to export');
+          return;
+      }
+
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const doc = new jsPDF();
+
+      // Layout settings: 2 columns x 3 rows = 6 items per page
+      const cols = 2;
+      const rows = 3;
+      const itemsPerPage = cols * rows;
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 12;
+      const marginY = 20;
+      const headerHeight = 15;
+
+      const cardWidth = (pageWidth - 2 * marginX - 10) / cols;
+      const cardHeight = (pageHeight - marginY - headerHeight - 15) / rows;
+      const cardPadding = 5;
+      const imageHeight = cardHeight - 35; // Leave space for text
+
+      // Sort items by category then name
+      const sortedItems = [...items].sort((a, b) => {
+          if (a.category !== b.category) return a.category.localeCompare(b.category);
+          return a.name.localeCompare(b.name);
+      });
+
+      // Pre-load all images and QR codes
+      const imageCache: { [key: number]: string | null } = {};
+      const qrCache: { [key: string]: string } = {};
+
+      // Show loading state (update button text temporarily)
+      setShowDownloadMenu(false);
+
+      for (const item of sortedItems) {
+          // Load item image
+          if (item.imageUrl) {
+              imageCache[item.id] = await loadImageAsBase64(item.imageUrl);
+          }
+          // Generate QR code
+          try {
+              qrCache[item.qrCode] = await QRCode.toDataURL(item.qrCode, {
+                  width: 80,
+                  margin: 1,
+                  color: { dark: '#000000', light: '#ffffff' }
+              });
+          } catch (err) {
+              console.error('Error generating QR code:', err);
+          }
+      }
+
+      // Calculate total value
+      const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
+      const available = items.filter(i => i.status === ItemStatus.AVAILABLE).length;
+
+      // Generate pages
+      const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+
+      for (let page = 0; page < totalPages; page++) {
+          if (page > 0) doc.addPage();
+
+          // Header
+          doc.setFontSize(16);
+          doc.setTextColor(16, 185, 129);
+          const title = categoryToExport ? `${categoryToExport} Catalog` : 'Inventory Catalog';
+          doc.text(title, marginX, marginY);
+
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`Generated: ${date}  |  ${items.length} items  |  ${available} available  |  Total: $${totalValue.toLocaleString()}`, marginX, marginY + 7);
+
+          // Draw cards for this page
+          const startIndex = page * itemsPerPage;
+          const endIndex = Math.min(startIndex + itemsPerPage, sortedItems.length);
+
+          for (let i = startIndex; i < endIndex; i++) {
+              const item = sortedItems[i];
+              const positionOnPage = i - startIndex;
+              const col = positionOnPage % cols;
+              const row = Math.floor(positionOnPage / cols);
+
+              const x = marginX + col * (cardWidth + 5);
+              const y = marginY + headerHeight + row * cardHeight;
+
+              // Card background
+              doc.setFillColor(248, 250, 252); // slate-50
+              doc.setDrawColor(226, 232, 240); // slate-200
+              doc.roundedRect(x, y, cardWidth, cardHeight - 3, 3, 3, 'FD');
+
+              // Item image
+              const imageData = imageCache[item.id];
+              if (imageData) {
+                  try {
+                      // Calculate image dimensions to fit in card while maintaining aspect ratio
+                      const imgWidth = cardWidth - 2 * cardPadding;
+                      doc.addImage(imageData, 'JPEG', x + cardPadding, y + cardPadding, imgWidth, imageHeight - cardPadding);
+                  } catch (err) {
+                      // Draw placeholder if image fails
+                      doc.setFillColor(203, 213, 225);
+                      doc.rect(x + cardPadding, y + cardPadding, cardWidth - 2 * cardPadding, imageHeight - cardPadding, 'F');
+                      doc.setFontSize(8);
+                      doc.setTextColor(100, 116, 139);
+                      doc.text('No Image', x + cardWidth / 2, y + imageHeight / 2, { align: 'center' });
+                  }
+              } else {
+                  // Draw placeholder
+                  doc.setFillColor(203, 213, 225);
+                  doc.rect(x + cardPadding, y + cardPadding, cardWidth - 2 * cardPadding, imageHeight - cardPadding, 'F');
+                  doc.setFontSize(8);
+                  doc.setTextColor(100, 116, 139);
+                  doc.text('No Image', x + cardWidth / 2, y + imageHeight / 2, { align: 'center' });
+              }
+
+              // Item name (bold, truncate if needed)
+              doc.setFontSize(9);
+              doc.setTextColor(30, 41, 59);
+              doc.setFont('helvetica', 'bold');
+              let displayName = item.name;
+              const maxNameWidth = cardWidth - 35;
+              while (doc.getTextWidth(displayName) > maxNameWidth && displayName.length > 5) {
+                  displayName = displayName.slice(0, -4) + '...';
+              }
+              doc.text(displayName, x + cardPadding, y + imageHeight + 8);
+
+              // Value
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(9);
+              doc.setTextColor(16, 185, 129);
+              if (item.value) {
+                  doc.text(`$${item.value.toLocaleString()}`, x + cardPadding, y + imageHeight + 15);
+              }
+
+              // Category
+              doc.setFontSize(7);
+              doc.setTextColor(100, 116, 139);
+              doc.text(item.category, x + cardPadding, y + imageHeight + 21);
+
+              // QR code (small, bottom right of card)
+              const qrData = qrCache[item.qrCode];
+              if (qrData) {
+                  const qrSize = 18;
+                  doc.addImage(qrData, 'PNG', x + cardWidth - qrSize - cardPadding, y + imageHeight + 2, qrSize, qrSize);
+              }
+
+              // QR code text (under QR)
+              doc.setFontSize(5);
+              doc.setTextColor(148, 163, 184);
+              doc.text(item.qrCode, x + cardWidth - cardPadding - 9, y + imageHeight + 23, { align: 'center' });
+          }
+      }
+
+      // Footer on all pages
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`Gear Base - Page ${i} of ${pageCount}`, marginX, pageHeight - 8);
+      }
+
+      const filename = categoryToExport
+          ? `catalog_${categoryToExport.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+          : `inventory_catalog_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      doc.save(filename);
+      setShowCategorySubmenu(false);
+  };
+
   // Get categories that have items
   const categoriesWithItems = categories.filter(c => c !== 'All' && state.inventory.some(i => i.category === c));
 
@@ -587,17 +806,31 @@ const InventoryScreen: React.FC = () => {
                                             </div>
                                         </button>
 
-                                        {/* PDF Report */}
+                                        {/* Catalog PDF (with images) */}
+                                        <button
+                                            onClick={() => downloadCatalogPDF()}
+                                            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
+                                        >
+                                            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <FileImage size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-900 dark:text-white">Catalog PDF</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Visual grid with photos, QR codes & values</p>
+                                            </div>
+                                        </button>
+
+                                        {/* PDF Report (table format) */}
                                         <button
                                             onClick={() => downloadPDF()}
                                             className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left border-t border-slate-100 dark:border-slate-700"
                                         >
                                             <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                <FileImage size={20} className="text-red-600 dark:text-red-400" />
+                                                <FileText size={20} className="text-red-600 dark:text-red-400" />
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-slate-900 dark:text-white">PDF Report</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Formatted document grouped by category</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Table format grouped by category</p>
                                             </div>
                                         </button>
 
@@ -666,11 +899,18 @@ const InventoryScreen: React.FC = () => {
                                                                 <QrCode size={14} />
                                                             </button>
                                                             <button
-                                                                onClick={() => downloadPDF(cat)}
-                                                                className="px-2 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                                title={`Download ${cat} as PDF`}
+                                                                onClick={() => downloadCatalogPDF(cat)}
+                                                                className="px-2 py-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                                                                title={`Download ${cat} as catalog with images`}
                                                             >
                                                                 <FileImage size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => downloadPDF(cat)}
+                                                                className="px-2 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                                title={`Download ${cat} as PDF table`}
+                                                            >
+                                                                <FileText size={14} />
                                                             </button>
                                                         </div>
                                                     ))}
