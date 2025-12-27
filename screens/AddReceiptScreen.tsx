@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { ExpenseCategory, PaymentMethod, Receipt } from '../types';
 import { ArrowLeft, Save, Camera, Image as ImageIcon, X, Trash2, Car, Sparkles, Loader2 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
@@ -59,6 +60,7 @@ interface AddReceiptScreenProps {
 
 const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
   const { state, navigateTo, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, findUser, findJob } = useAppContext();
+  const { t, vertical } = useVertical();
   const [isSaving, setIsSaving] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -343,13 +345,13 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
       {showNewJobModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New Job</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New {t.job}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              Create a quick job entry for this expense. You can edit the full details later.
+              Create a quick {t.job.toLowerCase()} entry for this expense. You can edit the full details later.
             </p>
             <input
               type="text"
-              placeholder="Job name (e.g., 'Commercial - ABC Corp')"
+              placeholder={vertical === 'music' ? `${t.job} name (e.g., 'Wedding - Smith Family')` : `${t.job} name (e.g., 'Commercial - ABC Corp')`}
               className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 border border-slate-300 dark:border-slate-600 mb-4"
               value={newJobName}
               onChange={e => setNewJobName(e.target.value)}
@@ -373,7 +375,7 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
                 disabled={!newJobName.trim()}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Job
+                Create {t.job}
               </button>
             </div>
           </div>
@@ -537,14 +539,14 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
 
         {/* Job Selection */}
         <div>
-          <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Job (Optional)</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{t.job} (Optional)</label>
           <div className="flex gap-2">
             <select
               className="flex-1 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 border border-slate-300 dark:border-slate-600"
               value={formData.job_id ?? ''}
               onChange={e => setFormData({ ...formData, job_id: e.target.value ? parseInt(e.target.value) : null })}
             >
-              <option value="">No Job</option>
+              <option value="">No {t.job}</option>
               {availableJobs.map(job => (
                 <option key={job.id} value={job.id}>{job.name}</option>
               ))}
@@ -554,7 +556,7 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
               onClick={() => setShowNewJobModal(true)}
               className="px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/50 font-medium transition-colors whitespace-nowrap"
             >
-              + New Job
+              + New {t.job}
             </button>
           </div>
         </div>

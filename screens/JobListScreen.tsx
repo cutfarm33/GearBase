@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { Job, JobStatus } from '../types';
-import { Trash2, Briefcase, Zap, Plus, CheckSquare } from 'lucide-react';
+import { Trash2, Briefcase, Zap, Plus, CheckSquare, Music } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
 const JobStatusBadge: React.FC<{ status: JobStatus }> = ({ status }) => {
@@ -17,6 +18,7 @@ const JobStatusBadge: React.FC<{ status: JobStatus }> = ({ status }) => {
 
 const JobListScreen: React.FC = () => {
   const { state, navigateTo, deleteJob } = useAppContext();
+  const { t, vertical } = useVertical();
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
 
   // Separate jobs into regular jobs and quick use
@@ -51,7 +53,7 @@ const JobListScreen: React.FC = () => {
                 {isQuickUse ? job.name.replace('Quick Use: ', '') : job.name}
               </h3>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Producer: {producer?.name || 'Unknown'}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{t.producer}: {producer?.name || 'Unknown'}</p>
           </div>
           <div className="flex items-center gap-3 ml-4">
             <JobStatusBadge status={job.status} />
@@ -83,9 +85,9 @@ const JobListScreen: React.FC = () => {
     <div>
       <ConfirmModal
         isOpen={!!jobToDelete}
-        title="Delete Job"
-        message={`Are you sure you want to delete "${jobToDelete?.name}"? This will permanently remove the job and its history.`}
-        confirmText="Delete Job"
+        title={`Delete ${t.job}`}
+        message={`Are you sure you want to delete "${jobToDelete?.name}"? This will permanently remove the ${t.job.toLowerCase()} and its history.`}
+        confirmText={`Delete ${t.job}`}
         isDestructive={true}
         onConfirm={handleDelete}
         onCancel={() => setJobToDelete(null)}
@@ -93,24 +95,24 @@ const JobListScreen: React.FC = () => {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-2">Jobs</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-2">{t.jobPlural}</h2>
           <p className="text-lg text-slate-600 dark:text-slate-400">
-            {regularJobs.length} production jobs, {activeQuickUseJobs.length} active quick use
+            {regularJobs.length} {t.jobPlural.toLowerCase()}, {activeQuickUseJobs.length} active quick use
           </p>
         </div>
         <button
           onClick={() => navigateTo('ADD_JOB')}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2"
         >
-          <Plus size={20} /> New Job
+          <Plus size={20} /> New {t.job}
         </button>
       </div>
 
       {/* Regular Jobs Section */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <Briefcase size={24} className="text-emerald-600 dark:text-emerald-400" />
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Production Jobs</h3>
+          {vertical === 'music' ? <Music size={24} className="text-emerald-600 dark:text-emerald-400" /> : <Briefcase size={24} className="text-emerald-600 dark:text-emerald-400" />}
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t.jobPlural}</h3>
           <span className="text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full font-semibold">
             {regularJobs.length}
           </span>
@@ -124,13 +126,13 @@ const JobListScreen: React.FC = () => {
           </div>
         ) : (
           <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-700">
-            <Briefcase size={48} className="text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 text-lg mb-3">No production jobs yet</p>
+            {vertical === 'music' ? <Music size={48} className="text-slate-300 dark:text-slate-600 mx-auto mb-4" /> : <Briefcase size={48} className="text-slate-300 dark:text-slate-600 mx-auto mb-4" />}
+            <p className="text-slate-500 dark:text-slate-400 text-lg mb-3">No {t.jobPlural.toLowerCase()} yet</p>
             <button
               onClick={() => navigateTo('ADD_JOB')}
               className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
             >
-              Create your first job
+              Create your first {t.job.toLowerCase()}
             </button>
           </div>
         )}

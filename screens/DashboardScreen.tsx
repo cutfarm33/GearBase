@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { ItemStatus, JobStatus, ItemCondition, Job } from '../types';
-import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity, Download, Check } from 'lucide-react';
+import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity, Download, Check, Music } from 'lucide-react';
 
 const DashboardScreen: React.FC = () => {
   const { state, navigateTo } = useAppContext();
+  const { t, vertical } = useVertical();
   const [exportCopied, setExportCopied] = useState(false);
 
   const exportData = () => {
@@ -124,7 +126,7 @@ const DashboardScreen: React.FC = () => {
                 onClick={() => navigateTo('ADD_JOB')}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2"
             >
-                <Plus size={20} /> New Job
+                <Plus size={20} /> New {t.job}
             </button>
         </div>
       </div>
@@ -138,7 +140,7 @@ const DashboardScreen: React.FC = () => {
               <section>
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                          <Briefcase size={24} className="text-emerald-600 dark:text-emerald-400"/> Priority Jobs
+                          {vertical === 'music' ? <Music size={24} className="text-emerald-600 dark:text-emerald-400"/> : <Briefcase size={24} className="text-emerald-600 dark:text-emerald-400"/>} Priority {t.jobPlural}
                       </h3>
                       <button onClick={() => navigateTo('JOB_LIST')} className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">View All</button>
                   </div>
@@ -150,8 +152,8 @@ const DashboardScreen: React.FC = () => {
                           upcomingJobs.slice(0, 3).map(job => <JobRow key={job.id} job={job} />)
                       ) : (
                           <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-700">
-                              <p className="text-slate-500 dark:text-slate-400 mb-3 text-lg">No active or upcoming jobs.</p>
-                              <button onClick={() => navigateTo('ADD_JOB')} className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">Create a Job</button>
+                              <p className="text-slate-500 dark:text-slate-400 mb-3 text-lg">No active or upcoming {t.jobPlural.toLowerCase()}.</p>
+                              <button onClick={() => navigateTo('ADD_JOB')} className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">Create a {t.job}</button>
                           </div>
                       )}
                   </div>
@@ -210,7 +212,7 @@ const DashboardScreen: React.FC = () => {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                       <StatCard
-                        title="Active Jobs"
+                        title={`Active ${t.jobPlural}`}
                         value={activeJobs.length}
                         icon={<Briefcase size={22}/>}
                         colorClass="bg-gradient-to-br from-emerald-600 to-teal-600"
@@ -264,7 +266,7 @@ const DashboardScreen: React.FC = () => {
                                           <div className="text-xs bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-100 dark:border-slate-700">
                                               <span className="font-medium text-slate-700 dark:text-slate-300">{user?.name || 'User'}</span>
                                               <span className="text-slate-400"> for </span>
-                                              <span className="text-sky-600 dark:text-sky-400 truncate block">{job?.name || 'Unknown Job'}</span>
+                                              <span className="text-sky-600 dark:text-sky-400 truncate block">{job?.name || `Unknown ${t.job}`}</span>
                                               <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-600 text-slate-500">
                                                   {tx.items.length} items
                                               </div>

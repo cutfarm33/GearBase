@@ -51,25 +51,25 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
           <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu</p>
-          <NavItem target="DASHBOARD" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-          {features.calendar && (
-            <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
-          )}
-          {features.jobs && (
-            <NavItem target="JOB_LIST" icon={<Briefcase size={20} />} label={t.jobPlural} />
-          )}
           <NavItem
             target="INVENTORY"
             icon={vertical === 'music' ? <Music size={20} /> : <Camera size={20} />}
             label={t.inventory}
           />
+          {features.jobs && (
+            <NavItem target="JOB_LIST" icon={<Briefcase size={20} />} label={t.jobPlural} />
+          )}
           {features.packages && (
             <NavItem target="PACKAGES" icon={<Package size={20} />} label={t.packages} />
           )}
+          <NavItem target="TEAM" icon={<Users size={20} />} label={t.team} />
+          {features.calendar && (
+            <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
+          )}
+          <NavItem target="DASHBOARD" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           {features.receipts && (
             <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
           )}
-          <NavItem target="TEAM" icon={<Users size={20} />} label={t.team} />
       </div>
 
       {/* Bottom Actions */}

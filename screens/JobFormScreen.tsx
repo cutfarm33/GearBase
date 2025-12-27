@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { JobStatus, Kit, InventoryItem } from '../types';
-import { ArrowLeft, Save, AlertTriangle, Plus, X, Briefcase, Trash2, Package, ChevronDown, ChevronRight, FolderOpen, UserPlus, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertTriangle, Plus, X, Briefcase, Trash2, Package, ChevronDown, ChevronRight, FolderOpen, UserPlus, CheckCircle, Music } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
 const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
     const { state, navigateTo, findJob, findItem, supabase, refreshData, deleteJob, addTeamMember } = useAppContext();
+    const { t, vertical } = useVertical();
     const isEditing = !!jobId;
     const existingJob = jobId ? findJob(jobId) : undefined;
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -167,8 +169,8 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.name) return alert('Please enter a job name.');
-        if (!formData.producerId) return alert('Please select a Producer.');
+        if (!formData.name) return alert(`Please enter a ${t.job.toLowerCase()} name.`);
+        if (!formData.producerId) return alert(`Please select a ${t.producer}.`);
         if (!formData.startDate || !formData.endDate) return alert('Please select start and end dates.');
         
         setIsSaving(true);
@@ -220,7 +222,7 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
             navigateTo('JOB_LIST');
         } catch (error: any) {
             console.error("Job Save Error:", error);
-            alert(`Failed to save job: ${error.message}`);
+            alert(`Failed to save ${t.job.toLowerCase()}: ${error.message}`);
         } finally {
             setIsSaving(false);
         }
@@ -354,11 +356,11 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
 
     return (
         <div className="max-w-4xl mx-auto pb-20">
-            <ConfirmModal 
+            <ConfirmModal
                 isOpen={showDeleteModal}
-                title="Delete Job"
+                title={`Delete ${t.job}`}
                 message={`Are you sure you want to delete "${existingJob?.name}"? This cannot be undone.`}
-                confirmText="Delete Job"
+                confirmText={`Delete ${t.job}`}
                 isDestructive={true}
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteModal(false)}
@@ -406,45 +408,45 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
                     <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-lg shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Quick Add Producer</h3>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Quick Add {t.producer}</h3>
                         </div>
                         <form onSubmit={handleQuickAddProducer} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Full Name</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     required
                                     autoFocus
                                     className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-sky-500 outline-none"
-                                    placeholder="e.g. Sarah Producer"
+                                    placeholder={vertical === 'music' ? 'e.g. John Bandleader' : 'e.g. Sarah Producer'}
                                     value={newProducerName}
                                     onChange={e => setNewProducerName(e.target.value)}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Email (Optional)</label>
-                                <input 
-                                    type="email" 
+                                <input
+                                    type="email"
                                     className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-sky-500 outline-none"
-                                    placeholder="sarah@example.com"
+                                    placeholder="email@example.com"
                                     value={newProducerEmail}
                                     onChange={e => setNewProducerEmail(e.target.value)}
                                 />
                             </div>
                             <div className="pt-2 flex justify-end gap-3">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setShowProducerModal(false)}
                                     className="px-4 py-2 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     type="submit"
                                     disabled={isAddingProducer}
                                     className="px-6 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
                                 >
-                                    {isAddingProducer ? 'Adding...' : 'Add Producer'}
+                                    {isAddingProducer ? 'Adding...' : `Add ${t.producer}`}
                                 </button>
                             </div>
                         </form>
@@ -462,30 +464,30 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                 </button>
 
                 {isEditing && (
-                    <button 
+                    <button
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-red-100 dark:hover:bg-red-500/10"
                     >
                         <Trash2 size={16} />
-                        Delete Job
+                        Delete {t.job}
                     </button>
                 )}
              </div>
 
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{isEditing ? 'Edit Job' : 'Create New Job'}</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{isEditing ? `Edit ${t.job}` : `Create New ${t.job}`}</h2>
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Info Section */}
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-slate-700">
                     <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Briefcase size={20} /> Job Details
+                        {vertical === 'music' ? <Music size={20} /> : <Briefcase size={20} />} {t.job} Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Job Name</label>
-                            <input 
-                                type="text" 
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{t.job} Name</label>
+                            <input
+                                type="text"
                                 required
                                 className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
                                 value={formData.name}
@@ -493,22 +495,22 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Producer</label>
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{t.producer}</label>
                             <div className="flex gap-2">
-                                <select 
+                                <select
                                     className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
                                     value={formData.producerId}
                                     onChange={e => setFormData({...formData, producerId: e.target.value})}
                                     required
                                 >
-                                    <option value="">-- Select Producer --</option>
+                                    <option value="">-- Select {t.producer} --</option>
                                     {producers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                                 </select>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setShowProducerModal(true)}
                                     className="bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 p-2 rounded-lg border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
-                                    title="Quick Add Producer"
+                                    title={`Quick Add ${t.producer}`}
                                 >
                                     <UserPlus size={20} />
                                 </button>
@@ -647,7 +649,7 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg disabled:opacity-50"
                     >
                         <Save size={20} />
-                        {isSaving ? 'Saving...' : (isEditing ? 'Update Job' : 'Create Job')}
+                        {isSaving ? 'Saving...' : (isEditing ? `Update ${t.job}` : `Create ${t.job}`)}
                     </button>
                 </div>
             </form>

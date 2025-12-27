@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { ItemStatus, JobStatus, TransactionType } from '../types';
 import { ArrowLeft, Edit, Trash2, CheckSquare, Square, FileSignature, X, Clock, User as UserIcon, FileText, Download, Weight, Receipt, Plus, DollarSign } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
@@ -9,6 +10,7 @@ import autoTable from 'jspdf-autotable';
 
 const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
   const { state, navigateTo, findJob, findItem, findUser, deleteJob } = useAppContext();
+  const { t } = useVertical();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
   
@@ -18,7 +20,7 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
   const job = findJob(jobId);
 
   if (!job) {
-    return <div className="text-slate-900 dark:text-white">Job not found.</div>;
+    return <div className="text-slate-900 dark:text-white">{t.job} not found.</div>;
   }
   
   const producer = findUser(job.producerId);
@@ -109,7 +111,7 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
           
           doc.setFontSize(10);
           doc.text(`Dates: ${new Date(job.startDate).toLocaleDateString()} - ${new Date(job.endDate).toLocaleDateString()}`, 20, 50);
-          doc.text(`Producer: ${producer?.name || 'Unknown'}`, 20, 56);
+          doc.text(`${t.producer}: ${producer?.name || 'Unknown'}`, 20, 56);
           
           doc.text(`Total Items: ${totalItems}`, 140, 50);
           doc.text(`Total Weight: ${totalJobWeight.toFixed(1)} lbs`, 140, 56);
@@ -201,9 +203,9 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
     <div className="pb-20">
       <ConfirmModal 
         isOpen={showDeleteModal}
-        title="Delete Job"
-        message={`Are you sure you want to delete "${job.name}"? This will permanently remove the job and its history.`}
-        confirmText="Delete Job"
+        title={`Delete ${t.job}`}
+        message={`Are you sure you want to delete "${job.name}"? This will permanently remove the ${t.job.toLowerCase()} and its history.`}
+        confirmText={`Delete ${t.job}`}
         isDestructive={true}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
@@ -243,7 +245,7 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
           className="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 transition-colors font-semibold"
         >
           <ArrowLeft size={16} />
-          Back to Jobs List
+          Back to {t.jobPlural} List
         </button>
         <div className="flex gap-2">
             <button 
@@ -258,14 +260,14 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                 className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-red-100 dark:hover:bg-red-500/10"
             >
                 <Trash2 size={16} />
-                Delete Job
+                Delete {t.job}
             </button>
-            <button 
+            <button
                 onClick={() => navigateTo('EDIT_JOB', { jobId: job.id })}
                 className="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-sky-100 dark:hover:bg-sky-500/10"
             >
                 <Edit size={16} />
-                Edit Job
+                Edit {t.job}
             </button>
         </div>
       </div>
@@ -277,7 +279,7 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
             <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600 dark:text-slate-400">
                 <span>{new Date(job.startDate).toLocaleDateString()} - {new Date(job.endDate).toLocaleDateString()}</span>
                 <span className="hidden sm:inline text-slate-300 dark:text-slate-600">|</span>
-                <span>Producer: {producer?.name}</span>
+                <span>{t.producer}: {producer?.name}</span>
                 <span className="hidden sm:inline text-slate-300 dark:text-slate-600">|</span>
                 <span className="flex items-center gap-1 font-medium text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded">
                     <Weight size={14} className="text-slate-500 dark:text-slate-400" />
@@ -508,7 +510,7 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
             ) : (
                 <div className="text-center py-8">
                     <DollarSign size={32} className="text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                    <p className="text-slate-500 dark:text-slate-400 italic mb-2">No expenses recorded for this job.</p>
+                    <p className="text-slate-500 dark:text-slate-400 italic mb-2">No expenses recorded for this {t.job.toLowerCase()}.</p>
                     <button
                         onClick={() => navigateTo('ADD_RECEIPT', { jobId: job.id })}
                         className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
