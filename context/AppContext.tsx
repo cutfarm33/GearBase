@@ -1,7 +1,7 @@
 
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
-import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus, Receipt, ExpenseCategory, PaymentMethod } from '../types';
+import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus, Receipt, ExpenseCategory, PaymentMethod, Vertical, Loan, PublicGallery, LoanStatus } from '../types';
 import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
 
 // --- 1. CONFIGURATION ---
@@ -48,8 +48,11 @@ interface AppState {
   kits: Kit[];
   transactions: Transaction[];
   receipts: Receipt[];
+  loans: Loan[];
+  publicGalleries: PublicGallery[];
   currentView: ViewState;
   currentUser: User | null;
+  vertical: Vertical;
   theme: Theme;
   isLoading: boolean;
   pendingEmail?: string;
@@ -78,7 +81,11 @@ type Action =
     }
   | { type: 'ADD_RECEIPT_LOCAL'; payload: Receipt }
   | { type: 'UPDATE_RECEIPT_LOCAL'; payload: Receipt }
-  | { type: 'DELETE_RECEIPT_LOCAL'; payload: number };
+  | { type: 'DELETE_RECEIPT_LOCAL'; payload: number }
+  | { type: 'SET_VERTICAL'; payload: Vertical }
+  | { type: 'ADD_LOAN_LOCAL'; payload: Loan }
+  | { type: 'UPDATE_LOAN_LOCAL'; payload: Loan }
+  | { type: 'DELETE_LOAN_LOCAL'; payload: number };
 
 const initialState: AppState = {
   jobs: [],
@@ -87,8 +94,11 @@ const initialState: AppState = {
   kits: [],
   transactions: [],
   receipts: [],
+  loans: [],
+  publicGalleries: [],
   currentView: { view: 'LANDING' },
   currentUser: null,
+  vertical: 'film',
   theme: 'dark',
   isLoading: true,
 };
@@ -153,6 +163,14 @@ const appReducer = (state: AppState, action: Action): AppState => {
         return { ...state, receipts: state.receipts.map(r => r.id === action.payload.id ? action.payload : r) };
     case 'DELETE_RECEIPT_LOCAL':
         return { ...state, receipts: state.receipts.filter(r => r.id !== action.payload) };
+    case 'SET_VERTICAL':
+        return { ...state, vertical: action.payload };
+    case 'ADD_LOAN_LOCAL':
+        return { ...state, loans: [...state.loans, action.payload] };
+    case 'UPDATE_LOAN_LOCAL':
+        return { ...state, loans: state.loans.map(l => l.id === action.payload.id ? action.payload : l) };
+    case 'DELETE_LOAN_LOCAL':
+        return { ...state, loans: state.loans.filter(l => l.id !== action.payload) };
     case 'COMPLETE_TRANSACTION': {
         const { transaction, updatedItems } = action.payload;
         const newTransaction: Transaction = {
@@ -230,6 +248,10 @@ interface AppContextType {
   updateReceipt: (receipt: Receipt) => Promise<void>;
   deleteReceipt: (receiptId: number) => Promise<void>;
   uploadReceiptImage: (file: File) => Promise<string>;
+  // Loan methods (for Music/General verticals)
+  createLoan: (loan: Omit<Loan, 'id' | 'created_at' | 'updated_at'>) => Promise<Loan | null>;
+  returnLoan: (loanId: number) => Promise<void>;
+  deleteLoan: (loanId: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -338,6 +360,15 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           console.log('Receipts fetched:', receiptsData?.length, 'receipts');
           if (receiptsError) console.warn("Receipts fetch error", receiptsError);
 
+          // Fetch loans (for Music/General verticals)
+          const { data: loansData, error: loansError } = await supabase
+              .from('loans')
+              .select('*')
+              .eq('organization_id', orgId)
+              .order('loan_date', { ascending: false });
+          console.log('Loans fetched:', loansData?.length, 'loans');
+          if (loansError) console.warn("Loans fetch error", loansError);
+
           console.log('Starting data formatting...');
 
           // 2. Format Data
@@ -406,6 +437,23 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               updated_at: r.updated_at
           }));
 
+          // Format loans
+          const formattedLoans: Loan[] = (loansData || []).map((l: any) => ({
+              id: l.id,
+              organization_id: l.organization_id || defaultOrgId,
+              item_id: l.item_id,
+              borrower_name: l.borrower_name,
+              borrower_contact: l.borrower_contact,
+              notes: l.notes,
+              loan_date: l.loan_date,
+              expected_return_date: l.expected_return_date,
+              actual_return_date: l.actual_return_date,
+              status: l.status as LoanStatus,
+              created_by: l.created_by,
+              created_at: l.created_at,
+              updated_at: l.updated_at
+          }));
+
           const formattedInventory: InventoryItem[] = (items || []).map((i: any) => {
               // Build History
               const itemHistory: TransactionLog[] = transactions
@@ -442,7 +490,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   storageCase: i.storage_case,
                   imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
                   history: itemHistory,
-                  organization_id: i.organization_id || defaultOrgId
+                  organization_id: i.organization_id || defaultOrgId,
+                  custom_fields: i.custom_fields || {}
               };
           });
 
@@ -454,7 +503,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   jobs: formattedJobs || [],
                   kits: formattedKits || [],
                   transactions: transactions,
-                  receipts: formattedReceipts
+                  receipts: formattedReceipts,
+                  loans: formattedLoans
               }
           });
 
@@ -523,8 +573,24 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
             active_organization_id: orgId
         };
 
-        // Set theme from user profile
+        // Fetch organization vertical
+        let orgVertical: Vertical = 'film';
+        try {
+            const { data: orgData } = await supabase
+                .from('organizations')
+                .select('vertical')
+                .eq('id', orgId)
+                .single();
+            if (orgData?.vertical) {
+                orgVertical = orgData.vertical as Vertical;
+            }
+        } catch (err) {
+            console.log('Could not fetch organization vertical, defaulting to film');
+        }
+
+        // Set theme from user profile and vertical
         dispatch({ type: 'SET_DATA', payload: { theme: userTheme } });
+        dispatch({ type: 'SET_VERTICAL', payload: orgVertical });
         dispatch({ type: 'SET_CURRENT_USER', payload: userProfile });
 
         console.log('User profile set, starting background data refresh for org:', orgId);
@@ -1090,6 +1156,116 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   };
 
+  // --- LOAN METHODS (for Music/General verticals) ---
+
+  const createLoan = async (
+      loan: Omit<Loan, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Loan | null> => {
+      try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+
+          const { data, error } = await supabase.from('loans').insert({
+              organization_id: loan.organization_id,
+              item_id: loan.item_id,
+              borrower_name: loan.borrower_name,
+              borrower_contact: loan.borrower_contact,
+              notes: loan.notes,
+              loan_date: loan.loan_date,
+              expected_return_date: loan.expected_return_date,
+              status: loan.status || 'active',
+              created_by: loan.created_by
+          }).select().single();
+
+          if (error) throw error;
+
+          const newLoan: Loan = {
+              ...loan,
+              id: data.id,
+              created_at: data.created_at
+          };
+          dispatch({ type: 'ADD_LOAN_LOCAL', payload: newLoan });
+
+          // Also update item status to show it's on loan
+          await supabase.from('inventory').update({
+              status: 'Checked Out'
+          }).eq('id', loan.item_id);
+
+          return newLoan;
+      } catch (error: any) {
+          console.error("Create Loan Failed:", error);
+          alert('Failed to create loan: ' + (error.message || JSON.stringify(error)));
+          return null;
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
+  const returnLoan = async (loanId: number): Promise<void> => {
+      try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+
+          // Get the loan to find the item
+          const loan = state.loans.find(l => l.id === loanId);
+          if (!loan) throw new Error('Loan not found');
+
+          // Update the loan status
+          const { error } = await supabase.from('loans').update({
+              status: 'returned',
+              actual_return_date: new Date().toISOString().split('T')[0],
+              updated_at: new Date().toISOString()
+          }).eq('id', loanId);
+
+          if (error) throw error;
+
+          // Update item status back to available
+          await supabase.from('inventory').update({
+              status: 'Available'
+          }).eq('id', loan.item_id);
+
+          // Update local state
+          const updatedLoan: Loan = {
+              ...loan,
+              status: 'returned',
+              actual_return_date: new Date().toISOString().split('T')[0]
+          };
+          dispatch({ type: 'UPDATE_LOAN_LOCAL', payload: updatedLoan });
+
+          // Refresh data to update inventory status
+          await refreshData(true);
+      } catch (error: any) {
+          console.error("Return Loan Failed:", error);
+          alert('Failed to return loan: ' + (error.message || JSON.stringify(error)));
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
+  const deleteLoan = async (loanId: number): Promise<void> => {
+      try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+
+          // Get the loan to find the item
+          const loan = state.loans.find(l => l.id === loanId);
+
+          const { error } = await supabase.from('loans').delete().eq('id', loanId);
+          if (error) throw error;
+
+          // If loan was active, return item to available
+          if (loan && loan.status === 'active') {
+              await supabase.from('inventory').update({
+                  status: 'Available'
+              }).eq('id', loan.item_id);
+          }
+
+          dispatch({ type: 'DELETE_LOAN_LOCAL', payload: loanId });
+      } catch (error: any) {
+          console.error("Delete Loan Failed:", error);
+          alert('Failed to delete loan: ' + (error.message || JSON.stringify(error)));
+      } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+      }
+  };
+
   const loadDemoData = async (): Promise<boolean> => {
       if (!state.currentUser) {
           alert('You must be logged in to load demo data');
@@ -1303,7 +1479,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, createLoan, returnLoan, deleteLoan }}>
       {children}
     </AppContext.Provider>
   );

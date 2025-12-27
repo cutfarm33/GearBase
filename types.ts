@@ -67,9 +67,13 @@ export type SubscriptionStatus = 'active' | 'canceled' | 'past_due';
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'expired';
 
+// Vertical type for multi-use-case support
+export type Vertical = 'film' | 'music' | 'photo' | 'general';
+
 export interface Organization {
   id: string; // UUID
   name: string;
+  vertical: Vertical; // Use case: film, music, photo, general
   subscription_tier?: SubscriptionTier;
   subscription_status?: SubscriptionStatus;
   owner_id?: string;
@@ -117,6 +121,23 @@ export interface User {
   // Password and verification are handled by Supabase Auth internally
 }
 
+// Custom fields for instrument-specific data (stored in JSONB)
+export interface InstrumentCustomFields {
+  make?: string;           // Brand (Fender, Gibson, etc.)
+  model?: string;          // Model name (Stratocaster, Les Paul)
+  year?: number;           // Year manufactured
+  serial_number?: string;  // Serial number for insurance/provenance
+  finish?: string;         // Color/finish (Sunburst, Natural)
+  insurance_value?: number; // Insurance value (may differ from purchase price)
+  provenance?: string;     // History/previous owners
+  lens_mount?: string;     // For cameras (Canon RF, Sony E, etc.)
+  sensor_size?: string;    // For cameras (Full Frame, APS-C, etc.)
+  firmware_version?: string;
+  acquisition_date?: string;
+  acquisition_source?: string;
+  [key: string]: string | number | undefined; // Allow any additional fields
+}
+
 export interface InventoryItem {
   id: number;
   name: string;
@@ -132,6 +153,7 @@ export interface InventoryItem {
   history: TransactionLog[];
   imageUrl: string;
   organization_id: string; // UUID - links to Organization
+  custom_fields?: InstrumentCustomFields; // Vertical-specific fields (instruments, cameras, etc.)
 }
 
 export interface Kit {
@@ -212,13 +234,14 @@ export interface Receipt {
 }
 
 export interface ViewState {
-  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'RECEIPTS' | 'ADD_RECEIPT';
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'RECEIPTS' | 'ADD_RECEIPT' | 'LOANS' | 'ADD_LOAN' | 'GALLERY_SETTINGS' | 'PUBLIC_GALLERY';
   params?: any;
 }
 
 export type Theme = 'light' | 'dark';
 
-// Standard Industry Categories
+// Standard Industry Categories (Film - default)
+// Note: For vertical-specific categories, use getCategoriesForVertical() from lib/verticalConfig
 export const PREDEFINED_CATEGORIES = [
   'Cameras',
   'Lenses',
@@ -239,3 +262,47 @@ export const PREDEFINED_CATEGORIES = [
   'Vehicles',
   'Expendables'
 ];
+
+// ============================================
+// MULTI-VERTICAL SUPPORT TYPES
+// ============================================
+
+// Simple Loan for Music/General verticals (no signatures required)
+export type LoanStatus = 'active' | 'returned' | 'overdue';
+
+export interface Loan {
+  id: number;
+  organization_id: string;
+  item_id: number;
+  borrower_name: string;
+  borrower_contact?: string;
+  notes?: string;
+  loan_date: string;          // ISO date string YYYY-MM-DD
+  expected_return_date?: string;
+  actual_return_date?: string;
+  status: LoanStatus;
+  created_by?: string;        // User ID who created the loan
+  created_at: string;
+  updated_at?: string;
+  // Expanded fields from joins
+  item?: InventoryItem;
+}
+
+// Public Gallery for shareable collection views
+export type GalleryVisibilityMode = 'all' | 'selected';
+
+export interface PublicGallery {
+  id: string;                 // UUID
+  organization_id: string;
+  token: string;              // Unique shareable token
+  name: string;
+  description?: string;
+  is_enabled: boolean;
+  visibility_mode: GalleryVisibilityMode;
+  visible_item_ids: number[]; // Only used when visibility_mode is 'selected'
+  theme: Theme;
+  show_values: boolean;       // Whether to display item values
+  show_condition: boolean;    // Whether to display item condition
+  created_at: string;
+  updated_at?: string;
+}
