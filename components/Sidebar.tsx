@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt } from 'lucide-react';
+import { useVertical } from '../hooks/useVertical';
+import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { state, dispatch, navigateTo, signOut, toggleTheme } = useAppContext();
   const { view } = state.currentView;
+  const { t, features, vertical } = useVertical();
 
   // Helper to determine if a nav item is active based on the current view
   const isNavActive = (target: string) => {
@@ -50,12 +52,24 @@ const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
           <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu</p>
           <NavItem target="DASHBOARD" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-          <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
-          <NavItem target="JOB_LIST" icon={<Briefcase size={20} />} label="Jobs" />
-          <NavItem target="INVENTORY" icon={<Camera size={20} />} label="Inventory" />
-          <NavItem target="PACKAGES" icon={<Package size={20} />} label="Packages" />
-          <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
-          <NavItem target="TEAM" icon={<Users size={20} />} label="Team" />
+          {features.calendar && (
+            <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
+          )}
+          {features.jobs && (
+            <NavItem target="JOB_LIST" icon={<Briefcase size={20} />} label={t.jobPlural} />
+          )}
+          <NavItem
+            target="INVENTORY"
+            icon={vertical === 'music' ? <Music size={20} /> : <Camera size={20} />}
+            label={t.inventory}
+          />
+          {features.packages && (
+            <NavItem target="PACKAGES" icon={<Package size={20} />} label={t.packages} />
+          )}
+          {features.receipts && (
+            <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
+          )}
+          <NavItem target="TEAM" icon={<Users size={20} />} label={t.team} />
       </div>
 
       {/* Bottom Actions */}

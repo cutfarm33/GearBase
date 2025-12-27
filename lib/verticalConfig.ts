@@ -28,12 +28,15 @@ export interface VerticalConfig {
 
   // Terminology - how we refer to things in this vertical
   terminology: {
-    job: string;        // Job | Session | Shoot | Project
-    jobPlural: string;  // Jobs | Sessions | Shoots | Projects
+    job: string;        // Job | Gig | Shoot | Project
+    jobPlural: string;  // Jobs | Gigs | Shoots | Projects
     checkout: string;   // Check Out | Loan | Borrow
     checkin: string;    // Check In | Return
     producer: string;   // Producer | Bandleader | Lead Photographer | Owner
     gearList: string;   // Gear List | Equipment | Kit
+    inventory: string;  // Inventory | Instruments | Gear | Collection
+    team: string;       // Team | Band | Crew | Members
+    packages: string;   // Packages | Kits | Rigs | Sets
   };
 
   // Categories available for this vertical
@@ -72,6 +75,9 @@ export const VERTICAL_CONFIGS: Record<Vertical, VerticalConfig> = {
       checkin: 'Check In',
       producer: 'Producer',
       gearList: 'Gear List',
+      inventory: 'Inventory',
+      team: 'Team',
+      packages: 'Packages',
     },
     defaultCategories: [
       'Cameras',
@@ -114,12 +120,15 @@ export const VERTICAL_CONFIGS: Record<Vertical, VerticalConfig> = {
     description: 'Track your instrument collection, loans, and service history',
     icon: 'Music',
     terminology: {
-      job: 'Session',
-      jobPlural: 'Sessions',
+      job: 'Gig',
+      jobPlural: 'Gigs',
       checkout: 'Loan',
       checkin: 'Return',
       producer: 'Bandleader',
       gearList: 'Equipment',
+      inventory: 'Instruments',
+      team: 'Band',
+      packages: 'Kits',
     },
     defaultCategories: [
       'Electric Guitars',
@@ -178,6 +187,9 @@ export const VERTICAL_CONFIGS: Record<Vertical, VerticalConfig> = {
       checkin: 'Check In',
       producer: 'Lead Photographer',
       gearList: 'Kit',
+      inventory: 'Gear',
+      team: 'Crew',
+      packages: 'Kits',
     },
     defaultCategories: [
       'Camera Bodies',
@@ -238,6 +250,9 @@ export const VERTICAL_CONFIGS: Record<Vertical, VerticalConfig> = {
       checkin: 'Return',
       producer: 'Owner',
       gearList: 'Items',
+      inventory: 'Collection',
+      team: 'Members',
+      packages: 'Sets',
     },
     defaultCategories: [
       'Electronics',
