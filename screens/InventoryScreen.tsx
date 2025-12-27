@@ -488,7 +488,29 @@ const InventoryScreen: React.FC = () => {
 
   // Helper function to load image as base64
   const loadImageAsBase64 = async (url: string): Promise<string | null> => {
-      // Use Image element approach - works with most public URLs
+      console.log('Loading image:', url);
+
+      // First try with fetch (works better for some servers)
+      try {
+          const response = await fetch(url);
+          if (response.ok) {
+              const blob = await response.blob();
+              return new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                      const base64 = reader.result as string;
+                      console.log('Image loaded via fetch:', url.substring(0, 50));
+                      resolve(base64);
+                  };
+                  reader.onerror = () => resolve(null);
+                  reader.readAsDataURL(blob);
+              });
+          }
+      } catch (fetchErr) {
+          console.log('Fetch failed, trying Image element:', fetchErr);
+      }
+
+      // Fallback to Image element
       return new Promise((resolve) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
@@ -496,37 +518,28 @@ const InventoryScreen: React.FC = () => {
           img.onload = () => {
               try {
                   const canvas = document.createElement('canvas');
-                  const maxSize = 200;
-                  let width = img.width;
-                  let height = img.height;
-
-                  if (width > maxSize || height > maxSize) {
-                      const ratio = Math.min(maxSize / width, maxSize / height);
-                      width *= ratio;
-                      height *= ratio;
-                  }
-
-                  canvas.width = width;
-                  canvas.height = height;
+                  canvas.width = img.width;
+                  canvas.height = img.height;
                   const ctx = canvas.getContext('2d');
                   if (ctx) {
-                      ctx.drawImage(img, 0, 0, width, height);
-                      resolve(canvas.toDataURL('image/jpeg', 0.8));
+                      ctx.drawImage(img, 0, 0);
+                      const result = canvas.toDataURL('image/jpeg', 0.8);
+                      console.log('Image loaded via canvas:', url.substring(0, 50));
+                      resolve(result);
                   } else {
                       resolve(null);
                   }
               } catch (err) {
-                  console.error('Canvas error for:', url, err);
+                  console.error('Canvas error:', err);
                   resolve(null);
               }
           };
 
-          img.onerror = () => {
-              console.error('Failed to load image:', url);
+          img.onerror = (err) => {
+              console.error('Image load error:', url, err);
               resolve(null);
           };
 
-          // For Supabase URLs, they should work directly since bucket is public
           img.src = url;
       });
   };
