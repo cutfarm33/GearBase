@@ -486,61 +486,49 @@ const InventoryScreen: React.FC = () => {
       setShowCategorySubmenu(false);
   };
 
-  // Helper function to load image as base64 using fetch (better CORS handling)
+  // Helper function to load image as base64
   const loadImageAsBase64 = async (url: string): Promise<string | null> => {
-      try {
-          // Use fetch to get the image as a blob (bypasses some CORS issues)
-          const response = await fetch(url, { mode: 'cors' });
-          if (!response.ok) {
-              console.error('Failed to fetch image:', url, response.status);
-              return null;
-          }
+      // Use Image element approach - works with most public URLs
+      return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
 
-          const blob = await response.blob();
+          img.onload = () => {
+              try {
+                  const canvas = document.createElement('canvas');
+                  const maxSize = 200;
+                  let width = img.width;
+                  let height = img.height;
 
-          // Convert blob to base64 using FileReader
-          return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                  const base64 = reader.result as string;
+                  if (width > maxSize || height > maxSize) {
+                      const ratio = Math.min(maxSize / width, maxSize / height);
+                      width *= ratio;
+                      height *= ratio;
+                  }
 
-                  // Optionally resize the image for smaller PDF size
-                  const img = new Image();
-                  img.onload = () => {
-                      const canvas = document.createElement('canvas');
-                      const maxSize = 200;
-                      let width = img.width;
-                      let height = img.height;
-
-                      if (width > maxSize || height > maxSize) {
-                          const ratio = Math.min(maxSize / width, maxSize / height);
-                          width *= ratio;
-                          height *= ratio;
-                      }
-
-                      canvas.width = width;
-                      canvas.height = height;
-                      const ctx = canvas.getContext('2d');
-                      if (ctx) {
-                          ctx.drawImage(img, 0, 0, width, height);
-                          resolve(canvas.toDataURL('image/jpeg', 0.8));
-                      } else {
-                          resolve(base64); // Return original if canvas fails
-                      }
-                  };
-                  img.onerror = () => resolve(base64); // Return original if resize fails
-                  img.src = base64;
-              };
-              reader.onerror = () => {
-                  console.error('FileReader error for:', url);
+                  canvas.width = width;
+                  canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  if (ctx) {
+                      ctx.drawImage(img, 0, 0, width, height);
+                      resolve(canvas.toDataURL('image/jpeg', 0.8));
+                  } else {
+                      resolve(null);
+                  }
+              } catch (err) {
+                  console.error('Canvas error for:', url, err);
                   resolve(null);
-              };
-              reader.readAsDataURL(blob);
-          });
-      } catch (err) {
-          console.error('Error loading image:', url, err);
-          return null;
-      }
+              }
+          };
+
+          img.onerror = () => {
+              console.error('Failed to load image:', url);
+              resolve(null);
+          };
+
+          // For Supabase URLs, they should work directly since bucket is public
+          img.src = url;
+      });
   };
 
   // Download Catalog PDF with images
