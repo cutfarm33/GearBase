@@ -7,7 +7,7 @@ import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy }
 
 const AddItemScreen: React.FC = () => {
   const { state, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
-  const { categories: verticalCategories, t } = useVertical();
+  const { categories: verticalCategories, t, vertical } = useVertical();
   const [isSaving, setIsSaving] = useState(false);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -190,7 +190,7 @@ const AddItemScreen: React.FC = () => {
                 type="text" 
                 required
                 className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
-                placeholder="e.g., Canon C70 Body"
+                placeholder={vertical === 'music' ? 'e.g., Fender Stratocaster' : vertical === 'photo' ? 'e.g., Canon EOS R5' : vertical === 'general' ? 'e.g., MacBook Pro' : 'e.g., Canon C70 Body'}
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
             />

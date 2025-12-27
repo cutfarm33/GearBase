@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, JobStatus, ItemCondition, Job } from '../types';
-import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity, Download, Check, Database } from 'lucide-react';
+import { Briefcase, Camera, CheckCircle, AlertTriangle, Calendar, ChevronRight, Plus, TrendingUp, Activity, Download, Check } from 'lucide-react';
 
 const DashboardScreen: React.FC = () => {
-  const { state, navigateTo, loadDemoData } = useAppContext();
+  const { state, navigateTo } = useAppContext();
   const [exportCopied, setExportCopied] = useState(false);
-  const [loadingDemo, setLoadingDemo] = useState(false);
 
   const exportData = () => {
     const exportPayload = {
@@ -36,12 +35,6 @@ const DashboardScreen: React.FC = () => {
     navigator.clipboard.writeText(JSON.stringify(exportPayload, null, 2));
     setExportCopied(true);
     setTimeout(() => setExportCopied(false), 3000);
-  };
-
-  const handleLoadDemoData = async () => {
-    setLoadingDemo(true);
-    await loadDemoData();
-    setLoadingDemo(false);
   };
 
   // Stats Calculation
@@ -115,17 +108,6 @@ const DashboardScreen: React.FC = () => {
             <p className="text-lg text-slate-600 dark:text-slate-400">Overview for {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <div className="flex gap-3">
-            {state.inventory.length === 0 && (
-                <button
-                    onClick={handleLoadDemoData}
-                    disabled={loadingDemo}
-                    className="font-bold py-3 px-5 rounded-xl transition-all flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white disabled:bg-violet-400"
-                    title="Load sample inventory data"
-                >
-                    <Database size={20} />
-                    {loadingDemo ? 'Loading...' : 'Load Demo Data'}
-                </button>
-            )}
             <button
                 onClick={exportData}
                 className={`font-bold py-3 px-5 rounded-xl transition-all flex items-center gap-2 ${
