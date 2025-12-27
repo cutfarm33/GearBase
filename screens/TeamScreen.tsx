@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
+import { getRolesForVertical } from '../lib/verticalConfig';
 import { Plus, Mail, Copy, Check, Database, Edit2, Trash2, Save, Share2, CheckSquare, X, Loader } from 'lucide-react';
 import { User, UserRole } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
@@ -16,9 +18,12 @@ alter table profiles drop constraint if exists profiles_role_check;
 
 const TeamScreen: React.FC = () => {
     const { state, addTeamMember, updateTeamMember, deleteTeamMember } = useAppContext();
+    const { t, vertical } = useVertical();
+    const verticalRoles = getRolesForVertical(vertical);
+
     const [isAdding, setIsAdding] = useState(false);
     const [newName, setNewName] = useState('');
-    const [newRole, setNewRole] = useState<UserRole>('Crew');
+    const [newRole, setNewRole] = useState<UserRole>(verticalRoles[verticalRoles.length - 1] as UserRole);
     const [newEmail, setNewEmail] = useState('');
     const [generateInvite, setGenerateInvite] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -270,23 +275,9 @@ See you on set! 🎥
 
     const RoleOptions = () => (
         <>
-            <optgroup label="Management">
-                <option value="Admin">Admin</option>
-                <option value="Producer">Producer</option>
-                <option value="Director">Director</option>
-            </optgroup>
-            <optgroup label="Camera">
-                <option value="DP">Director of Photography</option>
-                <option value="AC">Camera Assistant (AC)</option>
-            </optgroup>
-            <optgroup label="Lighting & Grip">
-                <option value="Gaffer">Gaffer</option>
-                <option value="Grip">Grip</option>
-            </optgroup>
-             <optgroup label="Support">
-                <option value="PA">Production Assistant</option>
-                <option value="Crew">General Crew</option>
-            </optgroup>
+            {verticalRoles.map(role => (
+                <option key={role} value={role}>{role}</option>
+            ))}
         </>
     );
 
@@ -360,8 +351,8 @@ See you on set! 🎥
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Team Management</h2>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage producers and crew members for your jobs.</p>
+                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">{t.team} Management</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage {t.team.toLowerCase()} members for your {t.jobPlural.toLowerCase()}.</p>
                 </div>
                 <div className="flex gap-2">
                     {/* Select Mode Toggle */}
@@ -496,7 +487,7 @@ See you on set! 🎥
             {/* Add Member Form */}
             {isAdding && (
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-slate-700 mb-8 animate-in slide-in-from-top-5">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add New Team Member</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add New {t.team} Member</h3>
                     <form onSubmit={handleAdd} className="space-y-4">
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-grow">
@@ -576,7 +567,7 @@ See you on set! 🎥
                     </form>
 
                     <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400">
-                        <strong>Note:</strong> Team members can be assigned to jobs immediately. Generate an invite to let them create their own account and access GearBase.
+                        <strong>Note:</strong> {t.team} members can be assigned to {t.jobPlural.toLowerCase()} immediately. Generate an invite to let them create their own account and access GearBase.
                     </div>
                 </div>
             )}

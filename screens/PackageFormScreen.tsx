@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { ArrowLeft, Save, X, Package, Plus, Database, Copy, Check, Search, QrCode, Weight } from 'lucide-react';
 
 const REQUIRED_SQL = `
@@ -22,7 +23,11 @@ alter table kit_items disable row level security;
 
 const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
     const { state, navigateTo, supabase, refreshData } = useAppContext();
-    
+    const { t, vertical } = useVertical();
+
+    // Derive singular form from plural (Packages -> Package, Kits -> Kit, Sets -> Set)
+    const packageSingular = t.packages.endsWith('s') ? t.packages.slice(0, -1) : t.packages;
+
     // Safety: Ensure kitId is a number if passed (handles potential string params)
     const safeKitId = kitId ? Number(kitId) : undefined;
     const isEditing = !!safeKitId;
@@ -90,7 +95,7 @@ const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim()) return alert('Please name the package.');
+        if (!name.trim()) return alert(`Please name the ${packageSingular.toLowerCase()}.`);
         if (selectedItemIds.length === 0) return alert('Please add at least one item.');
 
         setIsSaving(true);
@@ -220,17 +225,17 @@ const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
                 </button>
             </div>
 
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{isEditing ? 'Edit Package' : 'Create New Package'}</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{isEditing ? `Edit ${packageSingular}` : `Create New ${packageSingular}`}</h2>
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-slate-700">
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Package Name</label>
-                        <input 
-                            type="text" 
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">{packageSingular} Name</label>
+                        <input
+                            type="text"
                             required
                             className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600 text-lg font-bold"
-                            placeholder="e.g., Camera A Kit"
+                            placeholder={vertical === 'music' ? 'e.g., Live Rig' : vertical === 'photo' ? 'e.g., Wedding Kit' : 'e.g., Camera A Kit'}
                             value={name}
                             onChange={e => setName(e.target.value)}
                         />
@@ -324,7 +329,7 @@ const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
                         </div>
 
                         <div className="space-y-2">
-                            {selectedItemIds.length === 0 && <p className="text-slate-500 italic p-4 text-center bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">No items in this package yet. Search above to add items.</p>}
+                            {selectedItemIds.length === 0 && <p className="text-slate-500 italic p-4 text-center bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">No items in this {packageSingular.toLowerCase()} yet. Search above to add items.</p>}
                             {selectedItemIds.map(id => {
                                 const item = state.inventory.find(i => i.id === id);
                                 if (!item) return null;
@@ -359,7 +364,7 @@ const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
                         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg disabled:opacity-50"
                     >
                         <Save size={20} />
-                        {isSaving ? 'Saving...' : (isEditing ? 'Update Package' : 'Create Package')}
+                        {isSaving ? 'Saving...' : (isEditing ? `Update ${packageSingular}` : `Create ${packageSingular}`)}
                     </button>
                 </div>
             </form>

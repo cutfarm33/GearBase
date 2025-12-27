@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useVertical } from '../hooks/useVertical';
 import { Plus, Edit, Trash2, Package, Search, Weight, FileText, Eye, X, DollarSign } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
@@ -9,6 +10,11 @@ import { Kit, InventoryItem } from '../types';
 
 const PackagesScreen: React.FC = () => {
     const { state, navigateTo, deleteKit } = useAppContext();
+    const { t } = useVertical();
+
+    // Derive singular form from plural (Packages -> Package, Kits -> Kit, Sets -> Set)
+    const packageSingular = t.packages.endsWith('s') ? t.packages.slice(0, -1) : t.packages;
+
     const [search, setSearch] = useState('');
     const [kitToDelete, setKitToDelete] = useState<{id: number, name: string} | null>(null);
     const [previewKit, setPreviewKit] = useState<Kit | null>(null);
@@ -41,7 +47,7 @@ const PackagesScreen: React.FC = () => {
         // Subtitle
         doc.setFontSize(10);
         doc.setTextColor(100, 116, 139);
-        doc.text(`Package Contents - Generated: ${date}`, 14, 28);
+        doc.text(`${packageSingular} Contents - Generated: ${date}`, 14, 28);
 
         // Summary stats
         const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
@@ -121,9 +127,9 @@ const PackagesScreen: React.FC = () => {
         <div>
             <ConfirmModal
                 isOpen={!!kitToDelete}
-                title="Delete Package"
-                message={`Are you sure you want to delete "${kitToDelete?.name}"? This will remove the package template, but will not affect jobs that already used it.`}
-                confirmText="Delete Package"
+                title={`Delete ${packageSingular}`}
+                message={`Are you sure you want to delete "${kitToDelete?.name}"? This will remove the ${packageSingular.toLowerCase()} template, but will not affect ${t.jobPlural.toLowerCase()} that already used it.`}
+                confirmText={`Delete ${packageSingular}`}
                 isDestructive={true}
                 onConfirm={handleDelete}
                 onCancel={() => setKitToDelete(null)}
@@ -222,7 +228,7 @@ const PackagesScreen: React.FC = () => {
                                 {items.length === 0 && (
                                     <div className="text-center py-8 text-slate-400">
                                         <Package size={32} className="mx-auto mb-2 opacity-50" />
-                                        <p>No items in this package</p>
+                                        <p>No items in this {packageSingular.toLowerCase()}</p>
                                     </div>
                                 )}
                             </div>
@@ -246,7 +252,7 @@ const PackagesScreen: React.FC = () => {
                                     className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors flex items-center gap-2"
                                 >
                                     <Edit size={16} />
-                                    Edit Package
+                                    Edit {packageSingular}
                                 </button>
                             </div>
                         </div>
@@ -255,13 +261,13 @@ const PackagesScreen: React.FC = () => {
             })()}
 
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Packages</h2>
-                <button 
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white">{t.packages}</h2>
+                <button
                     onClick={() => navigateTo('PACKAGE_FORM')}
                     className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                     <Plus size={20} />
-                    Create Package
+                    Create {packageSingular}
                 </button>
             </div>
 
@@ -269,7 +275,7 @@ const PackagesScreen: React.FC = () => {
                  <div className="relative">
                      <input 
                         type="text"
-                        placeholder="Search packages..."
+                        placeholder={`Search ${t.packages.toLowerCase()}...`}
                         className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 pl-10 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
@@ -357,8 +363,8 @@ const PackagesScreen: React.FC = () => {
                 {filteredKits.length === 0 && (
                     <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                         <Package size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-lg font-semibold">No packages found.</p>
-                        <p>Create standard kits to speed up your workflow.</p>
+                        <p className="text-lg font-semibold">No {t.packages.toLowerCase()} found.</p>
+                        <p>Create standard {t.packages.toLowerCase()} to speed up your workflow.</p>
                     </div>
                 )}
             </div>
