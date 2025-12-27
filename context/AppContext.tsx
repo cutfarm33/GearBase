@@ -576,13 +576,19 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         // Fetch organization vertical
         let orgVertical: Vertical = 'film';
         try {
-            const { data: orgData } = await supabase
+            const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
                 .select('vertical')
                 .eq('id', orgId)
-                .single();
-            if (orgData?.vertical) {
+                .maybeSingle();
+
+            if (orgError) {
+                console.warn('Error fetching organization vertical:', orgError.message);
+            } else if (orgData?.vertical) {
                 orgVertical = orgData.vertical as Vertical;
+                console.log('Organization vertical loaded:', orgVertical);
+            } else {
+                console.log('No organization found for id:', orgId, '- defaulting to film');
             }
         } catch (err) {
             console.log('Could not fetch organization vertical, defaulting to film');

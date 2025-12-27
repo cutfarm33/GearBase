@@ -1,24 +1,26 @@
 
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
+import { useVertical } from '../hooks/useVertical';
+import { ItemStatus, ItemCondition } from '../types';
 import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy } from 'lucide-react';
 
 const AddItemScreen: React.FC = () => {
   const { state, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
+  const { categories: verticalCategories, t } = useVertical();
   const [isSaving, setIsSaving] = useState(false);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Error Handling for Missing Columns
   const [showDbError, setShowDbError] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Suggest categories based on existing items AND predefined list
+  // Suggest categories based on existing items AND vertical-specific predefined list
   const categories = Array.from(new Set([
-      ...PREDEFINED_CATEGORIES,
+      ...verticalCategories,
       ...state.inventory.map(i => i.category)
   ])).sort();
 

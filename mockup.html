@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Director / Cinematographer / Editor</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-deep: #0A0A0A;
+      --bg-surface: #141414;
+      --text-primary: #F2EDE4;
+      --text-secondary: #7A7368;
+      --text-dim: #4A4540;
+      --accent: #C9A227;
+      --accent-dim: rgba(201, 162, 39, 0.15);
+      
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom Cursor */
+    .cursor {
+      width: 12px;
+      height: 12px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.2s ease, background 0.2s ease;
+      transform: translate(-50%, -50%);
+    }
+
+    .cursor.active {
+      transform: translate(-50%, -50%) scale(2);
+      background: var(--accent);
+      opacity: 0.4;
+    }
+
+    /* Film Grain */
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 2.5rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      mix-blend-mode: difference;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 3rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+    }
+
+    /* ===================== */
+    /* SECTION 1: OPENING FRAME */
+    /* ===================== */
+    .opening {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .opening-name {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      text-align: center;
+      animation: fadeIn 2s ease forwards;
+      opacity: 0;
+    }
+
+    .opening-name span {
+      display: block;
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+      animation: fadeIn 2s ease forwards;
+      animation-delay: 0.8s;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fadeIn 2s ease forwards;
+      animation-delay: 1.5s;
+      opacity: 0;
+    }
+
+    .scroll-hint span {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--text-dim), transparent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* ===================== */
+    /* SECTION 2: HERO REEL */
+    /* ===================== */
+    .hero-reel {
+      height: 100vh;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 5rem;
+    }
+
+    .hero-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        #1a1612 0%,
+        #0d0b09 40%,
+        #12100e 100%
+      );
+      z-index: -1;
+    }
+
+    /* Simulated video frame with cinematic bars */
+    .hero-video::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        linear-gradient(to bottom, var(--bg-deep) 0%, transparent 15%),
+        linear-gradient(to top, var(--bg-deep) 0%, transparent 25%);
+      z-index: 1;
+    }
+
+    /* Fake video content - atmospheric gradient */
+    .hero-video::after {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 0;
+      width: 100%;
+      height: 70%;
+      background: 
+        radial-gradient(ellipse at 30% 50%, rgba(201, 162, 39, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(180, 140, 100, 0.06) 0%, transparent 40%),
+        linear-gradient(135deg, #1c1915 0%, #0f0d0b 100%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+    }
+
+    .hero-label {
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hero-label::before {
+      content: '';
+      width: 30px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--text-primary);
+      opacity: 0.9;
+    }
+
+    /* ===================== */
+    /* SECTION 3: WORK */
+    /* ===================== */
+    .work {
+      padding: 12rem 4rem;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 400;
+      margin-bottom: 6rem;
+    }
+
+    .work-grid {
+      display: grid;
+      gap: 8rem;
+    }
+
+    .work-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .work-item:nth-child(even) {
+      direction: rtl;
+    }
+
+    .work-item:nth-child(even) > * {
+      direction: ltr;
+    }
+
+    .work-item:nth-child(1) {
+      grid-template-columns: 1.4fr 0.6fr;
+    }
+
+    .work-item:nth-child(2) {
+      grid-template-columns: 0.8fr 1.2fr;
+    }
+
+    .work-item:nth-child(3) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .work-visual {
+      position: relative;
+      aspect-ratio: 16/10;
+      background: var(--bg-surface);
+      overflow: hidden;
+    }
+
+    .work-visual::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(201, 162, 39, 0.05) 0%,
+        transparent 50%
+      );
+      z-index: 1;
+    }
+
+    /* Simulated video thumbnails */
+    .work-item:nth-child(1) .work-visual {
+      background: linear-gradient(145deg, #2a2318 0%, #141210 100%);
+    }
+
+    .work-item:nth-child(2) .work-visual {
+      background: linear-gradient(145deg, #1a2025 0%, #0d1012 100%);
+    }
+
+    .work-item:nth-child(3) .work-visual {
+      background: linear-gradient(145deg, #25201a 0%, #12100d 100%);
+    }
+
+    .work-visual::after {
+      content: '▶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      opacity: 0.2;
+      transition: opacity 0.4s ease;
+      z-index: 2;
+    }
+
+    .work-item:hover .work-visual::after {
+      opacity: 0.6;
+    }
+
+    .work-frame {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      border: 1px solid var(--accent);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 3;
+    }
+
+    .work-item:hover .work-frame {
+      opacity: 0.3;
+    }
+
+    .work-info {
+      padding: 2rem 0;
+    }
+
+    .work-category {
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .work-name {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 400;
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+
+    .work-description {
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--text-secondary);
+      max-width: 400px;
+    }
+
+    .work-meta {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .work-meta-item {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .work-meta-item strong {
+      display: block;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+    }
+
+    /* ===================== */
+    /* SECTION 4: ABOUT */
+    /* ===================== */
+    .about {
+      padding: 10rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 8rem;
+      align-items: center;
+      background: var(--bg-surface);
+      position: relative;
+    }
+
+    .about::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+    }
+
+    .about-image {
+      position: relative;
+      aspect-ratio: 3/4;
+      background: linear-gradient(160deg, #1c1915 0%, #0d0b09 100%);
+    }
+
+    .about-image::before {
+      content: '';
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      right: -2rem;
+      bottom: -2rem;
+      border: 1px solid var(--accent);
+      opacity: 0.3;
+    }
+
+    /* Placeholder for portrait */
+    .about-image::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at 50% 30%, rgba(180, 150, 120, 0.1) 0%, transparent 60%);
+    }
+
+    .about-content {
+      max-width: 500px;
+    }
+
+    .about-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 400;
+      margin-bottom: 2rem;
+      line-height: 1.2;
+    }
+
+    .about-text {
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 2;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .about-roles {
+      display: flex;
+      gap: 2rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .role {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      position: relative;
+      padding-left: 1rem;
+    }
+
+    .role::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* ===================== */
+    /* SECTION 5: CONTACT */
+    /* ===================== */
+    .contact {
+      padding: 12rem 4rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .contact::before {
+      content: 'INQUIRIES';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-serif);
+      font-size: clamp(8rem, 20vw, 18rem);
+      color: rgba(255,255,255,0.015);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .contact-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .contact-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    .contact-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 4rem;
+    }
+
+    .contact-email {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      color: var(--text-primary);
+      text-decoration: none;
+      padding: 1.25rem 3rem;
+      border: 1px solid var(--accent);
+      position: relative;
+      overflow: hidden;
+      transition: color 0.4s ease;
+    }
+
+    .contact-email::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: -1;
+    }
+
+    .contact-email:hover::before {
+      width: 100%;
+    }
+
+    .contact-email:hover {
+      color: var(--bg-deep);
+    }
+
+    .contact-rep {
+      margin-top: 4rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    .contact-rep a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .contact-rep a:hover {
+      color: var(--accent);
+    }
+
+    /* ===================== */
+    /* FOOTER */
+    /* ===================== */
+    footer {
+      padding: 2rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .footer-copy {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-social a {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-social a:hover {
+      color: var(--accent);
+    }
+
+    /* ===================== */
+    /* ANIMATIONS ON SCROLL */
+    /* ===================== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      nav {
+        padding: 1.5rem 2rem;
+      }
+
+      .work, .about, .contact {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+
+      .work-item {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+      }
+
+      .work-item:nth-child(even) {
+        direction: ltr;
+      }
+
+      .about {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero-reel {
+        padding: 3rem 2rem;
+      }
+
+      .about-image {
+        aspect-ratio: 4/3;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor"></div>
+  <div class="grain"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">Your Name</div>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Section 1: Opening Frame -->
+  <section class="opening">
+    <h1 class="opening-name">
+      Your Name
+      <span>Director &nbsp;·&nbsp; Cinematographer &nbsp;·&nbsp; Editor</span>
+    </h1>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- Section 2: Hero Reel -->
+  <section class="hero-reel">
+    <div class="hero-video"></div>
+    <div class="hero-content">
+      <div class="hero-label">Now Showing</div>
+      <p class="hero-title">
+        Crafting visual stories for the world's most ambitious brands. 
+        From concept to final cut.
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 3: Work -->
+  <section class="work" id="work">
+    <div class="section-label">Selected Work</div>
+    <h2 class="section-title">Recent Projects</h2>
+
+    <div class="work-grid">
+      
+      <!-- Project 1: NY Times Aruba -->
+      <article class="work-item fade-in">
+        <div class="work-visual">
+          <div class="work-frame"></div>
+        </div>
+        <div class="work-info">
+          <div class="work-category">Campaign · Documentary</div>
+          <h3 class="work-name">The New York Times × Aruba</h3>
+          <p class="work-description">
+            A cinematic exploration of Aruba's rich history and natural wonders. 
+            Blending documentary storytelling with branded content for the Times.
+          </p>
+          <div class="work-meta">
+            <div class="work-meta-item">
+              Role
+              <strong>Director / DP / Editor</strong>
+            </div>
+            <div class="work-meta-item">
+              Year
+              <strong>2024</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project 2: Wise -->
+      <article class="work-item fade-in">
+        <div class="work-visual">
+          <div class="work-frame"></div>
+        </div>
+        <div class="work-info">
+          <div class="work-category">Commercial · Campaign</div>
+          <h3 class="work-name">Wise — Don't Overpay</h3>
+          <p class="work-description">
+            A character-driven campaign introducing Don T. Overpay, 
+            bringing humor and style to international money transfers.
+          </p>
+          <div class="work-meta">
+            <div class="work-meta-item">
+              Role
+              <strong>Director / Editor</strong>
+            </div>
+            <div class="work-meta-item">
+              Year
+              <strong>2024</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project 3: Placeholder -->
+      <article class="work-item fade-in">
+        <div class="work-visual">
+          <div class="work-frame"></div>
+        </div>
+        <div class="work-info">
+          <div class="work-category">Technical · Commercial</div>
+          <h3 class="work-name">Project Title</h3>
+          <p class="work-description">
+            Brief description of another signature project. 
+            The visual approach and what made it unique.
+          </p>
+          <div class="work-meta">
+            <div class="work-meta-item">
+              Role
+              <strong>Cinematographer</strong>
+            </div>
+            <div class="work-meta-item">
+              Year
+              <strong>2024</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Section 4: About -->
+  <section class="about" id="about">
+    <div class="about-image"></div>
+    <div class="about-content fade-in">
+      <h2 class="about-title">Stories told through light, motion, and time.</h2>
+      <p class="about-text">
+        With over a decade behind the camera and in the edit suite, I bring a 
+        singular vision to every project—whether it's a brand campaign, documentary, 
+        or high-end commercial production.
+      </p>
+      <p class="about-text">
+        Based in New York. Available worldwide.
+      </p>
+      <div class="about-roles">
+        <span class="role">Director</span>
+        <span class="role">Cinematographer</span>
+        <span class="role">Editor</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Contact -->
+  <section class="contact" id="contact">
+    <div class="contact-inner fade-in">
+      <div class="contact-label">Get in Touch</div>
+      <h2 class="contact-title">Let's Create</h2>
+      <p class="contact-subtitle">New projects & collaborations welcome</p>
+      <a href="mailto:hello@yourname.com" class="contact-email">hello@yourname.com</a>
+      <p class="contact-rep">
+        Representation: <a href="#">Agency Name</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-copy">© 2024 Your Name. All rights reserved.</div>
+    <div class="footer-social">
+      <a href="#">Instagram</a>
+      <a href="#">Vimeo</a>
+      <a href="#">LinkedIn</a>
+    </div>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.querySelector('.cursor');
+    
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+
+    document.querySelectorAll('a, .work-item').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+    });
+
+    // Fade in on scroll
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
