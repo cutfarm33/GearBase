@@ -88,6 +88,14 @@ const AddItemScreen: React.FC = () => {
             finalImageUrl = `https://picsum.photos/seed/${formData.name.replace(/[^a-zA-Z0-9]/g,'')}/200`;
         }
 
+        // Get the organization ID for the new item
+        const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id;
+        if (!organizationId) {
+            alert('Error: No organization found. Please log out and log back in.');
+            setIsSaving(false);
+            return;
+        }
+
         const newItem = {
             name: formData.name,
             category: formData.category,
@@ -100,6 +108,7 @@ const AddItemScreen: React.FC = () => {
             storage_case: formData.storageCase || null,
             image_url: finalImageUrl,
             notes: formData.notes || null,
+            organization_id: organizationId,
         };
 
         const { error } = await supabase.from('inventory').insert(newItem);
