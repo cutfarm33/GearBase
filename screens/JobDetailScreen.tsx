@@ -108,11 +108,33 @@ const JobDetailScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
           doc.setFontSize(14);
           doc.setTextColor(0, 0, 0);
           doc.text(job.name, 20, 42);
-          
+
+          // Helper to format time (e.g., "17:00" -> "5:00 PM")
+          const formatTime = (time: string | undefined) => {
+              if (!time) return null;
+              const [hours, minutes] = time.split(':').map(Number);
+              const ampm = hours >= 12 ? 'PM' : 'AM';
+              const hour12 = hours % 12 || 12;
+              return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+          };
+
           doc.setFontSize(10);
           doc.text(`Dates: ${new Date(job.startDate).toLocaleDateString()} - ${new Date(job.endDate).toLocaleDateString()}`, 20, 50);
-          doc.text(`${t.producer}: ${producer?.name || 'Unknown'}`, 20, 56);
-          
+
+          // Build times string
+          const soundCheck = formatTime(job.soundCheckTime);
+          const startTime = formatTime(job.startTime);
+          let timesLine = '';
+          if (soundCheck) timesLine += `Sound Check: ${soundCheck}`;
+          if (soundCheck && startTime) timesLine += '  |  ';
+          if (startTime) timesLine += `Start: ${startTime}`;
+          if (timesLine) {
+              doc.text(timesLine, 20, 56);
+              doc.text(`${t.producer}: ${producer?.name || 'Unknown'}`, 20, 62);
+          } else {
+              doc.text(`${t.producer}: ${producer?.name || 'Unknown'}`, 20, 56);
+          }
+
           doc.text(`Total Items: ${totalItems}`, 140, 50);
           doc.text(`Total Weight: ${totalJobWeight.toFixed(1)} lbs`, 140, 56);
           doc.text(`Status: ${job.status}`, 140, 62);
