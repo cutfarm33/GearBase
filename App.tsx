@@ -64,6 +64,25 @@ const App: React.FC = () => {
     }
   }, [isConfigured, isLoggedIn, organizationId]);
 
+  // Handle hash-based routing for public gallery (e.g., /#/gallery/{token})
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      const galleryMatch = hash.match(/^#\/gallery\/(.+)$/);
+      if (galleryMatch) {
+        const token = galleryMatch[1];
+        navigateTo('PUBLIC_GALLERY', { token });
+      }
+    };
+
+    // Check on mount
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [navigateTo]);
+
   // Handle deep linking from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
