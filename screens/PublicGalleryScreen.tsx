@@ -71,15 +71,19 @@ const PublicGalleryScreen: React.FC<PublicGalleryScreenProps> = ({ token }) => {
                 }
 
                 setGallery(galleryData);
+                console.log('Gallery visible_item_ids:', galleryData.visible_item_ids);
 
                 // Fetch inventory items that are in the visible list
                 if (galleryData.visible_item_ids && galleryData.visible_item_ids.length > 0) {
+                    console.log('Fetching inventory items for IDs:', galleryData.visible_item_ids);
                     const { data: itemsData, error: itemsError } = await supabase
                         .from('inventory')
                         .select('*')
                         .in('id', galleryData.visible_item_ids)
                         .order('category')
                         .order('name');
+
+                    console.log('Inventory query result:', { itemsData, itemsError });
 
                     if (itemsError) {
                         console.error('Error fetching items:', itemsError);
