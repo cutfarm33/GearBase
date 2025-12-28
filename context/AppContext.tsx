@@ -120,7 +120,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'SET_CURRENT_USER':
       // Only navigate to DASHBOARD if user is logging in for the first time (no previous user)
       // Don't change view if user is already logged in (token refresh, reconnect, etc.)
-      const shouldNavigate = action.payload && !state.currentUser;
+      // Also preserve PUBLIC_GALLERY view since it should be accessible to everyone regardless of auth state
+      const shouldNavigate = action.payload && !state.currentUser && state.currentView.view !== 'PUBLIC_GALLERY';
       return {
           ...state,
           currentUser: action.payload,
