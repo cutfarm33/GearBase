@@ -237,7 +237,7 @@ const GallerySettingsScreen: React.FC = () => {
                             isEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
                         }`}
                     >
-                        <span className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform shadow-sm ${
+                        <span className={`absolute left-0 top-1 w-6 h-6 bg-white rounded-full transition-transform shadow-sm ${
                             isEnabled ? 'translate-x-7' : 'translate-x-1'
                         }`} />
                     </button>

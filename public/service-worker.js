@@ -1,7 +1,7 @@
 // Gear Base Service Worker - Offline Support
-const CACHE_NAME = 'gearbase-v1';
-const STATIC_CACHE = 'gearbase-static-v1';
-const DYNAMIC_CACHE = 'gearbase-dynamic-v1';
+const CACHE_NAME = 'gearbase-v2';
+const STATIC_CACHE = 'gearbase-static-v2';
+const DYNAMIC_CACHE = 'gearbase-dynamic-v2';
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
