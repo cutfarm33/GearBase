@@ -100,7 +100,11 @@ const GallerySettingsScreen: React.FC = () => {
             alert('Gallery settings saved!');
         } catch (err: any) {
             console.error('Error saving gallery:', err);
-            alert('Failed to save gallery settings: ' + err.message);
+            if (err.message?.includes('does not exist')) {
+                alert('Database table not found. Please run the public_galleries migration in Supabase SQL Editor.');
+            } else {
+                alert('Failed to save gallery settings: ' + err.message);
+            }
         } finally {
             setSaving(false);
         }

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
-import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar, Receipt, Music } from 'lucide-react';
+import { LogOut, Moon, Sun, Menu, X, LayoutDashboard, Briefcase, Camera, Package, Users, Calendar, Receipt, Music, Share2 } from 'lucide-react';
 import OrganizationSwitcher from './OrganizationSwitcher';
 import { OfflineIndicatorCompact } from './OfflineIndicator';
 
@@ -15,7 +15,7 @@ const Header: React.FC = () => {
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(currentView);
 
   // Helper for mobile nav items
-  const MobileNavItem: React.FC<{ view: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS'; icon: React.ReactNode; label: string }> = ({ view, icon, label }) => (
+  const MobileNavItem: React.FC<{ view: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS' | 'GALLERY_SETTINGS'; icon: React.ReactNode; label: string }> = ({ view, icon, label }) => (
     <button
       onClick={() => {
         navigateTo(view);
@@ -221,6 +221,7 @@ const Header: React.FC = () => {
                         {features.receipts && (
                             <MobileNavItem view="RECEIPTS" icon={<Receipt size={18}/>} label="Receipts" />
                         )}
+                        <MobileNavItem view="GALLERY_SETTINGS" icon={<Share2 size={18}/>} label="Public Gallery" />
                         <div className="border-t border-slate-100 dark:border-slate-800 my-2 pt-2">
                              <button
                                 onClick={() => {

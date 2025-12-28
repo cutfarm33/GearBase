@@ -35,6 +35,8 @@ const PublicGalleryScreen: React.FC<PublicGalleryScreenProps> = ({ token }) => {
             }
 
             try {
+                console.log('Loading gallery with token:', token);
+
                 // Fetch gallery by token
                 const { data: galleryData, error: galleryError } = await supabase
                     .from('public_galleries')
@@ -42,7 +44,21 @@ const PublicGalleryScreen: React.FC<PublicGalleryScreenProps> = ({ token }) => {
                     .eq('token', token)
                     .single();
 
-                if (galleryError || !galleryData) {
+                console.log('Gallery query result:', { galleryData, galleryError });
+
+                if (galleryError) {
+                    console.error('Gallery fetch error:', galleryError);
+                    // Check if it's a "relation does not exist" error (table not created)
+                    if (galleryError.message?.includes('does not exist')) {
+                        setError('Gallery feature not set up. Please run the database migration.');
+                    } else {
+                        setError('Gallery not found');
+                    }
+                    setLoading(false);
+                    return;
+                }
+
+                if (!galleryData) {
                     setError('Gallery not found');
                     setLoading(false);
                     return;
