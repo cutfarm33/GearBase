@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { PublicGallery } from '../types';
-import { Share2, Copy, Check, Eye, EyeOff, Camera, Save, ExternalLink, CheckSquare, Square, Loader } from 'lucide-react';
+import { Share2, Copy, Check, Eye, EyeOff, Camera, Save, ExternalLink, CheckSquare, Square, Loader, Tag } from 'lucide-react';
 
 const GallerySettingsScreen: React.FC = () => {
     const { state, supabase, navigateTo } = useAppContext();
@@ -13,6 +13,38 @@ const GallerySettingsScreen: React.FC = () => {
     const [galleryName, setGalleryName] = useState('My Collection');
     const [isEnabled, setIsEnabled] = useState(false);
     const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+    const [categoryFilter, setCategoryFilter] = useState<string>('All');
+
+    // Get unique categories from inventory
+    const categories = useMemo(() => {
+        const cats = [...new Set(state.inventory.map(i => i.category))].sort();
+        return ['All', ...cats];
+    }, [state.inventory]);
+
+    // Filter items by category
+    const filteredItems = useMemo(() => {
+        if (categoryFilter === 'All') return state.inventory;
+        return state.inventory.filter(i => i.category === categoryFilter);
+    }, [state.inventory, categoryFilter]);
+
+    // Select all items in current category
+    const selectCategory = () => {
+        const categoryItemIds = filteredItems.map(i => i.id);
+        setSelectedItemIds(prev => {
+            const newIds = new Set(prev);
+            categoryItemIds.forEach(id => newIds.add(id));
+            return Array.from(newIds);
+        });
+    };
+
+    // Deselect all items in current category
+    const deselectCategory = () => {
+        const categoryItemIds = new Set(filteredItems.map(i => i.id));
+        setSelectedItemIds(prev => prev.filter(id => !categoryItemIds.has(id)));
+    };
+
+    // Check if all items in current category are selected
+    const allCategorySelected = filteredItems.length > 0 && filteredItems.every(i => selectedItemIds.includes(i.id));
 
     const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id;
 
@@ -253,30 +285,61 @@ const GallerySettingsScreen: React.FC = () => {
 
             {/* Item Selection */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <div>
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Select Items to Share</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             {selectedItemIds.length} of {state.inventory.length} items selected
                         </p>
                     </div>
-                    <button
-                        onClick={toggleSelectAll}
-                        className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium flex items-center gap-2"
-                    >
-                        {selectedItemIds.length === state.inventory.length ? (
-                            <>
-                                <EyeOff size={16} />
-                                Deselect All
-                            </>
-                        ) : (
-                            <>
-                                <Eye size={16} />
-                                Select All
-                            </>
-                        )}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={allCategorySelected ? deselectCategory : selectCategory}
+                            className="text-sm bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5"
+                        >
+                            {allCategorySelected ? <EyeOff size={14} /> : <Eye size={14} />}
+                            {allCategorySelected ? 'Deselect' : 'Select'} {categoryFilter === 'All' ? 'All' : categoryFilter}
+                        </button>
+                        <button
+                            onClick={toggleSelectAll}
+                            className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium flex items-center gap-1.5"
+                        >
+                            {selectedItemIds.length === state.inventory.length ? 'Clear All' : 'Select All'}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Category Filter Tabs */}
+                {categories.length > 2 && (
+                    <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
+                        {categories.map(cat => {
+                            const itemCount = cat === 'All'
+                                ? state.inventory.length
+                                : state.inventory.filter(i => i.category === cat).length;
+                            const selectedCount = cat === 'All'
+                                ? selectedItemIds.length
+                                : state.inventory.filter(i => i.category === cat && selectedItemIds.includes(i.id)).length;
+
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setCategoryFilter(cat)}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                                        categoryFilter === cat
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                    }`}
+                                >
+                                    <Tag size={14} />
+                                    {cat}
+                                    <span className={`text-xs ${categoryFilter === cat ? 'text-emerald-100' : 'text-slate-400 dark:text-slate-500'}`}>
+                                        {selectedCount}/{itemCount}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {state.inventory.length === 0 ? (
                     <div className="text-center py-12 text-slate-500 dark:text-slate-400">
@@ -289,9 +352,14 @@ const GallerySettingsScreen: React.FC = () => {
                             Add your first item
                         </button>
                     </div>
+                ) : filteredItems.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                        <Tag size={48} className="mx-auto mb-4 opacity-50" />
+                        <p>No items in this category.</p>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[500px] overflow-y-auto">
-                        {state.inventory.map(item => {
+                        {filteredItems.map(item => {
                             const isSelected = selectedItemIds.includes(item.id);
                             return (
                                 <button
