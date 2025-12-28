@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../context/AppContext';
 import { InventoryItem, PublicGallery, ItemStatus, ItemCondition } from '../types';
-import { Camera, DollarSign, Tag, FileText, AlertCircle, Loader } from 'lucide-react';
+import { Camera, DollarSign, Tag, FileText, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
 
 interface PublicGalleryScreenProps {
     token?: string;
@@ -158,13 +158,22 @@ const PublicGalleryScreen: React.FC<PublicGalleryScreenProps> = ({ token }) => {
             <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-                                {gallery?.name || 'Collection'}
-                            </h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">
-                                {items.length} items • ${totalValue.toLocaleString()} total value
-                            </p>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => window.history.back()}
+                                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                title="Go back"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                            <div>
+                                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                                    {gallery?.name || 'Collection'}
+                                </h1>
+                                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                                    {items.length} items • ${totalValue.toLocaleString()} total value
+                                </p>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-xs text-slate-400 dark:text-slate-500">Powered by</span>
