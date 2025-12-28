@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles, Camera } from 'lucide-react';
+import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles, Camera, Music, Briefcase, Settings } from 'lucide-react';
 
 const FeaturesScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -35,22 +35,22 @@ const FeaturesScreen: React.FC = () => {
       ]
     },
     {
-      category: 'Team & Production',
-      subtitle: 'Collaborate with your crew effectively',
+      category: 'Team & Projects',
+      subtitle: 'Collaborate with your team effectively',
       icon: <Users size={20} />,
       features: [
         {
           icon: Users,
           title: 'Team Management',
-          description: 'Manage your crew with role-based permissions. Assign gear to specific team members.',
-          benefits: ['Admin, Producer, Crew roles', 'User accountability', 'Assignment tracking', 'Team collaboration'],
+          description: 'Manage your team with industry-specific roles. Assign gear to specific team members.',
+          benefits: ['Industry-specific roles', 'User accountability', 'Assignment tracking', 'Team collaboration'],
           gradient: 'from-emerald-500 to-teal-500'
         },
         {
           icon: Calendar,
-          title: 'Job Scheduling',
-          description: 'Create production jobs and assign equipment. Track what gear is out and when it returns.',
-          benefits: ['Job timeline tracking', 'Equipment reservations', 'Conflict prevention', 'Automated reminders'],
+          title: 'Project Scheduling',
+          description: 'Create projects and assign equipment. Track what gear is out and when it returns.',
+          benefits: ['Project timeline tracking', 'Equipment reservations', 'Conflict prevention', 'Automated reminders'],
           gradient: 'from-teal-500 to-blue-500'
         },
         {
@@ -119,14 +119,14 @@ const FeaturesScreen: React.FC = () => {
           <div className="text-center">
             <div className="inline-block mb-6 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
               <Sparkles size={14} className="inline mr-1.5 -mt-0.5" />
-              Complete Feature Set
+              Film • Photo • Music • General
             </div>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
               Powerful Tools for<br/>
-              <span className="text-teal-600 dark:text-teal-400">Production Teams</span>
+              <span className="text-teal-600 dark:text-teal-400">Every Creative</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Everything you need to manage your gear, track equipment, and keep your team organized—all in one place.
+              Choose your industry and get tailored categories, team roles, and workflows. One platform, endless possibilities.
             </p>
             <button
               onClick={() => navigateTo('SIGNUP')}
@@ -135,6 +135,74 @@ const FeaturesScreen: React.FC = () => {
               Start Free Trial
               <ArrowRight size={20} />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Industry Selector Section */}
+      <section className="py-20 px-6 bg-white/50 dark:bg-slate-900/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
+              <Settings size={16} />
+              <span>Choose Your Industry</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+              Tailored for How You Work
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Select your industry during signup and get pre-configured categories, team roles, and terminology that matches your workflow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Film/Production */}
+            <div className="glass-card hover-float rounded-2xl p-6 text-center shadow-glass hover:shadow-glass-lg transition-all duration-300 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                <Camera size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Film & Video</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Cameras, Lenses, Lighting, Grip, Audio equipment</p>
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-500">
+                Roles: Producer, DP, Gaffer, PA...
+              </div>
+            </div>
+
+            {/* Photography */}
+            <div className="glass-card hover-float rounded-2xl p-6 text-center shadow-glass hover:shadow-glass-lg transition-all duration-300 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                <Camera size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Photography</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Cameras, Lenses, Strobes, Modifiers, Backdrops</p>
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-500">
+                Roles: Owner, Photographer, Assistant...
+              </div>
+            </div>
+
+            {/* Music/Audio */}
+            <div className="glass-card hover-float rounded-2xl p-6 text-center shadow-glass hover:shadow-glass-lg transition-all duration-300 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                <Music size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Music & Audio</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Instruments, Mics, Mixers, Amps, Cables</p>
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-500">
+                Roles: Band Leader, Tech, Roadie...
+              </div>
+            </div>
+
+            {/* General */}
+            <div className="glass-card hover-float rounded-2xl p-6 text-center shadow-glass hover:shadow-glass-lg transition-all duration-300 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                <Briefcase size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">General</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Tools, Equipment, Electronics, Sports gear</p>
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-500">
+                Roles: Owner, Manager, Member...
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -209,10 +277,10 @@ const FeaturesScreen: React.FC = () => {
             <div className="relative z-10">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3">
-                  Trusted by Production Teams
+                  Trusted by Creative Professionals
                 </h2>
                 <p className="text-lg text-slate-600 dark:text-slate-300">
-                  Join the growing community of professionals managing their gear with confidence
+                  Join photographers, filmmakers, musicians, and teams managing their gear with confidence
                 </p>
               </div>
 
@@ -260,7 +328,7 @@ const FeaturesScreen: React.FC = () => {
                 Ready to Get Started?
               </h2>
               <p className="text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Join production teams who trust Gear Base for their equipment management. No credit card required.
+                Join creative professionals who trust Gear Base for their equipment management. No credit card required.
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
                 <button

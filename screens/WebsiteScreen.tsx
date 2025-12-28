@@ -69,15 +69,16 @@ const WebsiteScreen: React.FC = () => {
 
                     <div className="container mx-auto text-center max-w-5xl relative z-10">
                     <div className="inline-block mb-6 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
-                        🚀 Version 2.0 is here
+                        🚀 Now for Film, Photo, Music & More
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-                        Never Lose Your Production Gear Again
+                        Your Gear, Organized.<br/>
+                        <span className="text-teal-600 dark:text-teal-400">Your Way.</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed font-normal">
-                        Professional inventory management built for film crews, rental houses, and production companies. Stop losing gear, start managing it.
+                        Professional inventory management for any creative industry. Track cameras, instruments, lighting, audio gear, and more—all in one powerful platform.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -105,17 +106,17 @@ const WebsiteScreen: React.FC = () => {
                             {/* Content */}
                             <div className="md:w-1/2 order-2 md:order-1">
                                 <div className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-teal-700 dark:text-teal-300 text-sm font-semibold shadow-glow-teal">
-                                    🎬 About Us
+                                    ✨ About Us
                                 </div>
                                 <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
-                                    Built by filmmakers,<br/>
-                                    <span className="text-teal-600 dark:text-teal-400">for filmmakers.</span>
+                                    Built by creatives,<br/>
+                                    <span className="text-teal-600 dark:text-teal-400">for every industry.</span>
                                 </h2>
                                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                                    Gear Base started on a feature film set when we lost track of a $15,000 lens. That moment of panic led us to build what became the industry's most trusted inventory system.
+                                    Gear Base started when we lost track of expensive equipment on a project. That moment of panic led us to build an inventory system that works for any creative professional.
                                 </p>
                                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
-                                    Today, we're helping productions of all sizes—from indie shoots to blockbuster features—keep their gear organized, accounted for, and ready to roll.
+                                    Today, we help photographers, filmmakers, musicians, rental houses, and hobbyists keep their gear organized, tracked, and ready to use. Choose your industry and get a tailored experience.
                                 </p>
 
                                 <div className="space-y-4">
@@ -124,8 +125,8 @@ const WebsiteScreen: React.FC = () => {
                                             <CheckSquare size={16} className="text-white" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Production-First Design</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Built specifically for the chaos of on-set workflows</div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Choose Your Industry</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Film, Photography, Music, or General—tailored categories & roles</div>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -133,8 +134,8 @@ const WebsiteScreen: React.FC = () => {
                                             <Shield size={16} className="text-white" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Battle-Tested Reliability</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Used on sets around the world, from commercials to features</div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Reliable & Secure</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Cloud-backed with offline support for any environment</div>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -142,8 +143,8 @@ const WebsiteScreen: React.FC = () => {
                                             <Users size={16} className="text-white" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Community Driven</div>
-                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Every feature requested by real crew members and producers</div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Team Collaboration</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Invite team members, track check-outs, and stay organized</div>
                                         </div>
                                     </div>
                                 </div>
@@ -162,16 +163,16 @@ const WebsiteScreen: React.FC = () => {
                                         <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl p-5 shadow-xl border border-emerald-100 dark:border-emerald-900/30">
                                             <div className="grid grid-cols-3 gap-4 text-center">
                                                 <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">2.5k+</div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">∞</div>
                                                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Items</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">150+</div>
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Productions</div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">4</div>
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Industries</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">99.9%</div>
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Uptime</div>
+                                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Free</div>
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Forever</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -186,8 +187,8 @@ const WebsiteScreen: React.FC = () => {
                 <section id="features" className="py-24">
                     <div className="container mx-auto px-6">
                         <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Everything you need to run the show</h2>
-                        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">We built this specifically for producers, camera assistants, and rental houses.</p>
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Everything you need to stay organized</h2>
+                        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Built for photographers, filmmakers, musicians, rental houses, and anyone who needs to track valuable equipment.</p>
                         </div>
 
                         {/* 3 Phone Mockups */}
@@ -409,7 +410,7 @@ const WebsiteScreen: React.FC = () => {
                                     </div>
                                     <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Digital Check-in/out</h3>
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Scan gear in and out using standard barcodes. Capture digital signatures from crew members for accountability.
+                                        Scan gear in and out using QR codes. Capture digital signatures from team members for full accountability.
                                     </p>
                                 </div>
                             </div>
@@ -419,9 +420,9 @@ const WebsiteScreen: React.FC = () => {
                                     <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-blue-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-glow-teal">
                                         <Shield size={26} />
                                     </div>
-                                    <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Damage Tracking</h3>
+                                    <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Condition Tracking</h3>
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Log damage immediately with photos and notes. Track repair status so you never send out broken gear.
+                                        Log condition and damage with photos and notes. Track repair status so you always know what's ready to use.
                                     </p>
                                 </div>
                             </div>
@@ -433,7 +434,7 @@ const WebsiteScreen: React.FC = () => {
                                     </div>
                                     <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Mobile First</h3>
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Built for the set. Works perfectly on phones and tablets so you can manage inventory from the camera truck.
+                                        Works on any device. Manage your inventory from your phone, tablet, or desktop—wherever you are.
                                     </p>
                                 </div>
                             </div>
