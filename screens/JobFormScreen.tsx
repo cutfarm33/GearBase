@@ -19,6 +19,8 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
         producerId: state.currentUser?.id || '',
         startDate: '',
         endDate: '',
+        startTime: '',
+        soundCheckTime: '',
         status: JobStatus.UPCOMING,
         gearListIds: [] as number[],
     });
@@ -31,6 +33,8 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                 producerId: existingJob.producerId,
                 startDate: existingJob.startDate,
                 endDate: existingJob.endDate,
+                startTime: existingJob.startTime || '',
+                soundCheckTime: existingJob.soundCheckTime || '',
                 status: existingJob.status,
                 gearListIds: existingJob.gearList.map(g => g.itemId),
             });
@@ -188,6 +192,8 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                 producer_id: formData.producerId,
                 start_date: formData.startDate,
                 end_date: formData.endDate,
+                start_time: formData.startTime || null,
+                sound_check_time: formData.soundCheckTime || null,
                 status: formData.status,
                 organization_id: organizationId
             };
@@ -538,12 +544,30 @@ const JobFormScreen: React.FC<{ jobId?: number }> = ({ jobId }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">End Date</label>
-                            <input 
-                                type="date" 
+                            <input
+                                type="date"
                                 required
                                 className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
                                 value={formData.endDate}
                                 onChange={e => setFormData({...formData, endDate: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Sound Check Time</label>
+                            <input
+                                type="time"
+                                className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
+                                value={formData.soundCheckTime}
+                                onChange={e => setFormData({...formData, soundCheckTime: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Start Time</label>
+                            <input
+                                type="time"
+                                className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
+                                value={formData.startTime}
+                                onChange={e => setFormData({...formData, startTime: e.target.value})}
                             />
                         </div>
                     </div>

@@ -169,6 +169,8 @@ export interface Job {
   producerId: string; // Changed to string (UUID)
   startDate: string;
   endDate: string;
+  startTime?: string; // e.g. "19:00" for 7 PM
+  soundCheckTime?: string; // e.g. "17:00" for 5 PM sound check
   status: JobStatus;
   gearList: { itemId: number }[];
   organization_id: string; // UUID - links to Organization

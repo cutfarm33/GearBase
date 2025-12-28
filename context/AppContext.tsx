@@ -388,6 +388,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               producerId: j.producer_id,
               startDate: j.start_date,
               endDate: j.end_date,
+              startTime: j.start_time || undefined,
+              soundCheckTime: j.sound_check_time || undefined,
               status: j.status,
               gearList: (j.job_items || []).map((ji: any) => ({ itemId: ji.item_id })),
               organization_id: j.organization_id || defaultOrgId
