@@ -52,6 +52,7 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
           <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu</p>
+          <NavItem target="DASHBOARD" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           <NavItem
             target="INVENTORY"
             icon={vertical === 'music' ? <Music size={20} /> : <Camera size={20} />}
@@ -67,7 +68,6 @@ const Sidebar: React.FC = () => {
           {features.calendar && (
             <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
           )}
-          <NavItem target="DASHBOARD" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           {features.receipts && (
             <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
           )}

@@ -13,7 +13,7 @@ const GallerySettingsScreen: React.FC = () => {
     const [galleryName, setGalleryName] = useState('My Collection');
     const [isEnabled, setIsEnabled] = useState(false);
     const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
-    const [categoryFilter, setCategoryFilter] = useState<string>('All');
+    const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set(['All']));
 
     // Get unique categories from inventory
     const categories = useMemo(() => {
@@ -21,11 +21,11 @@ const GallerySettingsScreen: React.FC = () => {
         return ['All', ...cats];
     }, [state.inventory]);
 
-    // Filter items by category
+    // Filter items by selected categories
     const filteredItems = useMemo(() => {
-        if (categoryFilter === 'All') return state.inventory;
-        return state.inventory.filter(i => i.category === categoryFilter);
-    }, [state.inventory, categoryFilter]);
+        if (selectedCategories.has('All')) return state.inventory;
+        return state.inventory.filter(i => selectedCategories.has(i.category));
+    }, [state.inventory, selectedCategories]);
 
     // Select all items in current category
     const selectCategory = () => {
@@ -43,8 +43,32 @@ const GallerySettingsScreen: React.FC = () => {
         setSelectedItemIds(prev => prev.filter(id => !categoryItemIds.has(id)));
     };
 
-    // Check if all items in current category are selected
+    // Check if all items in currently filtered categories are selected
     const allCategorySelected = filteredItems.length > 0 && filteredItems.every(i => selectedItemIds.includes(i.id));
+
+    // Toggle category selection
+    const toggleCategory = (cat: string) => {
+        setSelectedCategories(prev => {
+            const newSet = new Set(prev);
+            if (cat === 'All') {
+                // If clicking All, clear others and just select All
+                return new Set(['All']);
+            } else {
+                // Remove 'All' if selecting a specific category
+                newSet.delete('All');
+                if (newSet.has(cat)) {
+                    newSet.delete(cat);
+                    // If nothing selected, default back to All
+                    if (newSet.size === 0) {
+                        return new Set(['All']);
+                    }
+                } else {
+                    newSet.add(cat);
+                }
+            }
+            return newSet;
+        });
+    };
 
     const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id;
 
@@ -298,7 +322,7 @@ const GallerySettingsScreen: React.FC = () => {
                             className="text-sm bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5"
                         >
                             {allCategorySelected ? <EyeOff size={14} /> : <Eye size={14} />}
-                            {allCategorySelected ? 'Deselect' : 'Select'} {categoryFilter === 'All' ? 'All' : categoryFilter}
+                            {allCategorySelected ? 'Deselect' : 'Select'} {selectedCategories.has('All') ? 'All' : `${selectedCategories.size} ${selectedCategories.size === 1 ? 'Category' : 'Categories'}`}
                         </button>
                         <button
                             onClick={toggleSelectAll}
@@ -311,7 +335,9 @@ const GallerySettingsScreen: React.FC = () => {
 
                 {/* Category Filter Tabs */}
                 {categories.length > 2 && (
-                    <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
+                    <div className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Click to filter by category (select multiple)</p>
+                        <div className="flex flex-wrap gap-2">
                         {categories.map(cat => {
                             const itemCount = cat === 'All'
                                 ? state.inventory.length
@@ -320,24 +346,26 @@ const GallerySettingsScreen: React.FC = () => {
                                 ? selectedItemIds.length
                                 : state.inventory.filter(i => i.category === cat && selectedItemIds.includes(i.id)).length;
 
+                            const isActive = selectedCategories.has(cat);
                             return (
                                 <button
                                     key={cat}
-                                    onClick={() => setCategoryFilter(cat)}
+                                    onClick={() => toggleCategory(cat)}
                                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                                        categoryFilter === cat
+                                        isActive
                                             ? 'bg-emerald-500 text-white'
                                             : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                                     }`}
                                 >
                                     <Tag size={14} />
                                     {cat}
-                                    <span className={`text-xs ${categoryFilter === cat ? 'text-emerald-100' : 'text-slate-400 dark:text-slate-500'}`}>
+                                    <span className={`text-xs ${isActive ? 'text-emerald-100' : 'text-slate-400 dark:text-slate-500'}`}>
                                         {selectedCount}/{itemCount}
                                     </span>
                                 </button>
                             );
                         })}
+                        </div>
                     </div>
                 )}
 

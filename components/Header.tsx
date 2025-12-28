@@ -206,6 +206,7 @@ const Header: React.FC = () => {
 
                 {isLoggedIn && !isWebsitePage && (
                     <>
+                        <MobileNavItem view="DASHBOARD" icon={<LayoutDashboard size={18}/>} label="Dashboard" />
                         <MobileNavItem view="INVENTORY" icon={vertical === 'music' ? <Music size={18}/> : <Camera size={18}/>} label={t.inventory} />
                         {features.jobs && (
                             <MobileNavItem view="JOB_LIST" icon={<Briefcase size={18}/>} label={t.jobPlural} />
@@ -217,7 +218,6 @@ const Header: React.FC = () => {
                         {features.calendar && (
                             <MobileNavItem view="CALENDAR" icon={<Calendar size={18}/>} label="Calendar" />
                         )}
-                        <MobileNavItem view="DASHBOARD" icon={<LayoutDashboard size={18}/>} label="Dashboard" />
                         {features.receipts && (
                             <MobileNavItem view="RECEIPTS" icon={<Receipt size={18}/>} label="Receipts" />
                         )}
