@@ -158,7 +158,7 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
   const openQuickAction = (type: 'checkout' | 'checkin') => {
       if (!item) return;
 
-      let defaultAssignedName = state.currentUser?.name || '';
+      let defaultAssignedName = '';
       let defaultJobId = '';
       let defaultCondition = item.condition;
 
@@ -167,8 +167,8 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
           const lastTx = item.history.find(h => h.type === TransactionType.CHECKOUT);
           if (lastTx && lastTx.jobId) {
               defaultJobId = lastTx.jobId.toString();
-              // Use the stored name, or look up by ID, or fall back to current user name
-              defaultAssignedName = lastTx.assignedToName || (lastTx.assignedToId ? findUser(lastTx.assignedToId)?.name : '') || state.currentUser?.name || '';
+              // Use the stored name, or look up by ID for check-in (to show who had it)
+              defaultAssignedName = lastTx.assignedToName || (lastTx.assignedToId ? findUser(lastTx.assignedToId)?.name : '') || '';
           }
       }
 

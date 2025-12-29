@@ -35,7 +35,7 @@ const CheckoutScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
     }) || []
   );
   
-  const [assignedToName, setAssignedToName] = useState<string>(state.currentUser?.name || '');
+  const [assignedToName, setAssignedToName] = useState<string>('');
   const [isSigning, setIsSigning] = useState(false);
 
   if (!job) return <div>Job not found</div>;
