@@ -1,0 +1,8 @@
+{
+  "name": "GearBase",
+  "description": "A comprehensive equipment check-in and check-out system for production gear. Track who has what, manage inventory conditions, and maintain a detailed history of every item.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

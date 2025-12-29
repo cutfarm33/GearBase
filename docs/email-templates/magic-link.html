@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In to GearBase</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9; color: #334155;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <!-- Main Container -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+
+                    <!-- Header with Brand -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 40px 40px 30px 40px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: -0.5px;">
+                                GearBase
+                            </h1>
+                            <p style="margin: 8px 0 0 0; color: #d1fae5; font-size: 14px; font-weight: 500;">
+                                Professional Gear Management
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 48px 40px;">
+                            <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 28px; font-weight: bold;">
+                                Sign In to Your Account
+                            </h2>
+
+                            <p style="margin: 0 0 24px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                                You requested a magic link to sign in to your GearBase account. No password needed!
+                            </p>
+
+                            <p style="margin: 0 0 32px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                                Click the button below to sign in:
+                            </p>
+
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{ .ConfirmationURL }}"
+                                           style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px; padding: 16px 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                                            Sign In to GearBase
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 32px 0 0 0; color: #64748b; font-size: 14px; line-height: 1.6;">
+                                Or copy and paste this link into your browser:
+                            </p>
+                            <p style="margin: 8px 0 0 0; word-break: break-all;">
+                                <a href="{{ .ConfirmationURL }}" style="color: #0ea5e9; text-decoration: underline; font-size: 13px;">{{ .ConfirmationURL }}</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Info Box -->
+                    <tr>
+                        <td style="padding: 0 40px 48px 40px;">
+                            <div style="background-color: #f0f9ff; border-radius: 12px; padding: 24px; border-left: 4px solid #0ea5e9;">
+                                <h3 style="margin: 0 0 12px 0; color: #0c4a6e; font-size: 16px; font-weight: bold;">
+                                    What's a Magic Link?
+                                </h3>
+                                <p style="margin: 0; color: #0c4a6e; font-size: 14px; line-height: 1.6;">
+                                    Magic links are a secure, password-free way to sign in. Simply click the button above and you'll be automatically signed in to your account. No password to remember!
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Security Notice -->
+                    <tr>
+                        <td style="padding: 0 40px 48px 40px;">
+                            <div style="background-color: #fef3c7; border-radius: 12px; padding: 24px; border-left: 4px solid #f59e0b;">
+                                <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: bold;">
+                                    Security Notice
+                                </h3>
+                                <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
+                                    If you didn't request this magic link, you can safely ignore this email. No one can sign in to your account without access to this email.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 32px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+                            <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;">
+                                Need help? <a href="mailto:support@gearbase.app" style="color: #0ea5e9; text-decoration: none;">Contact Support</a>
+                            </p>
+                            <p style="margin: 0; color: #94a3b8; font-size: 13px;">
+                                This link will expire in 1 hour for security reasons.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <!-- Bottom Branding -->
+                <table width="600" cellpadding="0" cellspacing="0" style="margin-top: 24px;">
+                    <tr>
+                        <td align="center">
+                            <p style="margin: 0; color: #94a3b8; font-size: 13px;">
+                                © 2024 GearBase. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

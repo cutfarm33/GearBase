@@ -1,0 +1,297 @@
+/* Additional styles for Gear Base */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Glassmorphism utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile optimization - reduced blur for better performance */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Glass button with gradient animation */
+.glass-button {
+  background: linear-gradient(135deg, #10B981 0%, #14B8A6 50%, #06B6D4 100%);
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.glass-button:hover::before {
+  transform: translateX(100%);
+}
+
+/* Glass badge - smaller version for tags/labels */
+.glass-badge {
+  background: linear-gradient(135deg, #10B981 0%, #14B8A6 50%, #06B6D4 100%);
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.glass-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: badge-shine 2s ease-in-out infinite;
+}
+
+@keyframes badge-shine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
+/* Gradient border utility */
+.gradient-border {
+  position: relative;
+  background: linear-gradient(135deg, #10B981, #14B8A6, #06B6D4, #22D3EE);
+  padding: 2px;
+  border-radius: inherit;
+}
+
+.gradient-border > * {
+  border-radius: inherit;
+}
+
+/* Hover float effect */
+.hover-float {
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-4px);
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(10px)) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none;
+  }
+
+  .dark .glass-card {
+    background: rgba(15, 23, 42, 0.95);
+  }
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .glass-button,
+  .animate-gradient,
+  .animate-float,
+  .hover-float {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hover-float:hover {
+    transform: none;
+  }
+}
+
+/* Mobile: disable float animations for performance */
+@media (max-width: 768px) {
+  .animate-float {
+    animation: none;
+  }
+
+  .hover-float:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Radial gradient utility for hero section */
+.bg-gradient-radial {
+  background-image: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
+/* Feature Card Animations */
+@keyframes inventory-stack {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-8px) translateX(-4px);
+  }
+  66% {
+    transform: translateY(-4px) translateX(4px);
+  }
+}
+
+@keyframes qr-scan {
+  0%, 100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes bulk-flow {
+  0% {
+    transform: translateX(-100%) translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.animate-inventory-stack {
+  animation: inventory-stack 3s ease-in-out infinite;
+}
+
+.animate-qr-scan {
+  animation: qr-scan 3s ease-in-out infinite;
+}
+
+.animate-bulk-flow {
+  animation: bulk-flow 2.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Slide up animation for toast notifications */
+@keyframes slide-up {
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Sync spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade in up animation for demo items */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
