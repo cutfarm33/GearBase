@@ -786,7 +786,7 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
            {(currentPersonName || currentJob) && !isEditing && (
               <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow-lg p-6 border-2 border-red-300 dark:border-red-700">
                   <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
-                      <UserIcon size={20} /> Checked Out To
+                      <User size={20} /> Checked Out To
                   </h3>
                   {currentPersonName && (
                       <p className="text-2xl font-bold text-red-800 dark:text-red-300 mb-2">{currentPersonName}</p>
