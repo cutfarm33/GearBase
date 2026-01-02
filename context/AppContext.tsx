@@ -561,7 +561,64 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         console.log('Profile data received:', profileData);
 
         const email = session.user.email || `user-${session.user.id}@example.com`;
-        const full_name = profileData?.full_name || session.user.user_metadata?.full_name || email.split('@')[0];
+        const full_name_from_meta = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
+
+        // Handle new OAuth users (no profile exists yet)
+        if (!profileData) {
+            console.log('No profile found - checking for pending OAuth signup');
+            const pendingSignupStr = localStorage.getItem('gearbase_pending_signup');
+
+            if (pendingSignupStr) {
+                try {
+                    const pendingSignup = JSON.parse(pendingSignupStr);
+                    const vertical = pendingSignup.vertical || 'film';
+                    console.log('Found pending signup with vertical:', vertical);
+
+                    // Create organization for new OAuth user
+                    const { data: organizationId, error: orgError } = await supabase
+                        .rpc('create_organization_for_signup', {
+                            org_name: `${full_name_from_meta}'s Organization`,
+                            org_vertical: vertical
+                        });
+
+                    if (orgError || !organizationId) {
+                        console.error('Error creating organization for OAuth user:', orgError);
+                    } else {
+                        // Create profile for new OAuth user
+                        const { error: profileError } = await supabase.from('profiles').insert({
+                            id: session.user.id,
+                            email: email,
+                            full_name: full_name_from_meta,
+                            role: 'Owner', // Default role for new signups
+                            plan: 'free',
+                            organization_id: organizationId
+                        });
+
+                        if (profileError) {
+                            console.error('Error creating profile for OAuth user:', profileError);
+                        } else {
+                            console.log('Created profile and organization for OAuth user');
+                            // Update profileData so the rest of the function uses correct values
+                            profileData = {
+                                full_name: full_name_from_meta,
+                                role: 'Owner',
+                                theme: 'dark',
+                                organization_id: organizationId,
+                                active_organization_id: organizationId
+                            };
+                        }
+                    }
+
+                    // Clear the pending signup data
+                    localStorage.removeItem('gearbase_pending_signup');
+                } catch (parseError) {
+                    console.error('Error parsing pending signup data:', parseError);
+                    localStorage.removeItem('gearbase_pending_signup');
+                }
+            }
+        }
+
+        const full_name = profileData?.full_name || full_name_from_meta;
         const userTheme = (profileData?.theme as Theme) || 'dark';
 
         // Default organization_id if not set (for backwards compatibility with existing users)
