@@ -46,7 +46,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           
           {/* Logo Area */}
-          <div className="flex items-center cursor-pointer" onClick={() => navigateTo('LANDING')}>
+          <div className="flex items-center cursor-pointer" onClick={() => navigateTo(isLoggedIn ? 'DASHBOARD' : 'LANDING')}>
             <img src="/logoB.png" alt="Gear Base" className="h-20 w-auto object-contain dark:hidden" />
             <img src="/logo.png" alt="Gear Base" className="h-20 w-auto object-contain hidden dark:block" />
           </div>
