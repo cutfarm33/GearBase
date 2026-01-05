@@ -15,6 +15,7 @@ import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import VerifyEmailScreen from './screens/VerifyEmailScreen';
 import EmailConfirmedScreen from './screens/EmailConfirmedScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import JobFormScreen from './screens/JobFormScreen';
 import WebsiteScreen from './screens/WebsiteScreen';  // Used for LANDING view
 import PackagesScreen from './screens/PackagesScreen';
@@ -89,6 +90,12 @@ const App: React.FC = () => {
     const itemId = urlParams.get('item');
     const jobId = urlParams.get('job');
 
+    // Handle /reset-password route (from Supabase password reset email)
+    if (window.location.pathname === '/reset-password') {
+      navigateTo('RESET_PASSWORD');
+      return;
+    }
+
     // Only navigate if we have a deep link and user is logged in
     if (isLoggedIn && !state.isLoading) {
       if (itemId) {
@@ -144,6 +151,7 @@ const App: React.FC = () => {
     if (view === 'SIGNUP') return <SignupScreen />;
     if (view === 'VERIFY_EMAIL') return <VerifyEmailScreen />;
     if (view === 'EMAIL_CONFIRMED') return <EmailConfirmedScreen />;
+    if (view === 'RESET_PASSWORD') return <ResetPasswordScreen />;
     if (view === 'ACCEPT_INVITATION') return <AcceptInvitationScreen />;
 
     // Website Pages (Public)

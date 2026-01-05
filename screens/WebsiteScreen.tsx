@@ -571,7 +571,7 @@ const WebsiteScreen: React.FC = () => {
                 <p>We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.</p>
 
                 <h3>5. Contact Us</h3>
-                <p>If you have any questions about this privacy policy or our privacy practices, please contact us at: <a href="mailto:info@mygearbase.com" className="text-sky-600 hover:underline">info@mygearbase.co</a></p>
+                <p>If you have any questions about this privacy policy or our privacy practices, please contact us at: <a href="mailto:support@mygearbase.com" className="text-sky-600 hover:underline">support@mygearbase.com</a></p>
             </LegalLayout>
         )}
 
@@ -598,7 +598,7 @@ const WebsiteScreen: React.FC = () => {
                 <p>In no event shall Gear Base, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.</p>
 
                 <h3>7. Contact Information</h3>
-                <p>Questions about the Terms of Service should be sent to us at <a href="mailto:info@mygearbase.com" className="text-sky-600 hover:underline">info@mygearbase.co</a></p>
+                <p>Questions about the Terms of Service should be sent to us at <a href="mailto:support@mygearbase.com" className="text-sky-600 hover:underline">support@mygearbase.com</a></p>
             </LegalLayout>
         )}
 
@@ -616,8 +616,8 @@ const WebsiteScreen: React.FC = () => {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Email Us</h2>
                         <p className="text-slate-500 dark:text-slate-400 mb-6">We typically respond within 24 hours.</p>
-                        <a href="mailto:info@mygearbase.com" className="text-2xl md:text-3xl font-bold text-sky-600 dark:text-sky-400 hover:underline">
-                            info@mygearbase.com
+                        <a href="mailto:support@mygearbase.com" className="text-2xl md:text-3xl font-bold text-sky-600 dark:text-sky-400 hover:underline">
+                            support@mygearbase.com
                         </a>
                     </div>
                 </div>

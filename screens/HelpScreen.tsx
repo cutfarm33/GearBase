@@ -923,7 +923,7 @@ const HelpScreen: React.FC = () => {
                   Contact Support
                 </button>
                 <a
-                  href="mailto:info@mygearbase.com"
+                  href="mailto:support@mygearbase.com"
                   className="glass-card text-slate-900 dark:text-white px-8 py-4 rounded-xl font-bold hover-float shadow-glass hover:shadow-glass-lg border border-emerald-200/50 dark:border-teal-500/30 text-lg"
                 >
                   Email Us

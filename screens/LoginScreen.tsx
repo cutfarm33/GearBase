@@ -20,6 +20,10 @@ const LoginScreen: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
   
   // Track if component is mounted to prevent state updates on unmounted component
   const isMounted = useRef(true);
@@ -51,6 +55,27 @@ const LoginScreen: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google');
       setGoogleLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setResetLoading(true);
+    setResetSuccess(false);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) throw error;
+
+      setResetSuccess(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to send password recovery email');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -158,6 +183,13 @@ const LoginScreen: React.FC = () => {
                     />
                     <label htmlFor="remember-me" className="ml-2 text-sm font-medium text-slate-900 dark:text-slate-300">Remember me</label>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setError(''); setResetSuccess(false); setResetEmail(email); }}
+                    className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300"
+                >
+                    Forgot Password?
+                </button>
             </div>
 
             <button
@@ -188,7 +220,7 @@ const LoginScreen: React.FC = () => {
 
         <div className="mt-6 text-center">
             <p className="text-slate-500 dark:text-slate-400">Don't have an account?</p>
-            <button 
+            <button
                 onClick={() => navigateTo('SIGNUP')}
                 className="text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 font-medium mt-2"
             >
@@ -196,6 +228,62 @@ const LoginScreen: React.FC = () => {
             </button>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200 dark:border-slate-700">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2">Reset Password</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-center mb-6 text-sm">
+              Enter your email and we'll send you a link to reset your password.
+            </p>
+
+            {error && <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center break-words">{error}</div>}
+
+            {resetSuccess ? (
+              <div className="text-center">
+                <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-4 rounded mb-6">
+                  Check your email for a password reset link. It may take a few minutes to arrive.
+                </div>
+                <button
+                  onClick={() => { setShowForgotPassword(false); setResetSuccess(false); setError(''); }}
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-lg transition-colors"
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Email</label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 border border-slate-300 dark:border-slate-600"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-lg transition-colors shadow-lg disabled:bg-slate-400"
+                >
+                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowForgotPassword(false); setError(''); }}
+                  className="w-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium py-2"
+                >
+                  Cancel
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
       
       <div className="mt-8 flex items-center gap-2 text-xs text-slate-400 justify-center flex-col">
           <div className="flex items-center gap-2">

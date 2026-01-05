@@ -78,7 +78,7 @@ const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
           {/* Help Button */}
           <a
-            href="mailto:info@mygearbase.com?subject=Support Request - Gear Base"
+            href="mailto:support@mygearbase.com?subject=Support Request - Gear Base"
             className="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
           >
               <HelpCircle size={18} />

@@ -251,7 +251,7 @@ name,category,status,condition,qrCode,notes,purchaseDate,value,weight,storageCas
 ## Need Help?
 
 - **Documentation**: Visit the Help section in Gear Base
-- **Support Email**: info@mygearbase.com
+- **Support Email**: support@mygearbase.com
 - **Sample Data**: Use the provided template examples as a starting point
 
 ---
