@@ -95,6 +95,22 @@ const WebsiteScreen: React.FC = () => {
                             Learn More
                         </button>
                     </div>
+
+                    {/* Demo Video */}
+                    <div className="mt-16 max-w-4xl mx-auto">
+                        <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700">
+                            <video
+                                className="w-full h-auto"
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                            >
+                                <source src="https://gfonvcryarcxxrgdzkmi.supabase.co/storage/v1/object/public/inventory/GearBaseDemo.mp4" type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    </div>
                     </div>
                 </section>
 
