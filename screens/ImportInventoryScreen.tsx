@@ -28,6 +28,39 @@ const ImportInventoryScreen: React.FC = () => {
       ...state.inventory.map(i => i.category)
   ])).sort();
 
+  // Proper CSV parser that handles quoted fields with commas
+  const parseCSVLine = (line: string, delimiter: string = ','): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          // Toggle quote mode
+          inQuotes = !inQuotes;
+        }
+      } else if (char === delimiter && !inQuotes) {
+        // End of field
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    // Add last field
+    result.push(current);
+    return result;
+  };
+
   // Handle file upload (CSV, TSV, Excel, JSON)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError('');
@@ -215,7 +248,7 @@ const ImportInventoryScreen: React.FC = () => {
 
     // Basic Header Detection
     if (headerLower.includes('name')) {
-        const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
+        const headers = parseCSVLine(firstLine, delimiter).map(h => h.trim().toLowerCase());
         nameIdx = headers.findIndex(h => h.includes('name'));
         catIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
         valIdx = headers.findIndex(h => h.includes('value') || h.includes('price') || h.includes('cost'));
@@ -230,7 +263,7 @@ const ImportInventoryScreen: React.FC = () => {
         // Skip comment lines
         if (line.startsWith('#')) continue;
 
-        const row = line.split(delimiter);
+        const row = parseCSVLine(line, delimiter);
         // Handle cases where CSV row might have fewer columns than expected
         if (row.length < 1 || !row[0].trim()) continue;
 
@@ -326,7 +359,7 @@ const ImportInventoryScreen: React.FC = () => {
 
     // Basic Header Detection
     if (headerLower.includes('name')) {
-        const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
+        const headers = parseCSVLine(firstLine, delimiter).map(h => h.trim().toLowerCase());
         nameIdx = headers.findIndex(h => h.includes('name'));
         catIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
         valIdx = headers.findIndex(h => h.includes('value') || h.includes('price') || h.includes('cost'));
@@ -341,7 +374,7 @@ const ImportInventoryScreen: React.FC = () => {
         // Skip comment lines
         if (line.startsWith('#')) continue;
 
-        const row = line.split(delimiter);
+        const row = parseCSVLine(line, delimiter);
         // Handle cases where CSV row might have fewer columns than expected
         if (row.length < 1 || !row[0].trim()) continue;
 
