@@ -210,6 +210,7 @@ const ImportInventoryScreen: React.FC = () => {
     let catIdx = -1; // Default to -1 (not found)
     let valIdx = 2;
     let qrIdx = 3;
+    let imageIdx = -1;
     let noteIdx = 4;
 
     // Basic Header Detection
@@ -219,6 +220,7 @@ const ImportInventoryScreen: React.FC = () => {
         catIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
         valIdx = headers.findIndex(h => h.includes('value') || h.includes('price') || h.includes('cost'));
         qrIdx = headers.findIndex(h => h.includes('qr') || h.includes('barcode') || h.includes('serial'));
+        imageIdx = headers.findIndex(h => h.includes('image') && h.includes('url'));
         noteIdx = headers.findIndex(h => h.includes('note') || h.includes('desc'));
         startIndex = 1; // Skip header row
     }
@@ -254,6 +256,9 @@ const ImportInventoryScreen: React.FC = () => {
             }
         }
 
+        // Get image URL from CSV if available, otherwise use placeholder
+        const imageUrl = getVal(imageIdx) || `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`;
+
         data.push({
             name: name,
             category: finalCategory,
@@ -262,7 +267,7 @@ const ImportInventoryScreen: React.FC = () => {
             notes: getVal(noteIdx) || '',
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
-            image_url: `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
+            image_url: imageUrl,
             organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
             purchase_date: new Date().toISOString().split('T')[0] // Default to today
             // Note: history is not a database column, it's computed from transactions table
@@ -316,6 +321,7 @@ const ImportInventoryScreen: React.FC = () => {
     let catIdx = -1; // Default to -1 (not found)
     let valIdx = 2;
     let qrIdx = 3;
+    let imageIdx = -1;
     let noteIdx = 4;
 
     // Basic Header Detection
@@ -325,6 +331,7 @@ const ImportInventoryScreen: React.FC = () => {
         catIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
         valIdx = headers.findIndex(h => h.includes('value') || h.includes('price') || h.includes('cost'));
         qrIdx = headers.findIndex(h => h.includes('qr') || h.includes('barcode') || h.includes('serial'));
+        imageIdx = headers.findIndex(h => h.includes('image') && h.includes('url'));
         noteIdx = headers.findIndex(h => h.includes('note') || h.includes('desc'));
         startIndex = actualStartLine + 1; // Skip header row
     }
@@ -360,6 +367,9 @@ const ImportInventoryScreen: React.FC = () => {
             }
         }
 
+        // Get image URL from CSV if available, otherwise use placeholder
+        const imageUrl = getVal(imageIdx) || `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`;
+
         data.push({
             name: name,
             category: finalCategory,
@@ -368,7 +378,7 @@ const ImportInventoryScreen: React.FC = () => {
             notes: getVal(noteIdx) || '',
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
-            image_url: `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
+            image_url: imageUrl,
             organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
             purchase_date: new Date().toISOString().split('T')[0] // Default to today
             // Note: history is not a database column, it's computed from transactions table

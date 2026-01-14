@@ -218,8 +218,8 @@ const InventoryScreen: React.FC = () => {
       let csv = `# GearBase Export - Template: ${verticalConfig.name}\n`;
       csv += `# Exported: ${new Date().toLocaleDateString()}\n`;
 
-      // Format: Name, Category, Value, QR Code, Notes (matches import template)
-      csv += `Name,Category,Value,QR Code,Notes\n`;
+      // Format: Name, Category, Value, QR Code, Image URL, Notes (matches import template)
+      csv += `Name,Category,Value,QR Code,Image URL,Notes\n`;
 
       items.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
           csv += [
@@ -227,6 +227,7 @@ const InventoryScreen: React.FC = () => {
               escapeCSV(item.category),
               item.value || '',
               escapeCSV(item.qrCode),
+              escapeCSV(item.imageUrl || ''),
               escapeCSV(item.notes || '')
           ].join(',') + '\n';
       });
