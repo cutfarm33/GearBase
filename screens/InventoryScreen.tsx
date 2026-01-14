@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
-import { getCategoriesForVertical } from '../lib/verticalConfig';
+import { getCategoriesForVertical, getVerticalConfig } from '../lib/verticalConfig';
 import { InventoryItem, ItemStatus, ItemCondition } from '../types';
 import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, FolderDown as ExportIcon, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode, User } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
@@ -213,8 +213,13 @@ const InventoryScreen: React.FC = () => {
   const downloadImportCSV = () => {
       const items = filteredInventory.length > 0 ? filteredInventory : state.inventory;
 
+      // Add metadata header with vertical type for import detection
+      const verticalConfig = getVerticalConfig(vertical);
+      let csv = `# GearBase Export - Template: ${verticalConfig.name}\n`;
+      csv += `# Exported: ${new Date().toLocaleDateString()}\n`;
+
       // Format: Name, Category, Value, QR Code, Notes (matches import template)
-      let csv = `Name,Category,Value,QR Code,Notes\n`;
+      csv += `Name,Category,Value,QR Code,Notes\n`;
 
       items.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
           csv += [

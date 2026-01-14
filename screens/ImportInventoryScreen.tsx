@@ -3,9 +3,12 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, PREDEFINED_CATEGORIES } from '../types';
 import { ArrowLeft, Upload, AlertTriangle, FileText, Link as LinkIcon, Download, Tag } from 'lucide-react';
+import { useVertical } from '../hooks/useVertical';
+import { getAllVerticals } from '../lib/verticalConfig';
 
 const ImportInventoryScreen: React.FC = () => {
   const { navigateTo, supabase, refreshData, state } = useAppContext();
+  const { vertical, config } = useVertical();
   const [textInput, setTextInput] = useState('');
   const [sheetUrl, setSheetUrl] = useState('');
   const [parsedData, setParsedData] = useState<any[]>([]);
@@ -15,6 +18,8 @@ const ImportInventoryScreen: React.FC = () => {
   const [error, setError] = useState('');
   const [defaultCategory, setDefaultCategory] = useState('General');
   const [selectedFileName, setSelectedFileName] = useState('');
+  const [showVerticalWarning, setShowVerticalWarning] = useState(false);
+  const [detectedVertical, setDetectedVertical] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get existing categories AND predefined ones for autocomplete
@@ -171,12 +176,33 @@ const ImportInventoryScreen: React.FC = () => {
     const normalizedText = textInput.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = normalizedText.split('\n');
     const data = [];
-    
+
+    // Check for GearBase export metadata in first line
+    let detectedTemplate = '';
+    let actualStartLine = 0;
+    if (lines[0].startsWith('# GearBase Export - Template:')) {
+      const match = lines[0].match(/# GearBase Export - Template: (.+)/);
+      if (match) {
+        detectedTemplate = match[1].trim();
+        // Skip metadata lines (starting with #)
+        while (actualStartLine < lines.length && lines[actualStartLine].startsWith('#')) {
+          actualStartLine++;
+        }
+      }
+    }
+
+    // Check if there's a vertical mismatch
+    if (detectedTemplate && detectedTemplate !== config.name) {
+      setDetectedVertical(detectedTemplate);
+      setShowVerticalWarning(true);
+      return; // Don't proceed with parsing yet
+    }
+
     // Heuristic to detect delimiter (comma or tab)
-    const firstLine = lines[0];
+    const firstLine = lines[actualStartLine];
     const delimiter = firstLine.includes('\t') ? '\t' : ',';
 
-    let startIndex = 0;
+    let startIndex = actualStartLine;
     const headerLower = firstLine.toLowerCase();
     
     // Mappings
@@ -198,7 +224,117 @@ const ImportInventoryScreen: React.FC = () => {
     }
 
     for (let i = startIndex; i < lines.length; i++) {
-        const row = lines[i].split(delimiter);
+        const line = lines[i];
+        // Skip comment lines
+        if (line.startsWith('#')) continue;
+
+        const row = line.split(delimiter);
+        // Handle cases where CSV row might have fewer columns than expected
+        if (row.length < 1 || !row[0].trim()) continue;
+
+        // Helper to safely get value
+        const getVal = (idx: number) => (idx >= 0 && row[idx]) ? row[idx].trim().replace(/^"|"$/g, '') : '';
+
+        const name = getVal(nameIdx);
+        if (!name) continue; // Name is required
+
+        // Logic: If category column exists and has value, use it. Otherwise use defaultCategory state.
+        const categoryFromRow = getVal(catIdx);
+        const finalCategory = categoryFromRow || defaultCategory;
+
+        // Robust number parsing
+        let parsedValue: number | null = null;
+        const rawValue = getVal(valIdx);
+        if (rawValue) {
+            // Remove currency symbols and commas, keep digits and decimal
+            const cleanValue = rawValue.replace(/[^0-9.]/g, '');
+            const num = parseFloat(cleanValue);
+            if (!isNaN(num)) {
+                parsedValue = num;
+            }
+        }
+
+        data.push({
+            name: name,
+            category: finalCategory,
+            value: parsedValue,
+            qr_code: getVal(qrIdx) || `GT-${Date.now()}-${i}`,
+            notes: getVal(noteIdx) || '',
+            status: ItemStatus.AVAILABLE,
+            condition: ItemCondition.GOOD,
+            image_url: `https://picsum.photos/seed/${name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
+            organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
+            purchase_date: new Date().toISOString().split('T')[0] // Default to today
+            // Note: history is not a database column, it's computed from transactions table
+        });
+    }
+
+    if (data.length === 0) {
+        setError('Could not parse any valid items. Ensure you have at least a "Name" column.');
+    } else {
+        setParsedData(data);
+        setIsPreviewing(true);
+    }
+  };
+
+  // Continue parsing despite vertical mismatch warning
+  const continueWithImport = () => {
+    setShowVerticalWarning(false);
+    setDetectedVertical('');
+    // Re-run parseText but skip the warning check
+    parseTextWithoutWarning();
+  };
+
+  // Parse without checking vertical mismatch (user already confirmed)
+  const parseTextWithoutWarning = () => {
+    setError('');
+    if (!textInput.trim()) {
+        setError('Please paste some data or import a sheet first.');
+        return;
+    }
+
+    // normalize line endings
+    const normalizedText = textInput.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedText.split('\n');
+    const data = [];
+
+    // Skip metadata lines (starting with #)
+    let actualStartLine = 0;
+    while (actualStartLine < lines.length && lines[actualStartLine].startsWith('#')) {
+      actualStartLine++;
+    }
+
+    // Heuristic to detect delimiter (comma or tab)
+    const firstLine = lines[actualStartLine];
+    const delimiter = firstLine.includes('\t') ? '\t' : ',';
+
+    let startIndex = actualStartLine;
+    const headerLower = firstLine.toLowerCase();
+
+    // Mappings
+    let nameIdx = 0;
+    let catIdx = -1; // Default to -1 (not found)
+    let valIdx = 2;
+    let qrIdx = 3;
+    let noteIdx = 4;
+
+    // Basic Header Detection
+    if (headerLower.includes('name')) {
+        const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
+        nameIdx = headers.findIndex(h => h.includes('name'));
+        catIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
+        valIdx = headers.findIndex(h => h.includes('value') || h.includes('price') || h.includes('cost'));
+        qrIdx = headers.findIndex(h => h.includes('qr') || h.includes('barcode') || h.includes('serial'));
+        noteIdx = headers.findIndex(h => h.includes('note') || h.includes('desc'));
+        startIndex = actualStartLine + 1; // Skip header row
+    }
+
+    for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i];
+        // Skip comment lines
+        if (line.startsWith('#')) continue;
+
+        const row = line.split(delimiter);
         // Handle cases where CSV row might have fewer columns than expected
         if (row.length < 1 || !row[0].trim()) continue;
 
@@ -303,7 +439,49 @@ const ImportInventoryScreen: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto pb-20">
-      <button 
+      {/* Vertical Mismatch Warning Modal */}
+      {showVerticalWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full p-6 border border-amber-200 dark:border-amber-800">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={24} className="text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                  Template Mismatch Detected
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                  You are importing <span className="font-bold text-amber-600 dark:text-amber-400">{detectedVertical}</span> inventory into a <span className="font-bold text-sky-600 dark:text-sky-400">{config.name}</span> account.
+                </p>
+                <p className="text-slate-600 dark:text-slate-400 text-sm mt-3 leading-relaxed">
+                  Categories and terminology may not match your current setup. You can still proceed, but some categories might need adjustment.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowVerticalWarning(false);
+                  setDetectedVertical('');
+                }}
+                className="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-semibold rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={continueWithImport}
+                className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button
         onClick={() => navigateTo('INVENTORY')}
         className="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-6 transition-colors font-semibold"
       >
