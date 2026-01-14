@@ -93,8 +93,9 @@ const App: React.FC = () => {
     // Handle /reset-password route (from Supabase password reset email)
     if (window.location.pathname === '/reset-password') {
       navigateTo('RESET_PASSWORD');
-      // Clear the URL to prevent re-triggering when user navigates away
-      window.history.replaceState({}, '', '/');
+      // Preserve hash fragment (contains recovery token) but clean the path
+      const hash = window.location.hash;
+      window.history.replaceState({}, '', '/' + hash);
       return;
     }
 
