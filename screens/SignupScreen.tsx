@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ArrowLeft, ArrowRight, Film, Music, Camera, Package, Check } from 'lucide-react';
 import { UserRole, Vertical } from '../types';
 import { getAllVerticals, getVerticalConfig, getRolesForVertical } from '../lib/verticalConfig';
+import { trackSignupStart, trackSignupComplete } from '../lib/analytics';
 
 // Google "G" logo SVG component
 const GoogleIcon = () => (
@@ -34,6 +35,11 @@ const SignupScreen: React.FC = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const verticals = getAllVerticals();
+
+  // Track when user starts signup process
+  useEffect(() => {
+    trackSignupStart();
+  }, []);
 
   const handleGoogleSignup = async () => {
     setError('');
@@ -147,6 +153,9 @@ const SignupScreen: React.FC = () => {
                       console.warn('Initial profile creation skipped (likely pending verification).', profileError);
                   }
               }
+
+              // Track successful signup conversion
+              trackSignupComplete(authData.user.id, 'free');
 
               dispatch({ type: 'SET_DATA', payload: { pendingEmail: formData.email } });
               dispatch({ type: 'SET_VERTICAL', payload: formData.vertical });

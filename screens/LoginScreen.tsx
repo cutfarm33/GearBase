@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { trackLogin } from '../lib/analytics';
 
 // Google "G" logo SVG component
 const GoogleIcon = () => (
@@ -124,6 +125,8 @@ const LoginScreen: React.FC = () => {
         setLoading(false);
 
         if (success) {
+            // Track successful login
+            trackLogin('email');
             // Force navigation to dashboard - don't rely on context re-render
             console.log("Login successful, navigating to dashboard");
             navigateTo('DASHBOARD');

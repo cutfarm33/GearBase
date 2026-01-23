@@ -33,6 +33,65 @@
     <meta name="twitter:description" content="Track inventory, manage jobs, scan QR codes, and keep your production team organized. Start free today." />
     <meta name="twitter:image" content="https://mygearbase.com/logo.png" />
 
+    <!-- Google Analytics 4 -->
+    <!-- REPLACE 'G-XXXXXXXXXX' with your actual GA4 Measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- Facebook Pixel -->
+    <!-- REPLACE 'XXXXXXXXXXXXXXX' with your actual Facebook Pixel ID -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'XXXXXXXXXXXXXXX');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1"
+    /></noscript>
+
+    <!-- UTM Parameter Tracking -->
+    <script>
+      (function() {
+        // Capture UTM parameters on page load
+        const params = new URLSearchParams(window.location.search);
+        const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+        const utmData = {};
+
+        utmParams.forEach(param => {
+          const value = params.get(param);
+          if (value) utmData[param] = value;
+        });
+
+        // Store UTM data if any params exist
+        if (Object.keys(utmData).length > 0) {
+          utmData.landing_page = window.location.pathname;
+          utmData.timestamp = new Date().toISOString();
+          localStorage.setItem('gearbase_utm', JSON.stringify(utmData));
+        }
+
+        // Make UTM data available globally
+        window.getUtmData = function() {
+          try {
+            return JSON.parse(localStorage.getItem('gearbase_utm')) || {};
+          } catch (e) {
+            return {};
+          }
+        };
+      })();
+    </script>
+
     <!-- Additional SEO -->
     <meta name="theme-color" content="#10b981" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

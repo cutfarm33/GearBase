@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { CheckCircle, Zap, Users, Infinity } from 'lucide-react';
+import { trackPricingView, trackPlanSelect } from '../lib/analytics';
 
 const PricingScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
+
+  // Track pricing page view
+  useEffect(() => {
+    trackPricingView();
+  }, []);
 
   const plans = [
     {
@@ -161,7 +167,12 @@ const PricingScreen: React.FC = () => {
                   </ul>
 
                   <button
-                    onClick={() => plan.available ? navigateTo('SIGNUP') : undefined}
+                    onClick={() => {
+                      if (plan.available) {
+                        trackPlanSelect(plan.name, plan.price === '$0' ? 0 : parseInt(plan.price.replace('$', '')));
+                        navigateTo('SIGNUP');
+                      }
+                    }}
                     disabled={!plan.available}
                     className={`w-full font-bold py-3 rounded-lg transition-colors ${
                       plan.available
