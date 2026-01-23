@@ -638,9 +638,9 @@ const WebsiteScreen: React.FC = () => {
                 &copy; {new Date().getFullYear()} Gear Base. All rights reserved.
             </div>
             <div className="flex gap-6">
-                <button onClick={() => setCurrentPage('privacy')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Privacy</button>
-                <button onClick={() => setCurrentPage('terms')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Terms</button>
-                <button onClick={() => setCurrentPage('contact')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Contact</button>
+                <button onClick={() => navigateTo('PRIVACY')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Privacy</button>
+                <button onClick={() => navigateTo('TERMS')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Terms</button>
+                <button onClick={() => navigateTo('CONTACT')} className="text-slate-500 hover:text-sky-500 transition-colors text-sm">Contact</button>
             </div>
         </div>
       </footer>

@@ -33,6 +33,8 @@ import PricingScreen from './screens/PricingScreen';
 import HelpScreen from './screens/HelpScreen';
 import AboutScreen from './screens/AboutScreen';
 import ContactScreen from './screens/ContactScreen';
+import PrivacyScreen from './screens/PrivacyScreen';
+import TermsScreen from './screens/TermsScreen';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import { Loader } from 'lucide-react';
@@ -41,7 +43,7 @@ const App: React.FC = () => {
   const { state, isConfigured, navigateTo } = useAppContext();
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
-  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT'].includes(view);
+  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT', 'PRIVACY', 'TERMS'].includes(view);
   const isOnline = useOnlineStatus();
 
   // Get organization ID for sync
@@ -96,6 +98,25 @@ const App: React.FC = () => {
       // Preserve hash fragment (contains recovery token) but clean the path
       const hash = window.location.hash;
       window.history.replaceState({}, '', '/' + hash);
+      return;
+    }
+
+    // Handle public page routes for SEO
+    const pathRoutes: Record<string, string> = {
+      '/features': 'FEATURES',
+      '/pricing': 'PRICING',
+      '/help': 'HELP',
+      '/about': 'ABOUT',
+      '/contact': 'CONTACT',
+      '/privacy': 'PRIVACY',
+      '/terms': 'TERMS',
+      '/login': 'LOGIN',
+      '/signup': 'SIGNUP'
+    };
+
+    const pathname = window.location.pathname;
+    if (pathRoutes[pathname]) {
+      navigateTo(pathRoutes[pathname] as any);
       return;
     }
 
@@ -163,6 +184,8 @@ const App: React.FC = () => {
     if (view === 'HELP') return <HelpScreen />;
     if (view === 'ABOUT') return <AboutScreen />;
     if (view === 'CONTACT') return <ContactScreen />;
+    if (view === 'PRIVACY') return <PrivacyScreen />;
+    if (view === 'TERMS') return <TermsScreen />;
 
     // Public Gallery (no auth required)
     if (view === 'PUBLIC_GALLERY') return <PublicGalleryScreen token={params?.token} />;

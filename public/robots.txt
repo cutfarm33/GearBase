@@ -1,9 +1,33 @@
-# robots.txt for Gear Base
+# robots.txt for GearBase
+# https://mygearbase.com
 
 User-agent: *
 Allow: /
+Allow: /features
+Allow: /pricing
+Allow: /help
+Allow: /about
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /login
+Allow: /signup
+
+# Disallow authenticated/private areas
+Disallow: /dashboard
+Disallow: /inventory
+Disallow: /jobs
+Disallow: /calendar
+Disallow: /team
+Disallow: /receipts
+Disallow: /settings
 Disallow: /api/
 Disallow: /admin/
+
+# Disallow system pages
+Disallow: /reset-password
+Disallow: /email-confirmed
+Disallow: /verify-email
 
 # Sitemap location
 Sitemap: https://mygearbase.com/sitemap.xml
