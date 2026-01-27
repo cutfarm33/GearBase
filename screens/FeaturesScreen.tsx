@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles, Camera, Music, Briefcase, Settings } from 'lucide-react';
+import { Package, QrCode, Users, Calendar, FileText, Shield, Smartphone, BarChart3, Cloud, Zap, CheckCircle, ArrowRight, Sparkles, Camera, Music, Briefcase, Settings, AlertTriangle, Hash, Receipt } from 'lucide-react';
 
 const FeaturesScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -80,6 +80,34 @@ const FeaturesScreen: React.FC = () => {
           description: 'All your data is automatically backed up to the cloud with enterprise-grade security.',
           benefits: ['Automatic backups', 'Data recovery', '99.9% uptime', 'Secure storage'],
           gradient: 'from-teal-500 to-blue-500'
+        }
+      ]
+    },
+    {
+      category: 'Insurance & Protection',
+      subtitle: 'Be prepared when the worst happens',
+      icon: <AlertTriangle size={20} />,
+      features: [
+        {
+          icon: Hash,
+          title: 'Serial Number Vault',
+          description: 'Store serial numbers for every piece of gear. When gear is stolen or damaged, have the documentation ready for police reports and insurance claims.',
+          benefits: ['Per-item serial tracking', 'Instant search & export', 'Police report ready', 'Bulk import from CSV'],
+          gradient: 'from-amber-500 to-orange-500'
+        },
+        {
+          icon: Receipt,
+          title: 'Receipt & Proof of Purchase',
+          description: 'Upload and attach receipts to each item. Never scramble to find proof of what you paid when filing an insurance claim.',
+          benefits: ['Photo receipt uploads', 'Purchase price tracking', 'Date of purchase records', 'Organized by item'],
+          gradient: 'from-orange-500 to-red-500'
+        },
+        {
+          icon: FileText,
+          title: 'Insurance-Ready Reports',
+          description: 'Export a complete inventory report with values, serial numbers, and item details. Hand it directly to your insurance company.',
+          benefits: ['PDF & CSV export', 'Total value calculations', 'Itemized gear lists', 'Photo documentation'],
+          gradient: 'from-red-500 to-amber-500'
         }
       ]
     },

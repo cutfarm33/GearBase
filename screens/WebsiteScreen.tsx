@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Mail, Zap, Infinity, Package, X } from 'lucide-react';
+import { Camera, CheckSquare, Smartphone, Shield, ChevronRight, Users, Mail, Zap, Infinity, Package, X, FileText, AlertTriangle, Hash } from 'lucide-react';
 
 type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
@@ -452,6 +452,139 @@ const WebsiteScreen: React.FC = () => {
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                                         Works on any device. Manage your inventory from your phone, tablet, or desktop—wherever you are.
                                     </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Insurance & Protection Section */}
+                <section className="py-24 bg-white dark:bg-slate-900">
+                    <div className="container mx-auto px-6 max-w-6xl">
+                        <div className="flex flex-col lg:flex-row items-center gap-16">
+                            {/* Content */}
+                            <div className="lg:w-1/2">
+                                <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-semibold">
+                                    <AlertTriangle size={14} className="inline mr-2" />
+                                    Protect Your Investment
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white leading-tight">
+                                    When Gear Gets Stolen,<br/>
+                                    <span className="text-teal-600 dark:text-teal-400">Be Prepared.</span>
+                                </h2>
+                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                                    Every year, thousands of photographers and filmmakers lose gear to theft. When it happens, insurance companies need serial numbers, proof of purchase, and an itemized list of everything you own. Most people don't have that ready.
+                                </p>
+                                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
+                                    GearBase stores your serial numbers, receipts, and gear values in one place so you can file a claim in minutes, not days.
+                                </p>
+
+                                <div className="space-y-5">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow-emerald">
+                                            <Hash size={20} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Serial Number Vault</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Store serial numbers for every piece of gear. Search and export instantly when you need them.</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow-teal">
+                                            <FileText size={20} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Receipt & Proof of Purchase</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Upload receipts and attach them to each item. Never lose proof of what you paid.</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow-blue">
+                                            <Shield size={20} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white mb-1">Insurance-Ready Reports</div>
+                                            <div className="text-slate-600 dark:text-slate-400 text-sm">Export a complete inventory report with values, serial numbers, and photos. Hand it directly to your insurance company.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => navigateTo('SIGNUP')}
+                                    className="mt-10 glass-button text-white font-bold py-3 px-8 rounded-xl transition-all shadow-glow-teal hover:shadow-glow-emerald hover:scale-105 flex items-center gap-2"
+                                >
+                                    Start Documenting Your Gear <ChevronRight size={18} />
+                                </button>
+                            </div>
+
+                            {/* Visual - Insurance Claim Card */}
+                            <div className="lg:w-1/2">
+                                <div className="glass-card rounded-3xl p-8 shadow-glass-lg relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-teal-500/5 to-blue-500/5"></div>
+                                    <div className="relative z-10">
+                                        {/* Mock Insurance Report */}
+                                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 mb-4">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                                                    <FileText size={20} className="text-white" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-900 dark:text-white text-sm">Insurance Claim Report</div>
+                                                    <div className="text-slate-500 dark:text-slate-400 text-xs">Generated by GearBase</div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <Camera size={16} className="text-slate-500" />
+                                                        <div>
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white">Sony A7IV</div>
+                                                            <div className="text-[10px] text-slate-500">SN: 4829571038</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">$2,498</div>
+                                                </div>
+                                                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <Camera size={16} className="text-slate-500" />
+                                                        <div>
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white">Canon RF 70-200mm</div>
+                                                            <div className="text-[10px] text-slate-500">SN: 7291048362</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">$2,799</div>
+                                                </div>
+                                                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <Camera size={16} className="text-slate-500" />
+                                                        <div>
+                                                            <div className="text-xs font-bold text-slate-900 dark:text-white">DJI RS3 Pro</div>
+                                                            <div className="text-[10px] text-slate-500">SN: 3847201956</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">$699</div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between">
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white">Total Insured Value</span>
+                                                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">$5,996</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Testimonial-style callout */}
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-700">
+                                            <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                                                "My car was broken into and I lost $8K in camera gear. Because I had everything documented in GearBase with serial numbers and receipts, my insurance claim was processed in a week instead of months."
+                                            </p>
+                                            <div className="mt-3 flex items-center gap-2">
+                                                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold">JR</div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-slate-900 dark:text-white">Jordan R.</div>
+                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Freelance Photographer</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

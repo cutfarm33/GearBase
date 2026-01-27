@@ -1,15 +1,62 @@
-import React, { useEffect } from 'react';
-import { useAppContext } from '../context/AppContext';
-import { CheckCircle, Zap, Users, Infinity } from 'lucide-react';
-import { trackPricingView, trackPlanSelect } from '../lib/analytics';
+import React, { useEffect, useState } from 'react';
+import { useAppContext, supabase } from '../context/AppContext';
+import { CheckCircle, Zap, Users, Infinity, Crown, Loader, AlertCircle } from 'lucide-react';
+import { trackPricingView, trackPlanSelect, trackFounderPurchase } from '../lib/analytics';
+import { createCheckoutSession } from '../lib/stripe';
 
 const PricingScreen: React.FC = () => {
-  const { navigateTo } = useAppContext();
+  const { navigateTo, state } = useAppContext();
+  const isLoggedIn = !!state.currentUser;
+
+  const [founderCount, setFounderCount] = useState<number | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   // Track pricing page view
   useEffect(() => {
     trackPricingView();
   }, []);
+
+  // Fetch founder count
+  useEffect(() => {
+    const fetchFounderCount = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_founder_count');
+        if (!error && data !== null) {
+          setFounderCount(data);
+        }
+      } catch {
+        // If RPC doesn't exist yet, default to 0
+        setFounderCount(0);
+      }
+    };
+    fetchFounderCount();
+  }, []);
+
+  const spotsRemaining = founderCount !== null ? Math.max(0, 100 - founderCount) : null;
+  const founderAvailable = spotsRemaining !== null && spotsRemaining > 0;
+
+  const handleFounderCheckout = async () => {
+    if (!isLoggedIn) {
+      // Save intent so we can redirect after signup
+      localStorage.setItem('gearbase_checkout_intent', 'founder');
+      navigateTo('SIGNUP');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    setCheckoutError(null);
+
+    try {
+      const checkoutUrl = await createCheckoutSession(supabase);
+      trackPlanSelect("Founder's Deal - Lifetime Pro", 29);
+      trackFounderPurchase(founderCount ? founderCount + 1 : undefined);
+      window.location.href = checkoutUrl;
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Failed to start checkout. Please try again.');
+      setIsCheckingOut(false);
+    }
+  };
 
   const plans = [
     {
@@ -27,26 +74,51 @@ const PricingScreen: React.FC = () => {
         'Digital Signatures'
       ],
       cta: 'Get Started Free',
-      highlighted: true,
+      highlighted: false,
       available: true,
-      icon: null
+      icon: null,
+      type: 'free' as const
+    },
+    {
+      name: "Founder's Deal",
+      nameShort: 'Founder',
+      price: '$29',
+      period: ' one-time',
+      description: 'Lifetime Pro access. Lock in your price forever — no subscriptions, no renewals.',
+      features: [
+        'Everything in Free',
+        'Lifetime Pro Access',
+        'All Future Pro Features',
+        'Advanced Reports',
+        'API Access',
+        'Priority Support',
+        'Founder Badge'
+      ],
+      cta: founderAvailable
+        ? `Become a Founder (${spotsRemaining} left)`
+        : 'Sold Out',
+      highlighted: true,
+      available: founderAvailable,
+      icon: Crown,
+      type: 'founder' as const
     },
     {
       name: 'Pro',
       nameShort: 'Pro',
-      price: '$29',
+      price: '$5',
       period: '/mo',
-      description: 'Advanced features for professionals.',
+      description: 'Advanced features for professionals. Available after Founder slots fill.',
       features: [
         'Everything in Free',
         'Advanced Reports',
         'API Access',
         'Priority Support'
       ],
-      cta: 'Coming Soon',
+      cta: founderAvailable ? 'After Founders' : 'Coming Soon',
       highlighted: false,
       available: false,
-      icon: Zap
+      icon: Zap,
+      type: 'pro' as const
     },
     {
       name: 'Team',
@@ -63,24 +135,8 @@ const PricingScreen: React.FC = () => {
       cta: 'Coming Soon',
       highlighted: false,
       available: false,
-      icon: Users
-    },
-    {
-      name: 'Enterprise',
-      nameShort: 'Enterprise',
-      price: 'Custom',
-      period: '',
-      description: 'Custom solutions for large organizations.',
-      features: [
-        'Everything in Team',
-        'Custom Integrations',
-        'On-Premise Hosting',
-        'SLA Guarantee'
-      ],
-      cta: 'Coming Soon',
-      highlighted: false,
-      available: false,
-      icon: Infinity
+      icon: Users,
+      type: 'team' as const
     }
   ];
 
@@ -99,11 +155,50 @@ const PricingScreen: React.FC = () => {
               Start Free, <span className="text-teal-600 dark:text-teal-400">Upgrade Later</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Get started for free today. No credit card required. Pro features coming soon.
+              Get started for free today. No credit card required.
+              {founderAvailable && (
+                <span className="block mt-2 text-amber-600 dark:text-amber-400 font-semibold">
+                  Limited: First 100 founders get lifetime Pro for just $29.
+                </span>
+              )}
             </p>
           </div>
         </div>
       </section>
+
+      {/* Founder's Deal Banner */}
+      {founderAvailable && (
+        <section className="px-6 -mt-8 mb-8 relative z-10">
+          <div className="container mx-auto max-w-3xl">
+            <div className="glass-card rounded-2xl p-6 border-2 border-amber-500/50 shadow-glass-lg text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-yellow-500/5"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Crown size={20} className="text-amber-500" />
+                  <span className="text-sm font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Founder's Deal — Limited to 100</span>
+                  <Crown size={20} className="text-amber-500" />
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
+                  Pay once, own it forever. Get lifetime Pro access for <strong className="text-slate-900 dark:text-white">$29</strong> instead of $5/month.
+                </p>
+                {/* Progress bar */}
+                <div className="max-w-md mx-auto mb-3">
+                  <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                    <span>{founderCount || 0} founders joined</span>
+                    <span>{spotsRemaining} spots left</span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                    <div
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 h-2.5 rounded-full transition-all duration-500"
+                      style={{ width: `${((founderCount || 0) / 100) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Pricing Cards */}
       <section className="py-20 px-6">
@@ -111,30 +206,39 @@ const PricingScreen: React.FC = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan, index) => {
               const IconComponent = plan.icon;
+              const isFounder = plan.type === 'founder';
 
               return (
                 <div
                   key={index}
                   className={`glass-card hover-float p-8 rounded-2xl flex flex-col relative shadow-glass hover:shadow-glass-lg transition-all duration-300 ${
-                    plan.highlighted ? 'border-2 border-teal-500/50' : ''
+                    isFounder && founderAvailable
+                      ? 'border-2 border-amber-500/50 ring-2 ring-amber-500/20'
+                      : plan.highlighted ? 'border-2 border-teal-500/50' : ''
                   } ${!plan.available ? 'opacity-60' : ''}`}
                 >
-                  {plan.available ? (
+                  {isFounder && founderAvailable ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-[10px] font-bold px-3 py-1.5 rounded-full text-white shadow-lg">
+                      LIMITED — {spotsRemaining} LEFT
+                    </div>
+                  ) : plan.available ? (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 glass-badge text-[10px] font-bold px-3 py-1.5 rounded-full text-white shadow-lg">
                       AVAILABLE NOW
                     </div>
                   ) : (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-500/90 dark:bg-slate-600/90 backdrop-blur-sm text-[10px] font-bold px-3 py-1.5 rounded-full text-white">
-                      COMING SOON
+                      {plan.cta === 'After Founders' ? 'AFTER FOUNDERS' : 'COMING SOON'}
                     </div>
                   )}
 
                   <div className="text-left">
                     <div className={`text-sm font-bold uppercase mb-2 flex items-center gap-2 ${
-                      plan.available
+                      isFounder && founderAvailable
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : plan.available
                         ? 'text-emerald-600 dark:text-emerald-400'
-                        : index === 1 ? 'text-blue-600 dark:text-blue-400'
-                        : index === 2 ? 'text-teal-600 dark:text-teal-400'
+                        : index === 2 ? 'text-blue-600 dark:text-blue-400'
+                        : index === 3 ? 'text-teal-600 dark:text-teal-400'
                         : 'text-emerald-600 dark:text-emerald-400'
                     }`}>
                       {IconComponent && <IconComponent size={14} />}
@@ -143,6 +247,11 @@ const PricingScreen: React.FC = () => {
                     <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">
                       {plan.price} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">{plan.period}</span>
                     </div>
+                    {isFounder && founderAvailable && (
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 line-through">
+                        $5/month ($60/year)
+                      </div>
+                    )}
                     <p className={`text-sm mb-6 ${
                       plan.available ? 'text-slate-600 dark:text-slate-300' : 'text-slate-600 dark:text-slate-400'
                     }`}>
@@ -158,6 +267,7 @@ const PricingScreen: React.FC = () => {
                         <CheckCircle
                           size={16}
                           className={`mt-1 flex-shrink-0 ${
+                            isFounder && founderAvailable ? 'text-amber-500' :
                             plan.available ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-500'
                           }`}
                         />
@@ -166,21 +276,39 @@ const PricingScreen: React.FC = () => {
                     ))}
                   </ul>
 
+                  {checkoutError && isFounder && (
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
+                      <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-red-700 dark:text-red-300">{checkoutError}</p>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => {
-                      if (plan.available) {
-                        trackPlanSelect(plan.name, plan.price === '$0' ? 0 : parseInt(plan.price.replace('$', '')));
+                      if (isFounder && founderAvailable) {
+                        handleFounderCheckout();
+                      } else if (plan.available && plan.type === 'free') {
+                        trackPlanSelect(plan.name, 0);
                         navigateTo('SIGNUP');
                       }
                     }}
-                    disabled={!plan.available}
-                    className={`w-full font-bold py-3 rounded-lg transition-colors ${
-                      plan.available
+                    disabled={!plan.available || isCheckingOut}
+                    className={`w-full font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      isFounder && founderAvailable
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg'
+                        : plan.available
                         ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                         : 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                     }`}
                   >
-                    {plan.cta}
+                    {isCheckingOut && isFounder ? (
+                      <>
+                        <Loader size={16} className="animate-spin" />
+                        Redirecting to Checkout...
+                      </>
+                    ) : (
+                      plan.cta
+                    )}
                   </button>
                 </div>
               );
@@ -196,6 +324,16 @@ const PricingScreen: React.FC = () => {
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">
+            {founderAvailable && (
+              <div className="glass-card rounded-2xl p-6 hover-float shadow-glass hover:shadow-glass-lg transition-all duration-300">
+                <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-3">
+                  What is the Founder's Deal?
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                  The first 100 users who sign up get lifetime Pro access for a one-time payment of $29. That's it — no monthly fees, no renewals. You'll also get access to every Pro feature we add in the future, forever.
+                </p>
+              </div>
+            )}
             <div className="glass-card rounded-2xl p-6 hover-float shadow-glass hover:shadow-glass-lg transition-all duration-300">
               <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-3">
                 Is the free plan really free forever?

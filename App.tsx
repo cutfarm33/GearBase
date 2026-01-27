@@ -35,6 +35,7 @@ import AboutScreen from './screens/AboutScreen';
 import ContactScreen from './screens/ContactScreen';
 import PrivacyScreen from './screens/PrivacyScreen';
 import TermsScreen from './screens/TermsScreen';
+import CheckoutSuccessScreen from './screens/CheckoutSuccessScreen';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import { Loader } from 'lucide-react';
@@ -43,7 +44,7 @@ const App: React.FC = () => {
   const { state, isConfigured, navigateTo } = useAppContext();
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
-  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT', 'PRIVACY', 'TERMS'].includes(view);
+  const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT', 'PRIVACY', 'TERMS', 'CHECKOUT_SUCCESS'].includes(view);
   const isOnline = useOnlineStatus();
 
   // Get organization ID for sync
@@ -91,6 +92,13 @@ const App: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const itemId = urlParams.get('item');
     const jobId = urlParams.get('job');
+
+    // Handle ?checkout=success (Stripe redirect after payment)
+    if (urlParams.get('checkout') === 'success') {
+      navigateTo('CHECKOUT_SUCCESS');
+      window.history.replaceState({}, '', '/');
+      return;
+    }
 
     // Handle /reset-password route (from Supabase password reset email)
     if (window.location.pathname === '/reset-password') {
@@ -186,6 +194,7 @@ const App: React.FC = () => {
     if (view === 'CONTACT') return <ContactScreen />;
     if (view === 'PRIVACY') return <PrivacyScreen />;
     if (view === 'TERMS') return <TermsScreen />;
+    if (view === 'CHECKOUT_SUCCESS') return <CheckoutSuccessScreen />;
 
     // Public Gallery (no auth required)
     if (view === 'PUBLIC_GALLERY') return <PublicGalleryScreen token={params?.token} />;

@@ -147,6 +147,26 @@ export const trackPricingView = () => {
   }
 };
 
+// Track founder purchase (conversion event)
+export const trackFounderPurchase = (founderNumber?: number) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'purchase', {
+      transaction_id: `founder_${founderNumber || 'unknown'}`,
+      value: 29.00,
+      currency: 'USD',
+      items: [{ item_name: "Founder's Deal - Lifetime Pro", price: 29.00 }],
+    });
+  }
+
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'Purchase', {
+      value: 29.00,
+      currency: 'USD',
+      content_name: "Founder's Deal",
+    });
+  }
+};
+
 // Track plan selection
 export const trackPlanSelect = (planName: string, price: number) => {
   if (typeof window !== 'undefined' && window.gtag) {

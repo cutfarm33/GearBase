@@ -62,7 +62,7 @@ export enum PaymentMethod {
 
 export type UserRole = 'Admin' | 'Producer' | 'Director' | 'DP' | 'Gaffer' | 'Grip' | 'AC' | 'PA' | 'Crew';
 
-export type SubscriptionTier = 'free' | 'pro' | 'team' | 'enterprise';
+export type SubscriptionTier = 'free' | 'founder' | 'pro' | 'team' | 'enterprise';
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due';
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'expired';
@@ -238,7 +238,7 @@ export interface Receipt {
 }
 
 export interface ViewState {
-  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'RESET_PASSWORD' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'PRIVACY' | 'TERMS' | 'RECEIPTS' | 'ADD_RECEIPT' | 'LOANS' | 'ADD_LOAN' | 'GALLERY_SETTINGS' | 'PUBLIC_GALLERY';
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'RESET_PASSWORD' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'PRIVACY' | 'TERMS' | 'RECEIPTS' | 'ADD_RECEIPT' | 'LOANS' | 'ADD_LOAN' | 'GALLERY_SETTINGS' | 'PUBLIC_GALLERY' | 'CHECKOUT_SUCCESS';
   params?: any;
 }
 

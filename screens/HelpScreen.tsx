@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Search, Book, Package, QrCode, Users, Calendar, FileText, CheckCircle, Download } from 'lucide-react';
+import { Search, Book, Package, QrCode, Users, Calendar, FileText, CheckCircle, Download, Shield } from 'lucide-react';
 
 const HelpScreen: React.FC = () => {
   const { navigateTo } = useAppContext();
@@ -755,6 +755,109 @@ const HelpScreen: React.FC = () => {
                 'Check-in documentation',
                 'Job equipment manifests'
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'insurance',
+      icon: <Shield size={24} />,
+      title: 'Insurance & Protection',
+      color: 'emerald',
+      articles: [
+        {
+          title: 'Preparing for Insurance Claims',
+          steps: [
+            {
+              heading: 'Why Document Your Gear?',
+              description: 'If your gear is stolen, damaged, or lost, insurance companies require proof of ownership, serial numbers, and purchase prices. Having this ready can mean the difference between a quick payout and a months-long battle.',
+              items: []
+            },
+            {
+              heading: 'What to Record for Each Item',
+              items: [
+                'Item name and model number',
+                'Serial number (found on the item body or box)',
+                'Purchase price and date of purchase',
+                'Receipt or proof of purchase (upload a photo)',
+                'Current condition with photos',
+                'Replacement value (what it would cost today)'
+              ]
+            },
+            {
+              heading: 'Tips for Better Documentation',
+              items: [
+                'Photograph serial number plates on each item',
+                'Keep digital copies of all receipts',
+                'Update values annually as gear depreciates or appreciates',
+                'Include accessories and cables—they add up',
+                'Export your inventory report quarterly as a backup'
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Filing an Insurance Claim with GearBase',
+          steps: [
+            {
+              heading: 'Step 1: Export Your Inventory',
+              items: [
+                'Go to Inventory screen',
+                'Click the Download button',
+                'Choose "PDF Report" for a formatted document',
+                'Or choose "CSV Report" for a detailed spreadsheet',
+                'Both include serial numbers, values, and item details'
+              ]
+            },
+            {
+              heading: 'Step 2: Gather Supporting Documents',
+              items: [
+                'Your GearBase inventory report (PDF or CSV)',
+                'Photos of each item (stored in GearBase)',
+                'Receipts attached to items',
+                'Police report number (for theft claims)',
+                'Any photos from the scene of loss'
+              ]
+            },
+            {
+              heading: 'Step 3: Submit to Your Insurance',
+              items: [
+                'Contact your insurance provider',
+                'Provide your itemized GearBase report',
+                'Reference serial numbers for each claimed item',
+                'Include total replacement value from the report',
+                'Having organized documentation speeds up claims significantly'
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Theft Prevention & Recovery',
+          steps: [
+            {
+              heading: 'Before It Happens',
+              items: [
+                'Document all serial numbers in GearBase immediately after purchase',
+                'Upload receipts while you still have them',
+                'Take photos of your gear regularly',
+                'Use QR code labels for quick identification',
+                'Export and back up your inventory report monthly'
+              ]
+            },
+            {
+              heading: 'If Your Gear Is Stolen',
+              items: [
+                'File a police report immediately—provide serial numbers from GearBase',
+                'Contact your insurance company with your exported inventory report',
+                'Post serial numbers on stolen gear registries (e.g., LensTag, Stolen Camera Finder)',
+                'Alert local camera shops with your serial numbers',
+                'Check online marketplaces for your items using serial numbers'
+              ]
+            },
+            {
+              heading: 'GearBase Makes Recovery Easier',
+              description: 'With all your serial numbers, photos, and values in one place, you can act quickly. The faster you report with accurate details, the better your chances of recovery and a successful insurance claim.'
             }
           ]
         }
