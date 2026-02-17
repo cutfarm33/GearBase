@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
 import { getCategoriesForVertical, getVerticalConfig } from '../lib/verticalConfig';
 import { InventoryItem, ItemStatus, ItemCondition } from '../types';
-import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, FolderDown as ExportIcon, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode, User } from 'lucide-react';
+import { LayoutGrid, List, Plus, Upload, Trash2, CheckSquare, Square, Edit2, FolderDown as ExportIcon, ChevronDown, FileSpreadsheet, FileText, FileImage, FolderDown, QrCode, User, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -60,6 +60,10 @@ const InventoryScreen: React.FC = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showCategorySubmenu, setShowCategorySubmenu] = useState(false);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+
   // Get vertical-specific categories plus any custom ones from database
   const verticalCategories = getCategoriesForVertical(vertical);
   const categories = ['All', ...Array.from(new Set([
@@ -72,6 +76,25 @@ const InventoryScreen: React.FC = () => {
       const categoryMatch = categoryFilter === 'All' || item.category === categoryFilter;
       return nameMatch && categoryMatch;
   });
+
+  // Pagination Logic
+  const totalItems = filteredInventory.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInventory = filteredInventory.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+      setCurrentPage(1);
+  }, [filter, categoryFilter]);
+
+  // Ensure current page is valid when total pages changes
+  React.useEffect(() => {
+      if (currentPage > totalPages && totalPages > 0) {
+          setCurrentPage(totalPages);
+      }
+  }, [totalPages, currentPage]);
 
   // Selection Logic
   const allSelected = filteredInventory.length > 0 && filteredInventory.every(i => selectedIds.has(i.id));
@@ -1027,7 +1050,7 @@ const InventoryScreen: React.FC = () => {
 
       {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredInventory.map((item: InventoryItem) => {
+              {paginatedInventory.map((item: InventoryItem) => {
                   const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
                   const checkedOutTo = getCheckedOutTo(item);
                   return (
@@ -1092,7 +1115,7 @@ const InventoryScreen: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {filteredInventory.map((item: InventoryItem) => {
+                        {paginatedInventory.map((item: InventoryItem) => {
                             const isSelected = selectedIds.has(item.id);
                             const isEditingCategory = editingCategoryId === item.id;
                             const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
@@ -1182,6 +1205,139 @@ const InventoryScreen: React.FC = () => {
                     </tbody>
                 </table>
               </div>
+          </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalItems > 0 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700">
+              {/* Items info and per-page selector */}
+              <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                  <span>
+                      Showing <span className="font-semibold text-slate-900 dark:text-white">{startIndex + 1}</span> to{' '}
+                      <span className="font-semibold text-slate-900 dark:text-white">{Math.min(endIndex, totalItems)}</span> of{' '}
+                      <span className="font-semibold text-slate-900 dark:text-white">{totalItems}</span> items
+                  </span>
+                  <div className="flex items-center gap-2">
+                      <label htmlFor="itemsPerPage" className="text-slate-500 dark:text-slate-400">Show:</label>
+                      <select
+                          id="itemsPerPage"
+                          value={itemsPerPage}
+                          onChange={(e) => {
+                              setItemsPerPage(Number(e.target.value));
+                              setCurrentPage(1);
+                          }}
+                          className="bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white px-2 py-1 rounded-lg text-sm border-0 focus:ring-2 focus:ring-emerald-500"
+                      >
+                          <option value={10}>10</option>
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                      </select>
+                  </div>
+              </div>
+
+              {/* Page navigation */}
+              {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                      {/* First page */}
+                      <button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="First page"
+                      >
+                          <ChevronsLeft size={18} />
+                      </button>
+
+                      {/* Previous page */}
+                      <button
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Previous page"
+                      >
+                          <ChevronLeft size={18} />
+                      </button>
+
+                      {/* Page numbers */}
+                      <div className="flex items-center gap-1 mx-2">
+                          {(() => {
+                              const pages: (number | string)[] = [];
+                              const showPages = 5; // Max page buttons to show
+
+                              if (totalPages <= showPages + 2) {
+                                  // Show all pages if total is small
+                                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                              } else {
+                                  // Always show first page
+                                  pages.push(1);
+
+                                  // Calculate range around current page
+                                  let start = Math.max(2, currentPage - 1);
+                                  let end = Math.min(totalPages - 1, currentPage + 1);
+
+                                  // Adjust if at edges
+                                  if (currentPage <= 3) {
+                                      end = 4;
+                                  } else if (currentPage >= totalPages - 2) {
+                                      start = totalPages - 3;
+                                  }
+
+                                  // Add ellipsis before if needed
+                                  if (start > 2) pages.push('...');
+
+                                  // Add middle pages
+                                  for (let i = start; i <= end; i++) pages.push(i);
+
+                                  // Add ellipsis after if needed
+                                  if (end < totalPages - 1) pages.push('...');
+
+                                  // Always show last page
+                                  pages.push(totalPages);
+                              }
+
+                              return pages.map((page, idx) => (
+                                  typeof page === 'number' ? (
+                                      <button
+                                          key={idx}
+                                          onClick={() => setCurrentPage(page)}
+                                          className={`min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors ${
+                                              currentPage === page
+                                                  ? 'bg-emerald-600 text-white shadow-sm'
+                                                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                                          }`}
+                                      >
+                                          {page}
+                                      </button>
+                                  ) : (
+                                      <span key={idx} className="px-2 text-slate-400">...</span>
+                                  )
+                              ));
+                          })()}
+                      </div>
+
+                      {/* Next page */}
+                      <button
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Next page"
+                      >
+                          <ChevronRight size={18} />
+                      </button>
+
+                      {/* Last page */}
+                      <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          title="Last page"
+                      >
+                          <ChevronsRight size={18} />
+                      </button>
+                  </div>
+              )}
           </div>
       )}
     </div>
