@@ -63,6 +63,11 @@ const InventoryScreen: React.FC = () => {
   // Load More State
   const [visibleCount, setVisibleCount] = useState(20);
 
+  // Swipe State (mobile card view)
+  const [swipedItemId, setSwipedItemId] = useState<number | null>(null);
+  const touchStartX = React.useRef(0);
+  const touchCurrentX = React.useRef(0);
+
   // Get vertical-specific categories plus any custom ones from database
   const verticalCategories = getCategoriesForVertical(vertical);
   const categories = ['All', ...Array.from(new Set([
@@ -1038,7 +1043,7 @@ const InventoryScreen: React.FC = () => {
                       <button
                           key={cat}
                           onClick={() => setCategoryFilter(cat)}
-                          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                          className={`flex-shrink-0 px-4 py-2.5 rounded-full text-sm font-semibold transition-all ${
                               categoryFilter === cat
                                   ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/20'
                                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'
@@ -1076,12 +1081,12 @@ const InventoryScreen: React.FC = () => {
                   const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
                   const checkedOutTo = getCheckedOutTo(item);
                   return (
-                    <div key={item.id} onClick={() => navigateTo('ITEM_DETAIL', { itemId: item.id, from: 'INVENTORY' })} className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl border border-slate-100 dark:border-slate-700 relative">
-                        <img src={item.imageUrl} alt={item.name} className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity" />
+                    <div key={item.id} onClick={() => navigateTo('ITEM_DETAIL', { itemId: item.id, from: 'INVENTORY' })} className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 md:hover:-translate-y-2 md:hover:shadow-xl border border-slate-100 dark:border-slate-700 relative">
+                        <img loading="lazy" src={item.imageUrl} alt={item.name} className="w-full h-48 object-cover md:group-hover:opacity-90 transition-opacity" />
 
                         <button
                             onClick={(e) => confirmDelete(e, item)}
-                            className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 p-2.5 rounded-xl text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 shadow-lg"
+                            className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 p-2.5 rounded-xl text-red-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 shadow-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                             <Trash2 size={18} />
                         </button>
@@ -1111,123 +1116,216 @@ const InventoryScreen: React.FC = () => {
               })}
           </div>
       ) : (
-          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50">
-                        <tr>
-                            <th scope="col" className="px-4 py-3 w-10">
-                                <button
-                                    onClick={toggleSelectAll}
-                                    className="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                                    title="Select All"
-                                >
-                                    {allSelected ? <CheckSquare size={20} className="text-emerald-600 dark:text-emerald-400"/> : <Square size={20}/>}
-                                </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Item</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Category</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">QR Code</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Checked Out To</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Condition</th>
-                            <th scope="col" className="relative px-6 py-3">
-                                <span className="sr-only">Actions</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {displayedInventory.map((item: InventoryItem) => {
-                            const isSelected = selectedIds.has(item.id);
-                            const isEditingCategory = editingCategoryId === item.id;
-                            const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
-                            const checkedOutTo = getCheckedOutTo(item);
+          <>
+              {/* Mobile Card View (below md) */}
+              <div className="md:hidden space-y-2">
+                  {/* Mobile Select All */}
+                  <button
+                      onClick={toggleSelectAll}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500 dark:text-slate-400 mb-1"
+                  >
+                      {allSelected ? <CheckSquare size={18} className="text-emerald-600 dark:text-emerald-400"/> : <Square size={18}/>}
+                      <span>{allSelected ? 'Deselect all' : 'Select all'}</span>
+                  </button>
 
-                            return (
-                                <tr
-                                    key={item.id}
-                                    onClick={() => navigateTo('ITEM_DETAIL', { itemId: item.id, from: 'INVENTORY' })}
-                                    className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-all ${isSelected ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''} ${isUnavailable ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}
-                                >
-                                    <td className="px-4 py-4 whitespace-nowrap">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
-                                            className={`p-1 rounded-lg transition-colors ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600 hover:text-slate-500'}`}
-                                        >
-                                            {isSelected ? <CheckSquare size={20}/> : <Square size={20}/>}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="h-10 w-10 flex-shrink-0">
-                                                <img className="h-10 w-10 rounded object-cover" src={item.imageUrl} alt="" />
-                                            </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-slate-900 dark:text-white">{item.name}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                                        {isEditingCategory ? (
-                                            <select 
-                                                autoFocus
-                                                className="bg-white dark:bg-slate-800 border border-sky-500 rounded px-2 py-1 outline-none"
-                                                value={item.category}
-                                                onChange={(e) => handleCategoryChange(item, e.target.value)}
-                                                onClick={(e) => e.stopPropagation()}
-                                                onBlur={() => setEditingCategoryId(null)}
-                                            >
-                                                {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        ) : (
-                                            <div 
-                                                className="group/cat flex items-center gap-2 cursor-text hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                                                onClick={(e) => { e.stopPropagation(); setEditingCategoryId(item.id); }}
-                                                title="Click to change category"
-                                            >
-                                                {item.category}
-                                                <Edit2 size={12} className="opacity-0 group-hover/cat:opacity-100 transition-opacity" />
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-mono">{item.qrCode}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <StatusBadge status={item.status} />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        {checkedOutTo ? (
-                                            <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
-                                                <User size={14} /> {checkedOutTo}
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-300 dark:text-slate-600">—</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span className={`${
-                                            item.condition === ItemCondition.GOOD ? 'text-slate-500 dark:text-slate-400' :
-                                            item.condition === ItemCondition.USED ? 'text-blue-600 dark:text-blue-400' :
-                                            'text-red-600 dark:text-red-400'
-                                        }`}>
-                                            {item.condition}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button 
-                                            onClick={(e) => confirmDelete(e, item)}
-                                            className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
-                                            title="Delete Item"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                  {displayedInventory.map((item: InventoryItem) => {
+                      const isSelected = selectedIds.has(item.id);
+                      const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
+                      const checkedOutTo = getCheckedOutTo(item);
+                      const isSwiped = swipedItemId === item.id;
+
+                      return (
+                          <div key={item.id} className="relative overflow-hidden rounded-2xl">
+                              {/* Swipe-behind delete action */}
+                              <div className="absolute inset-y-0 right-0 w-20 bg-red-500 flex items-center justify-center rounded-r-2xl">
+                                  <button
+                                      onClick={(e) => { e.stopPropagation(); confirmDelete(e, item); setSwipedItemId(null); }}
+                                      className="p-3 text-white"
+                                  >
+                                      <Trash2 size={22} />
+                                  </button>
+                              </div>
+
+                              {/* Card content (slides on swipe) */}
+                              <div
+                                  className={`relative bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center gap-3 p-3 cursor-pointer active:bg-slate-50 dark:active:bg-slate-700/50 transition-transform duration-200 ${isSelected ? 'ring-2 ring-emerald-500 ring-inset' : ''} ${isUnavailable ? 'border-red-200 dark:border-red-800' : ''}`}
+                                  style={{ transform: isSwiped ? 'translateX(-80px)' : 'translateX(0)' }}
+                                  onClick={() => {
+                                      if (isSwiped) { setSwipedItemId(null); return; }
+                                      navigateTo('ITEM_DETAIL', { itemId: item.id, from: 'INVENTORY' });
+                                  }}
+                                  onTouchStart={(e) => {
+                                      touchStartX.current = e.touches[0].clientX;
+                                      touchCurrentX.current = e.touches[0].clientX;
+                                  }}
+                                  onTouchMove={(e) => {
+                                      touchCurrentX.current = e.touches[0].clientX;
+                                  }}
+                                  onTouchEnd={() => {
+                                      const diff = touchStartX.current - touchCurrentX.current;
+                                      if (diff > 60) {
+                                          setSwipedItemId(item.id);
+                                      } else if (diff < -30 && isSwiped) {
+                                          setSwipedItemId(null);
+                                      }
+                                  }}
+                              >
+                                  {/* Checkbox */}
+                                  <button
+                                      onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
+                                      className={`p-2 rounded-lg transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600'}`}
+                                  >
+                                      {isSelected ? <CheckSquare size={22}/> : <Square size={22}/>}
+                                  </button>
+
+                                  {/* Thumbnail */}
+                                  <img loading="lazy" className="h-12 w-12 rounded-xl object-cover flex-shrink-0" src={item.imageUrl} alt="" />
+
+                                  {/* Info */}
+                                  <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{item.name}</p>
+                                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{item.category}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                          <StatusBadge status={item.status} />
+                                          {checkedOutTo && (
+                                              <span className="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-0.5 truncate">
+                                                  <User size={11} /> {checkedOutTo}
+                                              </span>
+                                          )}
+                                      </div>
+                                  </div>
+
+                                  {/* Condition */}
+                                  <span className={`text-xs font-semibold flex-shrink-0 ${
+                                      item.condition === ItemCondition.GOOD ? 'text-slate-400' :
+                                      item.condition === ItemCondition.USED ? 'text-blue-500' :
+                                      'text-amber-500'
+                                  }`}>{item.condition}</span>
+                              </div>
+                          </div>
+                      );
+                  })}
               </div>
-          </div>
+
+              {/* Desktop Table View (md and above) */}
+              <div className="hidden md:block bg-white dark:bg-slate-800 rounded-3xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                        <thead className="bg-slate-50 dark:bg-slate-900/50">
+                            <tr>
+                                <th scope="col" className="px-4 py-3 w-10">
+                                    <button
+                                        onClick={toggleSelectAll}
+                                        className="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                        title="Select All"
+                                    >
+                                        {allSelected ? <CheckSquare size={20} className="text-emerald-600 dark:text-emerald-400"/> : <Square size={20}/>}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Item</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Category</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">QR Code</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Checked Out To</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Condition</th>
+                                <th scope="col" className="relative px-6 py-3">
+                                    <span className="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            {displayedInventory.map((item: InventoryItem) => {
+                                const isSelected = selectedIds.has(item.id);
+                                const isEditingCategory = editingCategoryId === item.id;
+                                const isUnavailable = item.status === ItemStatus.CHECKED_OUT || item.status === ItemStatus.UNAVAILABLE;
+                                const checkedOutTo = getCheckedOutTo(item);
+
+                                return (
+                                    <tr
+                                        key={item.id}
+                                        onClick={() => navigateTo('ITEM_DETAIL', { itemId: item.id, from: 'INVENTORY' })}
+                                        className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-all ${isSelected ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''} ${isUnavailable ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}
+                                    >
+                                        <td className="px-4 py-4 whitespace-nowrap">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
+                                                className={`p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600 hover:text-slate-500'}`}
+                                            >
+                                                {isSelected ? <CheckSquare size={20}/> : <Square size={20}/>}
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="h-10 w-10 flex-shrink-0">
+                                                    <img loading="lazy" className="h-10 w-10 rounded object-cover" src={item.imageUrl} alt="" />
+                                                </div>
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-slate-900 dark:text-white">{item.name}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                            {isEditingCategory ? (
+                                                <select
+                                                    autoFocus
+                                                    className="bg-white dark:bg-slate-800 border border-sky-500 rounded px-2 py-1 outline-none"
+                                                    value={item.category}
+                                                    onChange={(e) => handleCategoryChange(item, e.target.value)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    onBlur={() => setEditingCategoryId(null)}
+                                                >
+                                                    {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            ) : (
+                                                <div
+                                                    className="group/cat flex items-center gap-2 cursor-text hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                                                    onClick={(e) => { e.stopPropagation(); setEditingCategoryId(item.id); }}
+                                                    title="Click to change category"
+                                                >
+                                                    {item.category}
+                                                    <Edit2 size={12} className="opacity-0 group-hover/cat:opacity-100 transition-opacity" />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-mono">{item.qrCode}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <StatusBadge status={item.status} />
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            {checkedOutTo ? (
+                                                <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                                    <User size={14} /> {checkedOutTo}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-300 dark:text-slate-600">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`${
+                                                item.condition === ItemCondition.GOOD ? 'text-slate-500 dark:text-slate-400' :
+                                                item.condition === ItemCondition.USED ? 'text-blue-600 dark:text-blue-400' :
+                                                'text-red-600 dark:text-red-400'
+                                            }`}>
+                                                {item.condition}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={(e) => confirmDelete(e, item)}
+                                                className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                                title="Delete Item"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                  </div>
+              </div>
+          </>
       )}
 
       {/* Load More */}
