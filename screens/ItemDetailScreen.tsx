@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, InventoryItem, JobStatus, TransactionType, PREDEFINED_CATEGORIES } from '../types';
-import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode, Loader } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
 import { getItemDeepLink, copyToClipboard } from '../utils/deepLinks';
@@ -349,6 +349,16 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
           setIsAddingToKit(false);
       }
   };
+
+  // If inventory is still empty (data loading after login), show a loader instead of "not found"
+  if (!item && state.inventory.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader className="animate-spin text-sky-500 mb-4" size={32} />
+        <p className="text-slate-500 dark:text-slate-400 text-sm">Loading item...</p>
+      </div>
+    );
+  }
 
   if (!item) return <div className="text-slate-900 dark:text-white">Item not found.</div>;
 

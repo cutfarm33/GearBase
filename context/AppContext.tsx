@@ -122,7 +122,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
       // Only navigate to DASHBOARD if user is logging in for the first time (no previous user)
       // Don't change view if user is already logged in (token refresh, reconnect, etc.)
       // Also preserve PUBLIC_GALLERY view since it should be accessible to everyone regardless of auth state
-      const shouldNavigate = action.payload && !state.currentUser && state.currentView.view !== 'PUBLIC_GALLERY';
+      // Don't navigate to DASHBOARD if there's a deep link in the URL — let the deep link effect handle it
+      const hasDeepLink = typeof window !== 'undefined' && (
+        new URLSearchParams(window.location.search).has('item') ||
+        new URLSearchParams(window.location.search).has('job')
+      );
+      const shouldNavigate = action.payload && !state.currentUser && state.currentView.view !== 'PUBLIC_GALLERY' && !hasDeepLink;
       return {
           ...state,
           currentUser: action.payload,
@@ -1483,24 +1488,28 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   // Initial Load & Auth Check
   useEffect(() => {
+      // Track the last processed session to prevent duplicate processing
+      // Shared between init and onAuthStateChange within this effect
+      let lastProcessedSessionId: string | null = null;
+
       const init = async () => {
           if (!isConfigured) {
                dispatch({ type: 'SET_LOADING', payload: false });
                return;
           }
-          await checkAuth();
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+              // Mark this session as already processed so onAuthStateChange skips it
+              lastProcessedSessionId = data.session.access_token;
+          }
+          await checkAuth(data.session);
           // Always clear loading after auth check completes (whether session found or not)
           dispatch({ type: 'SET_LOADING', payload: false });
       };
-      
+
       const safetyTimer = setTimeout(() => {
           dispatch({ type: 'SET_LOADING', payload: false });
       }, 10000); // Safety fallback only — normal loading clears after checkAuth()
-
-      init();
-
-      // Track the last processed session to prevent duplicate processing
-      let lastProcessedSessionId: string | null = null;
 
       const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state change:', event, session?.user?.email);
@@ -1543,6 +1552,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                lastProcessedSessionId = session.access_token;
           }
       });
+
+      init();
 
       return () => {
           clearTimeout(safetyTimer);
