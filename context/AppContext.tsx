@@ -676,10 +676,14 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         dispatch({ type: 'SET_VERTICAL', payload: orgVertical });
         dispatch({ type: 'SET_CURRENT_USER', payload: userProfile });
 
-        console.log('User profile set, starting background data refresh for org:', orgId);
+        console.log('User profile set, starting data refresh for org:', orgId);
 
-        // 2. Load Data in Background - pass orgId to ensure correct data is loaded
-        refreshData(true, orgId).catch(e => console.error("Background refresh failed", e));
+        // 2. Load Data — await to ensure inventory is ready before navigating
+        try {
+            await refreshData(true, orgId);
+        } catch (e) {
+            console.error("Data refresh failed", e);
+        }
 
         // 3. AUTO-MERGE: Check for pre-created profiles with matching email (runs in background, non-blocking)
         // This merges any profiles created for this user before they signed up
@@ -1511,8 +1515,15 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           dispatch({ type: 'SET_LOADING', payload: false });
       }, 10000); // Safety fallback only — normal loading clears after checkAuth()
 
+      init();
+
       const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state change:', event, session?.user?.email);
+
+          // INITIAL_SESSION is handled by init() — skip it here to avoid double processing
+          if (event === 'INITIAL_SESSION') {
+              return;
+          }
 
           if (event === 'SIGNED_IN' && session) {
                // Prevent processing the same session multiple times (token refresh, etc.)
@@ -1552,8 +1563,6 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                lastProcessedSessionId = session.access_token;
           }
       });
-
-      init();
 
       return () => {
           clearTimeout(safetyTimer);
