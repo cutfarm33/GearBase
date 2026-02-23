@@ -1,7 +1,7 @@
 // Gear Base Service Worker - Offline Support
-const CACHE_NAME = 'gearbase-v2';
-const STATIC_CACHE = 'gearbase-static-v2';
-const DYNAMIC_CACHE = 'gearbase-dynamic-v2';
+const CACHE_NAME = 'gearbase-v3';
+const STATIC_CACHE = 'gearbase-static-v3';
+const DYNAMIC_CACHE = 'gearbase-dynamic-v3';
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
@@ -81,8 +81,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // HTML/other: Stale while revalidate
-  event.respondWith(staleWhileRevalidate(request));
+  // HTML/other: Network first (always get fresh HTML to avoid stale app versions)
+  event.respondWith(networkFirst(request));
 });
 
 // Strategy: Network first (for API calls)
@@ -124,23 +124,6 @@ async function cacheFirst(request) {
     console.log('[ServiceWorker] Cache and network failed:', request.url);
     throw error;
   }
-}
-
-// Strategy: Stale while revalidate
-async function staleWhileRevalidate(request) {
-  const cachedResponse = await caches.match(request);
-
-  const fetchPromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok) {
-      const cache = caches.open(DYNAMIC_CACHE);
-      cache.then(c => c.put(request, networkResponse.clone()));
-    }
-    return networkResponse;
-  }).catch(() => {
-    // Network failed, cached response will be used
-  });
-
-  return cachedResponse || fetchPromise;
 }
 
 // Listen for messages from the main app

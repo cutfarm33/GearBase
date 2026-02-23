@@ -3,6 +3,8 @@
  * Export all offline functionality from a single entry point
  */
 
+import { db as _db } from './db';
+
 // Database
 export {
   db,
@@ -69,15 +71,14 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
     console.log('Service Worker registered:', registration.scope);
 
-    // Handle updates
+    // Handle updates — dispatch event so App can show a refresh banner
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New version available
-            console.log('New version available! Refresh to update.');
-            // Could show a toast to user here
+            console.log('New version available! Dispatching swUpdate event.');
+            window.dispatchEvent(new CustomEvent('swUpdate'));
           }
         });
       }
@@ -105,6 +106,26 @@ export async function requestBackgroundSync(): Promise<void> {
     console.log('Background sync registered');
   } catch (error) {
     console.error('Background sync registration failed:', error);
+  }
+}
+
+/**
+ * Clear all caches: IndexedDB (Dexie) + Service Worker caches
+ * Call this on logout to prevent stale data across sessions
+ */
+export async function clearAllCaches(): Promise<void> {
+  // 1. Clear IndexedDB (Dexie)
+  try {
+    await _db.clearAllData();
+    console.log('[Cache] IndexedDB cleared');
+  } catch (e) {
+    console.error('[Cache] Failed to clear IndexedDB:', e);
+  }
+
+  // 2. Tell service worker to clear its caches
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage('clearCache');
+    console.log('[Cache] Sent clearCache to service worker');
   }
 }
 

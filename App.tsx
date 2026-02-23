@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext, supabase } from './context/AppContext';
 import DashboardScreen from './screens/DashboardScreen';
 import { registerServiceWorker, useAutoSync, useOnlineStatus, syncEngine } from './lib/offline';
@@ -38,7 +38,7 @@ import TermsScreen from './screens/TermsScreen';
 import CheckoutSuccessScreen from './screens/CheckoutSuccessScreen';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import { Loader } from 'lucide-react';
+import { Loader, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const { state, isConfigured, navigateTo } = useAppContext();
@@ -46,6 +46,7 @@ const App: React.FC = () => {
   const isLoggedIn = !!state.currentUser;
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT', 'PRIVACY', 'TERMS', 'CHECKOUT_SUCCESS'].includes(view);
   const isOnline = useOnlineStatus();
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   // Get organization ID for sync
   const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || null;
@@ -56,9 +57,12 @@ const App: React.FC = () => {
     organizationId
   );
 
-  // Register service worker on mount
+  // Register service worker on mount + listen for updates
   useEffect(() => {
     registerServiceWorker();
+    const handleSwUpdate = () => setShowUpdateBanner(true);
+    window.addEventListener('swUpdate', handleSwUpdate);
+    return () => window.removeEventListener('swUpdate', handleSwUpdate);
   }, []);
 
   // Initialize sync engine when user logs in
@@ -259,17 +263,39 @@ const App: React.FC = () => {
     }
   };
 
+  // Update banner shown when service worker detects a new version
+  const updateBanner = showUpdateBanner ? (
+    <div className="fixed top-0 left-0 right-0 z-50 bg-emerald-600 text-white px-4 py-2.5 flex items-center justify-center gap-3 text-sm font-medium shadow-lg">
+      <RefreshCw size={16} />
+      <span>A new version of Gear Base is available.</span>
+      <button
+        onClick={() => window.location.reload()}
+        className="bg-white text-emerald-700 px-3 py-1 rounded-md text-xs font-bold hover:bg-emerald-50 transition-colors"
+      >
+        Refresh Now
+      </button>
+      <button
+        onClick={() => setShowUpdateBanner(false)}
+        className="ml-1 text-emerald-200 hover:text-white text-lg leading-none"
+        aria-label="Dismiss"
+      >
+        &times;
+      </button>
+    </div>
+  ) : null;
+
   // --- LAYOUT LOGIC ---
 
   // 0. PUBLIC GALLERY (Standalone full-page view, no app chrome)
   if (view === 'PUBLIC_GALLERY') {
-    return <PublicGalleryScreen token={params?.token} />;
+    return <>{updateBanner}<PublicGalleryScreen token={params?.token} /></>;
   }
 
   // 1. WEBSITE PAGES (Landing, Features, Pricing, Help, About, Contact)
   if (isWebsitePage) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        {updateBanner}
         <Header />
         {view === 'LANDING' ? <WebsiteScreen /> : renderView()}
       </div>
@@ -279,7 +305,8 @@ const App: React.FC = () => {
   // 2. APP LAYOUT (Sidebar + Header + Content)
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-300">
-      
+      {updateBanner}
+
       {/* Desktop Sidebar - Only visible when logged in */}
       {isLoggedIn && (
         <div className="hidden md:block fixed inset-y-0 left-0 z-30">
@@ -289,7 +316,7 @@ const App: React.FC = () => {
 
       {/* Main Content Wrapper */}
       <div className={`flex flex-col min-h-screen ${isLoggedIn ? 'md:pl-64' : ''}`}>
-        
+
         {/* Mobile/Tablet Header - Always visible on mobile, or if not logged in */}
         {/* If logged in, Header component handles its own md:hidden logic, but we render it here to be safe */}
         <Header />

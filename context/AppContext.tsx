@@ -3,6 +3,7 @@ import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus, Receipt, ExpenseCategory, PaymentMethod, Vertical, Loan, PublicGallery, LoanStatus } from '../types';
 import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
+import { clearAllCaches, db } from '../lib/offline';
 
 // --- 1. CONFIGURATION ---
 
@@ -530,6 +531,14 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const processUserSession = async (session: Session): Promise<boolean> => {
     try {
         console.log('Processing user session for:', session.user.email);
+
+        // 0. Clear stale IndexedDB data from previous session before loading fresh data
+        try {
+            await db.clearAllData();
+            console.log('Cleared stale IndexedDB data on login');
+        } catch (e) {
+            console.warn('Failed to clear IndexedDB on login:', e);
+        }
 
         // 1. Fetch user profile from database to get theme preference and organization
         console.log('Fetching profile for user ID:', session.user.id);
@@ -1108,6 +1117,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   const signOut = async () => {
       await supabase.auth.signOut();
+      await clearAllCaches();
       dispatch({ type: 'LOGOUT' });
   };
 
