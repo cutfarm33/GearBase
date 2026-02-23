@@ -91,14 +91,19 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [navigateTo]);
 
-  // Pending deep link — saved when user arrives via QR code but isn't logged in yet
-  const pendingDeepLink = React.useRef<{ view: string; params: Record<string, any> } | null>(null);
+  // Capture deep link from URL on initial page load (before any navigation clears it)
+  const deepLinkParams = new URLSearchParams(window.location.search);
+  const deepLinkItemId = deepLinkParams.get('item');
+  const deepLinkJobId = deepLinkParams.get('job');
+  const initialDeepLink = React.useRef<{ view: string; params: Record<string, any> } | null>(
+    deepLinkItemId ? { view: 'ITEM_DETAIL', params: { itemId: parseInt(deepLinkItemId, 10) } } :
+    deepLinkJobId ? { view: 'JOB_DETAIL', params: { jobId: parseInt(deepLinkJobId, 10) } } :
+    null
+  );
 
-  // Handle deep linking from URL parameters
+  // Handle URL-based routing on mount (non-deep-link routes)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const itemId = urlParams.get('item');
-    const jobId = urlParams.get('job');
 
     // Handle ?checkout=success (Stripe redirect after payment)
     if (urlParams.get('checkout') === 'success') {
@@ -110,7 +115,6 @@ const App: React.FC = () => {
     // Handle /reset-password route (from Supabase password reset email)
     if (window.location.pathname === '/reset-password') {
       navigateTo('RESET_PASSWORD');
-      // Preserve hash fragment (contains recovery token) but clean the path
       const hash = window.location.hash;
       window.history.replaceState({}, '', '/' + hash);
       return;
@@ -132,35 +136,23 @@ const App: React.FC = () => {
     const pathname = window.location.pathname;
     if (pathRoutes[pathname]) {
       navigateTo(pathRoutes[pathname] as any);
-      return;
     }
+  }, []);
 
-    // Deep link: ?item= or ?job=
-    if (itemId || jobId) {
-      const deepLink = itemId
-        ? { view: 'ITEM_DETAIL', params: { itemId: parseInt(itemId, 10) } }
-        : { view: 'JOB_DETAIL', params: { jobId: parseInt(jobId!, 10) } };
+  // Deep link handler — fires when auth state or loading changes
+  useEffect(() => {
+    if (!initialDeepLink.current) return;
+    if (state.isLoading) return; // Still loading — wait
 
-      if (isLoggedIn && !state.isLoading) {
-        // User is logged in — navigate immediately
-        navigateTo(deepLink.view as any, deepLink.params);
-        window.history.replaceState({}, '', window.location.pathname);
-        pendingDeepLink.current = null;
-      } else if (!isLoggedIn && !state.isLoading) {
-        // Not logged in — save the deep link and send to login
-        pendingDeepLink.current = deepLink;
-        navigateTo('LOGIN');
-      }
-      // If still loading, do nothing — the effect will re-run when isLoading changes
-      return;
-    }
-
-    // After login, check if there's a pending deep link to fulfill
-    if (isLoggedIn && !state.isLoading && pendingDeepLink.current) {
-      const dl = pendingDeepLink.current;
-      pendingDeepLink.current = null;
+    if (isLoggedIn) {
+      // Logged in and data loaded — navigate to the item/job
+      const dl = initialDeepLink.current;
+      initialDeepLink.current = null;
       navigateTo(dl.view as any, dl.params);
       window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      // Not logged in — send to login (deep link stays in ref for after login)
+      navigateTo('LOGIN');
     }
   }, [isLoggedIn, state.isLoading, navigateTo]);
 
