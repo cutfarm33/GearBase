@@ -162,7 +162,12 @@ const SignupScreen: React.FC = () => {
               navigateTo('VERIFY_EMAIL');
           }
       } catch (err: any) {
-          setError(err.message || 'Signup failed');
+          const msg = (err.message || '').toLowerCase();
+          if (msg.includes('already registered') || msg.includes('email_exists') || msg.includes('already been registered') || msg.includes('duplicate') || msg.includes('already in use')) {
+              setError('EMAIL_EXISTS');
+          } else {
+              setError(err.message || 'Signup failed');
+          }
       } finally {
           setLoading(false);
       }
@@ -324,7 +329,16 @@ const SignupScreen: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Create your account</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">Start managing your gear for free.</p>
 
-          {error && <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center">{error}</div>}
+          {error && (
+            error === 'EMAIL_EXISTS' ? (
+              <div className="bg-amber-500/10 text-amber-700 dark:text-amber-400 p-3 rounded mb-4 text-sm text-center">
+                This email is already registered.{' '}
+                <button onClick={() => navigateTo('LOGIN')} className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200">Log in instead</button>
+              </div>
+            ) : (
+              <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center">{error}</div>
+            )
+          )}
 
           <div className="space-y-4">
             <div>
@@ -411,7 +425,16 @@ const SignupScreen: React.FC = () => {
           This helps us personalize your experience.
         </p>
 
-        {error && <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center">{error}</div>}
+        {error && (
+            error === 'EMAIL_EXISTS' ? (
+              <div className="bg-amber-500/10 text-amber-700 dark:text-amber-400 p-3 rounded mb-4 text-sm text-center">
+                This email is already registered.{' '}
+                <button onClick={() => navigateTo('LOGIN')} className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200">Log in instead</button>
+              </div>
+            ) : (
+              <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm text-center">{error}</div>
+            )
+          )}
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
