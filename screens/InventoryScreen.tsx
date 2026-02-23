@@ -424,11 +424,12 @@ const InventoryScreen: React.FC = () => {
           return a.name.localeCompare(b.name);
       });
 
-      // Generate QR codes for all items
+      // Generate QR codes for all items (encode full URL so phones open the item page)
       const qrCodes: { [key: string]: string } = {};
       for (const item of sortedItems) {
           try {
-              qrCodes[item.qrCode] = await QRCode.toDataURL(item.qrCode, {
+              const itemUrl = `https://mygearbase.com/?item=${item.id}`;
+              qrCodes[item.qrCode] = await QRCode.toDataURL(itemUrl, {
                   width: 150,
                   margin: 1,
                   color: { dark: '#000000', light: '#ffffff' }
@@ -634,9 +635,10 @@ const InventoryScreen: React.FC = () => {
           if (item.imageUrl) {
               imageCache[item.id] = await loadImageAsBase64(item.imageUrl);
           }
-          // Generate QR code
+          // Generate QR code (encode full URL so phones open the item page)
           try {
-              qrCache[item.qrCode] = await QRCode.toDataURL(item.qrCode, {
+              const itemUrl = `https://mygearbase.com/?item=${item.id}`;
+              qrCache[item.qrCode] = await QRCode.toDataURL(itemUrl, {
                   width: 80,
                   margin: 1,
                   color: { dark: '#000000', light: '#ffffff' }
