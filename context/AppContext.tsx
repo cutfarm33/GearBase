@@ -1489,11 +1489,13 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                return;
           }
           await checkAuth();
+          // Always clear loading after auth check completes (whether session found or not)
+          dispatch({ type: 'SET_LOADING', payload: false });
       };
       
       const safetyTimer = setTimeout(() => {
           dispatch({ type: 'SET_LOADING', payload: false });
-      }, 5000);
+      }, 10000); // Safety fallback only — normal loading clears after checkAuth()
 
       init();
 
