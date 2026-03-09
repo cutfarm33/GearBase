@@ -26,3 +26,10 @@ dist-ssr
 # Large files
 public/animations/Main_LOTTE.json
 public/images/*.psd
+
+# iOS build artifacts
+ios/App/App/public
+ios/App/Pods
+ios/DerivedData
+ios/App/output
+*.xcworkspace/xcuserdata

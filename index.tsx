@@ -2,6 +2,15 @@ import React, { Component, ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProvider } from './context/AppContext';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard } from '@capacitor/keyboard';
+
+// Initialize native plugins when running as a native app
+if (Capacitor.isNativePlatform()) {
+  StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+  Keyboard.setAccessoryBarVisible({ isVisible: true }).catch(() => {});
+}
 
 // Simple Error Boundary Component
 interface ErrorBoundaryProps {
