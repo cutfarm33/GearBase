@@ -375,8 +375,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
           console.log('Starting data formatting...');
 
-          // 2. Format Data
-          const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+          // 2. Format Data — use the queried orgId (already set above) as the fallback
+          const defaultOrgId = orgId;
           const formattedUsers: User[] = (profiles || []).map((p: any) => ({
               id: p.id,
               name: p.full_name || 'Unknown',
@@ -550,7 +550,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                       const cachedKits = await db.kits.where('organization_id').equals(orgId).toArray();
 
                       if (cachedItems.length > 0) {
-                          const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+                          const defaultOrgId = orgId;
                           const offlineInventory: InventoryItem[] = cachedItems.map((i: any) => ({
                               id: i.id,
                               name: i.name,
@@ -710,8 +710,9 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         const full_name = profileData?.full_name || full_name_from_meta;
         const userTheme = (profileData?.theme as Theme) || 'dark';
 
-        // Default organization_id if not set (for backwards compatibility with existing users)
-        const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+        // Default organization_id: use the user's own auth ID to ensure data isolation
+        // Never use a shared/hardcoded ID — that would leak data between accounts
+        const defaultOrgId = session.user.id;
         // Use active_organization_id if set, otherwise fall back to organization_id
         const orgId = profileData?.active_organization_id || profileData?.organization_id || defaultOrgId;
 
@@ -868,7 +869,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                   console.error('Login timed out, proceeding with minimal profile');
                   // Create a minimal profile so user can at least log in
                   const email = session.user.email || `user-${session.user.id}@example.com`;
-                  const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+                  const defaultOrgId = session.user.id;
                   dispatch({ type: 'SET_CURRENT_USER', payload: {
                       id: session.user.id,
                       name: session.user.user_metadata?.full_name || email.split('@')[0],
@@ -1075,7 +1076,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
           // Store email lowercase for consistent matching during auto-merge
           const fakeEmail = email?.toLowerCase() || `${name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}.${uniqueSuffix}@offline.user`;
           // CRITICAL: Use the same organization ID logic as refreshData
-          const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
+          const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || state.currentUser?.id || 'unknown';
 
           console.log('Adding team member:', { name, role, email: fakeEmail, organizationId });
 
@@ -1640,7 +1641,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                } catch (timeoutError) {
                    console.error('Auth state handler timed out, creating minimal profile');
                    const email = session.user.email || `user-${session.user.id}@example.com`;
-                   const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+                   const defaultOrgId = session.user.id;
                    dispatch({ type: 'SET_CURRENT_USER', payload: {
                        id: session.user.id,
                        name: session.user.user_metadata?.full_name || email.split('@')[0],

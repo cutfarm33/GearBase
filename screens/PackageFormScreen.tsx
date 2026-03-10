@@ -113,7 +113,7 @@ const PackageFormScreen: React.FC<{ kitId?: number }> = ({ kitId }) => {
                 if (deleteError) throw deleteError;
             } else {
                 // Create Kit
-                const organizationId = state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000';
+                const organizationId = state.currentUser?.active_organization_id || state.currentUser?.organization_id || state.currentUser?.id || 'unknown';
                 const { data, error } = await supabase.from('kits').insert({ name, organization_id: organizationId }).select().single();
                 
                 if (error) {

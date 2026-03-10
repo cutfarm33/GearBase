@@ -301,7 +301,7 @@ const ImportInventoryScreen: React.FC = () => {
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
             image_url: imageUrl,
-            organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
+            organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || state.currentUser?.id || 'unknown',
             purchase_date: new Date().toISOString().split('T')[0] // Default to today
             // Note: history is not a database column, it's computed from transactions table
         });
@@ -412,7 +412,7 @@ const ImportInventoryScreen: React.FC = () => {
             status: ItemStatus.AVAILABLE,
             condition: ItemCondition.GOOD,
             image_url: imageUrl,
-            organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || '00000000-0000-0000-0000-000000000000',
+            organization_id: state.currentUser?.active_organization_id || state.currentUser?.organization_id || state.currentUser?.id || 'unknown',
             purchase_date: new Date().toISOString().split('T')[0] // Default to today
             // Note: history is not a database column, it's computed from transactions table
         });
