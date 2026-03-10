@@ -3,7 +3,8 @@ import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, ItemCondition, TransactionLog, Theme, TransactionType, UserRole, JobStatus, Receipt, ExpenseCategory, PaymentMethod, Vertical, Loan, PublicGallery, LoanStatus } from '../types';
 import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
-import { clearAllCaches, db } from '../lib/offline';
+import { clearAllCaches, db, syncQueue, syncEngine } from '../lib/offline';
+import { createSyncableRecord, markAsModified } from '../lib/offline/db';
 
 // --- 1. CONFIGURATION ---
 
@@ -122,12 +123,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       // Only navigate to DASHBOARD if user is logging in for the first time (no previous user)
       // Don't change view if user is already logged in (token refresh, reconnect, etc.)
       // Also preserve PUBLIC_GALLERY view since it should be accessible to everyone regardless of auth state
-      // Don't navigate to DASHBOARD if there's a deep link in the URL — let the deep link effect handle it
-      const hasDeepLink = typeof window !== 'undefined' && (
-        new URLSearchParams(window.location.search).has('item') ||
-        new URLSearchParams(window.location.search).has('job')
-      );
-      const shouldNavigate = action.payload && !state.currentUser && state.currentView.view !== 'PUBLIC_GALLERY' && !hasDeepLink;
+      const shouldNavigate = action.payload && !state.currentUser && state.currentView.view !== 'PUBLIC_GALLERY';
       return {
           ...state,
           currentUser: action.payload,
@@ -520,13 +516,92 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               }
           });
 
+          // Cache fetched data to IndexedDB for offline access
+          try {
+              const orgId = overrideOrgId || state.currentUser?.active_organization_id || state.currentUser?.organization_id;
+              if (items && items.length > 0) {
+                  await db.inventory.bulkPut(items.map((i: any) => createSyncableRecord(i, 'synced')));
+              }
+              if (jobsData && jobsData.length > 0) {
+                  await db.jobs.bulkPut(jobsData.map((j: any) => createSyncableRecord({ ...j, job_items: undefined }, 'synced')));
+              }
+              if (kitsData && kitsData.length > 0) {
+                  await db.kits.bulkPut(kitsData.map((k: any) => createSyncableRecord({ ...k, kit_items: undefined }, 'synced')));
+              }
+              console.log('[Offline] Cached data to IndexedDB');
+          } catch (cacheErr) {
+              console.warn('[Offline] Failed to cache to IndexedDB:', cacheErr);
+          }
+
           console.log('Data refresh completed successfully');
 
       } catch (err: any) {
           // FIX: Safely log error string to prevent [object Object]
           const message = err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
           console.error("Error fetching data:", message);
-          // DO NOT dispatch SET_DATA on error - preserve existing data
+
+          // Offline fallback: try loading from IndexedDB
+          if (!navigator.onLine) {
+              try {
+                  const orgId = overrideOrgId || state.currentUser?.active_organization_id || state.currentUser?.organization_id;
+                  if (orgId) {
+                      const cachedItems = await db.inventory.where('organization_id').equals(orgId).toArray();
+                      const cachedJobs = await db.jobs.where('organization_id').equals(orgId).toArray();
+                      const cachedKits = await db.kits.where('organization_id').equals(orgId).toArray();
+
+                      if (cachedItems.length > 0) {
+                          const defaultOrgId = '00000000-0000-0000-0000-000000000000';
+                          const offlineInventory: InventoryItem[] = cachedItems.map((i: any) => ({
+                              id: i.id,
+                              name: i.name,
+                              qrCode: i.qr_code,
+                              category: i.category,
+                              status: i.status as ItemStatus,
+                              condition: i.condition,
+                              notes: i.notes,
+                              purchaseDate: i.purchase_date,
+                              value: i.value,
+                              weight: i.weight,
+                              storageCase: i.storage_case,
+                              imageUrl: i.image_url || `https://picsum.photos/seed/${i.name.replace(/[^a-zA-Z0-9]/g,'')}/200`,
+                              history: [],
+                              organization_id: i.organization_id || defaultOrgId,
+                              custom_fields: i.custom_fields || {}
+                          }));
+
+                          const offlineJobs: Job[] = cachedJobs.map((j: any) => ({
+                              id: j.id, name: j.name, producerId: j.producer_id,
+                              startDate: j.start_date, endDate: j.end_date,
+                              startTime: j.start_time || undefined,
+                              soundCheckTime: j.sound_check_time || undefined,
+                              status: j.status, gearList: [],
+                              organization_id: j.organization_id || defaultOrgId
+                          }));
+
+                          const offlineKits: Kit[] = cachedKits.map((k: any) => ({
+                              id: k.id, name: k.name, itemIds: [],
+                              organization_id: k.organization_id || defaultOrgId
+                          }));
+
+                          dispatch({
+                              type: 'SET_DATA',
+                              payload: {
+                                  inventory: offlineInventory,
+                                  users: state.users || [],
+                                  jobs: offlineJobs,
+                                  kits: offlineKits,
+                                  transactions: state.transactions || [],
+                                  receipts: state.receipts || [],
+                                  loans: state.loans || []
+                              }
+                          });
+                          console.log('[Offline] Loaded', cachedItems.length, 'items from IndexedDB');
+                      }
+                  }
+              } catch (offlineErr) {
+                  console.warn('[Offline] Failed to load from IndexedDB:', offlineErr);
+              }
+          }
       } finally {
           refreshInProgress.current = false;
           if (!silent) dispatch({ type: 'SET_LOADING', payload: false });
@@ -950,12 +1025,23 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const deleteInventoryItem = async (itemId: number) => {
     try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        await supabase.from('job_items').delete().eq('item_id', itemId);
-        await supabase.from('transaction_items').delete().eq('item_id', itemId);
-        const { error } = await supabase.from('inventory').delete().eq('id', itemId);
-        if (error) throw error;
+
+        if (navigator.onLine) {
+            await supabase.from('job_items').delete().eq('item_id', itemId);
+            await supabase.from('transaction_items').delete().eq('item_id', itemId);
+            const { error } = await supabase.from('inventory').delete().eq('id', itemId);
+            if (error) throw error;
+        } else {
+            // Offline: delete from IndexedDB and queue for sync
+            const existing = await db.inventory.get(itemId);
+            await db.inventory.delete(itemId);
+            if (existing && existing._syncStatus === 'synced') {
+                await syncQueue.enqueue('inventory', 'delete', itemId, null);
+            }
+        }
+
         dispatch({ type: 'DELETE_INVENTORY_ITEM_LOCAL', payload: itemId });
-        await refreshData(true);
+        if (navigator.onLine) await refreshData(true);
     } catch (error: any) {
         console.error("Delete Item Failed:", error);
         const message = error.message || JSON.stringify(error);
@@ -1100,8 +1186,8 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const updateInventoryItem = async (item: InventoryItem) => {
       try {
           dispatch({ type: 'UPDATE_INVENTORY_ITEM_LOCAL', payload: item });
-          
-          const { error } = await supabase.from('inventory').update({
+
+          const dbPayload = {
               name: item.name,
               category: item.category,
               qr_code: item.qrCode,
@@ -1109,18 +1195,29 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               condition: item.condition,
               purchase_date: item.purchaseDate || null,
               value: item.value,
-              weight: item.weight, 
+              weight: item.weight,
               storage_case: item.storageCase,
               image_url: item.imageUrl,
               notes: item.notes
-          }).eq('id', item.id);
+          };
 
-          if (error) throw error;
+          if (navigator.onLine) {
+              const { error } = await supabase.from('inventory').update(dbPayload).eq('id', item.id);
+              if (error) throw error;
+          } else {
+              // Offline: update IndexedDB and queue for sync
+              const existing = await db.inventory.get(item.id);
+              if (existing) {
+                  const updated = markAsModified({ ...existing, ...dbPayload });
+                  await db.inventory.put(updated);
+                  await syncQueue.enqueue('inventory', 'update', item.id, updated);
+              }
+          }
       } catch (err: any) {
           console.error("Update Inventory Error:", err);
           const message = err.message || JSON.stringify(err);
           alert("Failed to update item. " + message);
-          refreshData(true);
+          if (navigator.onLine) refreshData(true);
       }
   };
 

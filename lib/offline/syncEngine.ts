@@ -185,7 +185,12 @@ export class SyncEngine {
             _lastModified: Date.now()
           });
           // Remove from sync queue since we're discarding local changes
-          await db.syncQueue.where({ table, recordId: serverRecord.id }).delete();
+          const queueEntries = await db.syncQueue.filter(
+            e => e.table === table && String(e.recordId) === String(serverRecord.id)
+          ).toArray();
+          for (const entry of queueEntries) {
+            if (entry.id) await db.syncQueue.delete(entry.id);
+          }
         } else if (resolution.resolution === 'local') {
           // Keep local - it will be pushed later
         } else if (resolution.resolution === 'merge' && resolution.mergedData) {

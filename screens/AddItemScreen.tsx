@@ -3,10 +3,11 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
 import { ItemStatus, ItemCondition } from '../types';
-import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy } from 'lucide-react';
+import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy, WifiOff } from 'lucide-react';
+import { db, syncQueue, createSyncableRecord } from '../lib/offline';
 
 const AddItemScreen: React.FC = () => {
-  const { state, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
+  const { state, dispatch, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
   const { categories: verticalCategories, t, vertical } = useVertical();
   const [isSaving, setIsSaving] = useState(false);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
@@ -111,19 +112,49 @@ const AddItemScreen: React.FC = () => {
             organization_id: organizationId,
         };
 
-        const { error } = await supabase.from('inventory').insert(newItem);
+        if (navigator.onLine) {
+            // Online: save directly to Supabase
+            const { error } = await supabase.from('inventory').insert(newItem);
 
-        if (error) {
-            // Check for "Undefined Column" error (42703) specifically for 'weight' or 'storage_case'
-            if (error.code === '42703') {
-                setShowDbError(true);
-                setIsSaving(false);
-                return;
+            if (error) {
+                if (error.code === '42703') {
+                    setShowDbError(true);
+                    setIsSaving(false);
+                    return;
+                }
+                throw error;
             }
-            throw error;
+
+            await refreshData();
+        } else {
+            // Offline: save to IndexedDB and queue for sync
+            const localRecord = createSyncableRecord(newItem, 'pending');
+            const localId = await db.inventory.add(localRecord as any);
+            await syncQueue.enqueue('inventory', 'create', localId, { ...localRecord, id: localId });
+
+            // Add to local state so it appears immediately
+            dispatch({
+                type: 'ADD_INVENTORY_ITEM_LOCAL',
+                payload: {
+                    id: localId,
+                    name: newItem.name,
+                    qrCode: newItem.qr_code,
+                    category: newItem.category,
+                    status: ItemStatus.AVAILABLE,
+                    condition: ItemCondition.GOOD,
+                    notes: newItem.notes || undefined,
+                    purchaseDate: newItem.purchase_date || undefined,
+                    value: newItem.value ?? undefined,
+                    weight: newItem.weight ?? undefined,
+                    storageCase: newItem.storage_case || undefined,
+                    imageUrl: newItem.image_url,
+                    history: [],
+                    organization_id: newItem.organization_id,
+                    custom_fields: {}
+                }
+            });
         }
 
-        await refreshData();
         navigateTo('INVENTORY');
 
     } catch (error: any) {

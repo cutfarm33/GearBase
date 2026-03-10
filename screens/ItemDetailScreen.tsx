@@ -6,6 +6,7 @@ import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSigna
 import ConfirmModal from '../components/ConfirmModal';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
 import { getItemDeepLink, copyToClipboard } from '../utils/deepLinks';
+import { db, syncQueue, markAsModified } from '../lib/offline';
 
 const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
   const { state, dispatch, findItem, findJob, findUser, navigateTo, deleteInventoryItem, supabase, refreshData, uploadImage, createTransaction } = useAppContext();
@@ -116,7 +117,7 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
 
           const updatedItem = { ...editForm, imageUrl: finalImageUrl };
 
-          const { error } = await supabase.from('inventory').update({
+          const dbPayload = {
               name: updatedItem.name,
               category: updatedItem.category,
               qr_code: updatedItem.qrCode,
@@ -124,19 +125,31 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
               condition: updatedItem.condition,
               purchase_date: updatedItem.purchaseDate || null,
               value: updatedItem.value,
-              weight: updatedItem.weight, 
+              weight: updatedItem.weight,
               storage_case: updatedItem.storageCase,
               image_url: updatedItem.imageUrl,
               notes: updatedItem.notes
-          }).eq('id', updatedItem.id);
+          };
 
-          if (error) {
-              if (error.code === '42703') {
-                  setShowDbError(true);
-                  setIsSaving(false);
-                  return;
+          if (navigator.onLine) {
+              const { error } = await supabase.from('inventory').update(dbPayload).eq('id', updatedItem.id);
+
+              if (error) {
+                  if (error.code === '42703') {
+                      setShowDbError(true);
+                      setIsSaving(false);
+                      return;
+                  }
+                  throw error;
               }
-              throw error;
+          } else {
+              // Offline: update IndexedDB and queue for sync
+              const existing = await db.inventory.get(updatedItem.id);
+              if (existing) {
+                  const updated = markAsModified({ ...existing, ...dbPayload });
+                  await db.inventory.put(updated);
+                  await syncQueue.enqueue('inventory', 'update', updatedItem.id, updated);
+              }
           }
 
           dispatch({ type: 'UPDATE_INVENTORY_ITEM_LOCAL', payload: updatedItem });

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext, supabase } from './context/AppContext';
 import DashboardScreen from './screens/DashboardScreen';
-import { registerServiceWorker, useAutoSync, useOnlineStatus, syncEngine } from './lib/offline';
+import { registerServiceWorker, useAutoSync, useOnlineStatus, usePendingSyncCount, syncEngine } from './lib/offline';
 import JobListScreen from './screens/JobListScreen';
 import JobDetailScreen from './screens/JobDetailScreen';
 import InventoryScreen from './screens/InventoryScreen';
@@ -41,11 +41,12 @@ import Sidebar from './components/Sidebar';
 import { Loader, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
-  const { state, isConfigured, navigateTo } = useAppContext();
+  const { state, isConfigured, navigateTo, refreshData } = useAppContext();
   const { view, params } = state.currentView;
   const isLoggedIn = !!state.currentUser;
   const isWebsitePage = ['LANDING', 'FEATURES', 'PRICING', 'HELP', 'ABOUT', 'CONTACT', 'PRIVACY', 'TERMS', 'CHECKOUT_SUCCESS'].includes(view);
   const isOnline = useOnlineStatus();
+  const pendingSyncCount = usePendingSyncCount();
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   // Get organization ID for sync
@@ -71,6 +72,18 @@ const App: React.FC = () => {
       syncEngine.initialize(supabase, organizationId);
     }
   }, [isConfigured, isLoggedIn, organizationId]);
+
+  // When coming back online, sync pending changes then refresh data
+  useEffect(() => {
+    if (isOnline && isLoggedIn) {
+      triggerSync().then((result) => {
+        if (result && result.synced > 0) {
+          console.log(`[Sync] Synced ${result.synced} items, refreshing data...`);
+          refreshData(true);
+        }
+      }).catch(() => {});
+    }
+  }, [isOnline]);
 
   // Handle hash-based routing for public gallery (e.g., /#/gallery/{token})
   useEffect(() => {
@@ -289,6 +302,25 @@ const App: React.FC = () => {
     </div>
   ) : null;
 
+  // Offline / pending sync indicator (shown when logged in)
+  const offlineBanner = isLoggedIn && (!isOnline || pendingSyncCount > 0) ? (
+    <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-xs font-semibold shadow-lg flex items-center gap-2 ${
+      !isOnline ? 'bg-amber-500 text-white' : 'bg-sky-500 text-white'
+    }`}>
+      {!isOnline ? (
+        <>
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+          Offline Mode {pendingSyncCount > 0 ? `· ${pendingSyncCount} pending` : ''}
+        </>
+      ) : (
+        <>
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+          Syncing {pendingSyncCount} change{pendingSyncCount !== 1 ? 's' : ''}...
+        </>
+      )}
+    </div>
+  ) : null;
+
   // --- LAYOUT LOGIC ---
 
   // 0. PUBLIC GALLERY (Standalone full-page view, no app chrome)
@@ -311,6 +343,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-300">
       {updateBanner}
+      {offlineBanner}
 
       {/* Desktop Sidebar - Only visible when logged in */}
       {isLoggedIn && (

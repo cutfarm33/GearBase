@@ -27,8 +27,9 @@ export class SyncQueueManager {
 
     // Check for existing entry for same record - merge if exists
     const existing = await db.syncQueue
-      .where('[table+recordId]')
-      .equals([table, recordId])
+      .where('status')
+      .equals('pending')
+      .filter(e => e.table === table && String(e.recordId) === String(recordId))
       .first();
 
     if (existing) {
