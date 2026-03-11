@@ -895,7 +895,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       if (!state.currentUser) throw new Error("Must be logged in to upload");
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `${state.currentUser.id}/${fileName}`;
       const { error: uploadError } = await supabase.storage.from('inventory').upload(filePath, file);
       if (uploadError) throw new Error("Upload failed. " + uploadError.message);
       const { data } = supabase.storage.from('inventory').getPublicUrl(filePath);
@@ -1254,7 +1254,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const uploadReceiptImage = async (file: File): Promise<string> => {
       if (!state.currentUser) throw new Error("Must be logged in to upload");
       const fileExt = file.name.split('.').pop();
-      const fileName = `receipts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileName = `${state.currentUser.id}/receipts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('inventory').upload(fileName, file);
       if (uploadError) throw new Error("Upload failed. " + uploadError.message);
       const { data } = supabase.storage.from('inventory').getPublicUrl(fileName);
