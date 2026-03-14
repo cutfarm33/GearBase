@@ -5,6 +5,8 @@ import { Job, InventoryItem, User, Kit, Transaction, ViewState, ItemStatus, Item
 import { demoInventory, demoJobs, demoKits } from '../lib/demoData';
 import { clearAllCaches, db, syncQueue, syncEngine } from '../lib/offline';
 import { createSyncableRecord, markAsModified } from '../lib/offline/db';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 
 // --- 1. CONFIGURATION ---
 
@@ -245,6 +247,7 @@ interface AppContextType {
   ) => Promise<boolean>;
   updateInventoryItem: (item: InventoryItem) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   toggleTheme: () => Promise<void>;
   loadDemoData: () => Promise<boolean>;
   // Receipt methods
@@ -891,6 +894,12 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       return false;
   };
 
+  const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
+      if (Capacitor.isNativePlatform()) {
+          await Haptics.impact({ style }).catch(() => {});
+      }
+  };
+
   const uploadImage = async (file: File): Promise<string> => {
       if (!state.currentUser) throw new Error("Must be logged in to upload");
       const fileExt = file.name.split('.').pop();
@@ -903,9 +912,10 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   };
 
   const createTransaction = async (
-      transaction: Omit<Transaction, 'id' | 'timestamp'>, 
+      transaction: Omit<Transaction, 'id' | 'timestamp'>,
       updatedItems: { itemId: number; newStatus: ItemStatus; newCondition: ItemCondition; notes?: string; isMissing?: boolean }[]
   ): Promise<boolean> => {
+      await hapticFeedback(ImpactStyle.Medium);
       try {
           dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -1024,6 +1034,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   };
 
   const deleteInventoryItem = async (itemId: number) => {
+    await hapticFeedback(ImpactStyle.Heavy);
     try {
         dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -1223,7 +1234,20 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   };
 
   const signOut = async () => {
+      await hapticFeedback(ImpactStyle.Light);
       await supabase.auth.signOut();
+      await clearAllCaches();
+      dispatch({ type: 'LOGOUT' });
+  };
+
+  const deleteAccount = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error) throw new Error(error.message || 'Failed to delete account');
+      if (data?.error) throw new Error(data.error);
       await clearAllCaches();
       dispatch({ type: 'LOGOUT' });
   };
@@ -1679,7 +1703,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, createLoan, returnLoan, deleteLoan }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, deleteAccount, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, createLoan, returnLoan, deleteLoan }}>
       {children}
     </AppContext.Provider>
   );

@@ -2,10 +2,13 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
-import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music, Share2 } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music, Share2, Trash2 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
-  const { state, dispatch, navigateTo, signOut, toggleTheme } = useAppContext();
+  const { state, dispatch, navigateTo, signOut, deleteAccount, toggleTheme } = useAppContext();
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = React.useState('');
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const { view } = state.currentView;
   const { t, features, vertical } = useVertical();
 
@@ -114,7 +117,61 @@ const Sidebar: React.FC = () => {
                 <span className="text-xs font-medium">Log Out</span>
             </button>
           </div>
+
+          <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full flex items-center justify-center gap-2 p-2 rounded-xl text-xs text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+          >
+              <Trash2 size={14} />
+              <span>Delete Account</span>
+          </button>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-red-600 dark:text-red-400">Delete Account</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              This will permanently delete your account and all associated data including inventory items, jobs, receipts, and uploaded images. This action cannot be undone.
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Type <strong>DELETE</strong> to confirm:
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+              placeholder="Type DELETE"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
+                className="flex-1 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    await deleteAccount();
+                  } catch (err: any) {
+                    alert('Failed to delete account: ' + (err.message || 'Unknown error'));
+                    setIsDeleting(false);
+                  }
+                }}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

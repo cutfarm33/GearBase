@@ -6,6 +6,13 @@ import { UserRole, Vertical } from '../types';
 import { getAllVerticals, getVerticalConfig, getRolesForVertical } from '../lib/verticalConfig';
 import { trackSignupStart, trackSignupComplete } from '../lib/analytics';
 
+// Apple logo SVG component
+const AppleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13.71 14.45c-.6.87-1.24 1.73-2.22 1.75-.97.02-1.28-.58-2.39-.58-1.11 0-1.45.56-2.37.6-1 .04-1.69-.94-2.3-1.81C3.1 12.5 2.17 9.24 3.53 7.06c.67-1.08 1.88-1.77 3.18-1.79.94-.02 1.83.63 2.4.63.57 0 1.65-.78 2.78-.67.47.02 1.8.19 2.66 1.44-.07.04-1.59.93-1.57 2.76.02 2.2 1.93 2.93 1.95 2.94-.02.05-.3 1.05-1.22 2.08zM11.18 3.5c.5-.61.84-1.45.75-2.3-.72.03-1.6.48-2.12 1.09-.46.54-.87 1.4-.76 2.23.81.06 1.63-.41 2.13-1.02z" fill="currentColor"/>
+  </svg>
+);
+
 // Google "G" logo SVG component
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -33,6 +40,7 @@ const SignupScreen: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   const verticals = getAllVerticals();
 
@@ -60,6 +68,29 @@ const SignupScreen: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to sign up with Google');
       setGoogleLoading(false);
+      localStorage.removeItem('gearbase_pending_signup');
+    }
+  };
+
+  const handleAppleSignup = async () => {
+    setError('');
+    setAppleLoading(true);
+    try {
+      // Save the selected vertical to localStorage before OAuth redirect
+      localStorage.setItem('gearbase_pending_signup', JSON.stringify({
+        vertical: formData.vertical
+      }));
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign up with Apple');
+      setAppleLoading(false);
       localStorage.removeItem('gearbase_pending_signup');
     }
   };
@@ -287,6 +318,16 @@ const SignupScreen: React.FC = () => {
           >
             <GoogleIcon />
             {googleLoading ? 'Connecting...' : 'Continue with Google'}
+          </button>
+
+          {/* Apple Sign Up */}
+          <button
+            onClick={handleAppleSignup}
+            disabled={appleLoading}
+            className="w-full flex items-center justify-center gap-3 bg-black dark:bg-slate-900 border border-black dark:border-slate-600 text-white font-medium py-3 rounded-lg hover:bg-gray-900 dark:hover:bg-black transition-colors disabled:opacity-50 mt-3"
+          >
+            <AppleIcon />
+            {appleLoading ? 'Connecting...' : 'Continue with Apple'}
           </button>
 
           <div className="mt-6 text-center">

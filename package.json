@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@capacitor/core": "^8.2.0",
+    "@capacitor/haptics": "^8.0.1",
     "@capacitor/ios": "^8.2.0",
     "@capacitor/keyboard": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.1",
     "@supabase/supabase-js": "^2.39.3",

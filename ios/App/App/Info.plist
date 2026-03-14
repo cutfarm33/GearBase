@@ -47,5 +47,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>GearBase needs camera access to take photos of inventory items and receipts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>GearBase needs photo library access to attach images to inventory items and receipts.</string>
 </dict>
 </plist>

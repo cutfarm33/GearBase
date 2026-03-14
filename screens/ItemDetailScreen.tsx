@@ -2,10 +2,12 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, InventoryItem, JobStatus, TransactionType, PREDEFINED_CATEGORIES } from '../types';
-import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode, Loader } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode, Loader, Share2 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
 import { getItemDeepLink, copyToClipboard } from '../utils/deepLinks';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { db, syncQueue, markAsModified } from '../lib/offline';
 
 const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
@@ -159,6 +161,19 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
       } finally {
           setIsSaving(false);
       }
+  };
+
+  const handleShare = async () => {
+    if (!item) return;
+    if (Capacitor.isNativePlatform()) {
+        await Share.share({
+            title: item.name,
+            text: `${item.name} - ${item.category} (${item.status})`,
+            url: getItemDeepLink(item.id),
+        });
+    } else {
+        await copyToClipboard(getItemDeepLink(item.id));
+    }
   };
 
   const handleDelete = async () => {
@@ -659,6 +674,7 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
             {!isEditing ? (
                 <>
                     <button onClick={startEdit} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-sky-100 dark:hover:bg-sky-500/10"><Edit size={16} /> Edit</button>
+                    <button onClick={handleShare} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-emerald-100 dark:hover:bg-emerald-500/10"><Share2 size={16} /> Share</button>
                     <button onClick={() => { if(isUnavailable) { alert("Check in first."); return; } setShowDeleteModal(true); }} className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors font-semibold px-3 py-1 rounded hover:bg-red-100 dark:hover:bg-red-500/10"><Trash2 size={16} /> Delete</button>
                 </>
             ) : (

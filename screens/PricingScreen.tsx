@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAppContext, supabase } from '../context/AppContext';
 import { CheckCircle, Zap, Users, Infinity, Crown, Loader, AlertCircle } from 'lucide-react';
 import { trackPricingView, trackPlanSelect, trackFounderPurchase } from '../lib/analytics';
@@ -7,6 +8,7 @@ import { createCheckoutSession } from '../lib/stripe';
 const PricingScreen: React.FC = () => {
   const { navigateTo, state } = useAppContext();
   const isLoggedIn = !!state.currentUser;
+  const isNativeApp = Capacitor.isNativePlatform();
 
   const [founderCount, setFounderCount] = useState<number | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -37,6 +39,11 @@ const PricingScreen: React.FC = () => {
   const founderAvailable = spotsRemaining !== null && spotsRemaining > 0;
 
   const handleFounderCheckout = async () => {
+    if (isNativeApp) {
+      alert("To purchase the Founder's Deal, please visit mygearbase.com/pricing in your browser.");
+      return;
+    }
+
     if (!isLoggedIn) {
       // Save intent so we can redirect after signup
       localStorage.setItem('gearbase_checkout_intent', 'founder');
@@ -95,7 +102,7 @@ const PricingScreen: React.FC = () => {
         'Founder Badge'
       ],
       cta: founderAvailable
-        ? `Become a Founder (${spotsRemaining} left)`
+        ? (isNativeApp ? 'Purchase at mygearbase.com' : `Become a Founder (${spotsRemaining} left)`)
         : 'Sold Out',
       highlighted: true,
       available: founderAvailable,

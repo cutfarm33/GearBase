@@ -5,6 +5,7 @@ import { AppProvider } from './context/AppContext';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
+import { Haptics } from '@capacitor/haptics';
 
 // Initialize native plugins when running as a native app
 if (Capacitor.isNativePlatform()) {
