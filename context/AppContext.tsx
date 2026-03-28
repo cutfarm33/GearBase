@@ -60,6 +60,7 @@ interface AppState {
   theme: Theme;
   isLoading: boolean;
   pendingEmail?: string;
+  orgLogoUrl?: string;
 }
 
 type Action =
@@ -241,6 +242,8 @@ interface AppContextType {
   deleteTeamMember: (id: string) => Promise<void>;
   mergeOfflineProfile: (offlineId: string, realUserId: string) => Promise<void>;
   uploadImage: (file: File) => Promise<string>;
+  uploadLogo: (file: File) => Promise<string>;
+  removeLogo: () => Promise<void>;
   createTransaction: (
       transaction: Omit<Transaction, 'id' | 'timestamp'>,
       updatedItems: { itemId: number; newStatus: ItemStatus; newCondition: ItemCondition; notes?: string; isMissing?: boolean }[]
@@ -418,6 +421,10 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
               assignedToName: t.assigned_to_name,
               timestamp: t.timestamp,
               signature: t.signature_url,
+              latitude: t.latitude,
+              longitude: t.longitude,
+              locationName: t.location_name,
+              locationAddress: t.location_address,
               items: (t.transaction_items || []).map((ti: any) => ({
                   itemId: ti.item_id,
                   startCondition: ti.condition as ItemCondition,
@@ -734,7 +741,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         try {
             const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
-                .select('vertical')
+                .select('vertical, logo_url')
                 .eq('id', orgId)
                 .maybeSingle();
 
@@ -745,6 +752,9 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
                 console.log('Organization vertical loaded:', orgVertical);
             } else {
                 console.log('No organization found for id:', orgId, '- defaulting to film');
+            }
+            if (orgData?.logo_url) {
+                dispatch({ type: 'SET_DATA', payload: { orgLogoUrl: orgData.logo_url } });
             }
         } catch (err) {
             console.log('Could not fetch organization vertical, defaulting to film');
@@ -900,6 +910,31 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
       }
   };
 
+  const uploadLogo = async (file: File): Promise<string> => {
+      if (!state.currentUser) throw new Error("Must be logged in to upload");
+      const orgId = state.currentUser.active_organization_id || state.currentUser.organization_id;
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${orgId}/logo.${fileExt}`;
+      // Remove old logo first (upsert not supported, so remove then upload)
+      await supabase.storage.from('inventory').remove([filePath]).catch(() => {});
+      const { error: uploadError } = await supabase.storage.from('inventory').upload(filePath, file, { upsert: true });
+      if (uploadError) throw new Error("Logo upload failed. " + uploadError.message);
+      const { data } = supabase.storage.from('inventory').getPublicUrl(filePath);
+      const logoUrl = data.publicUrl;
+      // Save to organization record
+      await supabase.from('organizations').update({ logo_url: logoUrl }).eq('id', orgId);
+      dispatch({ type: 'SET_DATA', payload: { orgLogoUrl: logoUrl } });
+      return logoUrl;
+  };
+
+  const removeLogo = async () => {
+      if (!state.currentUser) return;
+      const orgId = state.currentUser.active_organization_id || state.currentUser.organization_id;
+      // Clear from DB
+      await supabase.from('organizations').update({ logo_url: null }).eq('id', orgId);
+      dispatch({ type: 'SET_DATA', payload: { orgLogoUrl: undefined } });
+  };
+
   const uploadImage = async (file: File): Promise<string> => {
       if (!state.currentUser) throw new Error("Must be logged in to upload");
       const fileExt = file.name.split('.').pop();
@@ -932,7 +967,11 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
             assigned_to_id: sanitizedAssignedToId,
             assigned_to_name: transaction.assignedToName || null,
             signature_url: transaction.signature,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            latitude: transaction.latitude || null,
+            longitude: transaction.longitude || null,
+            location_name: transaction.locationName || null,
+            location_address: transaction.locationAddress || null
         }).select().single();
 
           if (txError) throw txError;
@@ -1703,7 +1742,7 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const findJob = (id: number) => state.jobs.find(job => job.id === id);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, createTransaction, updateInventoryItem, signOut, deleteAccount, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, createLoan, returnLoan, deleteLoan }}>
+    <AppContext.Provider value={{ state, dispatch, supabase, navigateTo, findItem, findUser, findJob, refreshData, checkAuth, isConfigured, deleteJob, deleteInventoryItem, deleteKit, addTeamMember, updateTeamMember, deleteTeamMember, mergeOfflineProfile, uploadImage, uploadLogo, removeLogo, createTransaction, updateInventoryItem, signOut, deleteAccount, toggleTheme, loadDemoData, createReceipt, updateReceipt, deleteReceipt, uploadReceiptImage, createLoan, returnLoan, deleteLoan }}>
       {children}
     </AppContext.Provider>
   );

@@ -3,10 +3,12 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemStatus, ItemCondition, InventoryItem, JobStatus, TransactionType, PREDEFINED_CATEGORIES } from '../types';
 import { ArrowLeft, Trash2, Edit, Save, X, LogOut, LogIn, PackagePlus, FileSignature, Camera, Image as ImageIcon, Database, Check, Copy, Calendar, Briefcase, User, AlertCircle, QrCode, Loader, Share2 } from 'lucide-react';
+import LocationPicker from '../components/LocationPicker';
 import ConfirmModal from '../components/ConfirmModal';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
 import { getItemDeepLink, copyToClipboard } from '../utils/deepLinks';
 import { Share } from '@capacitor/share';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { db, syncQueue, markAsModified } from '../lib/offline';
 
@@ -47,6 +49,8 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
   });
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [conflictWarning, setConflictWarning] = useState<{ jobName: string, start: string, end: string } | null>(null);
+  const [quickLocation, setQuickLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [quickLocationName, setQuickLocationName] = useState('');
 
   // --- PACKAGE STATE ---
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
@@ -85,6 +89,28 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
           setIsCustomCategory(false);
           setPreviewUrl(null);
           setSelectedFile(null);
+      }
+  };
+
+  const handleNativeCamera = async (source: CameraSource) => {
+      try {
+          const photo = await CapCamera.getPhoto({
+              quality: 85,
+              allowEditing: false,
+              resultType: CameraResultType.DataUrl,
+              source,
+          });
+          if (photo.dataUrl) {
+              const res = await fetch(photo.dataUrl);
+              const blob = await res.blob();
+              const file = new File([blob], `item-${Date.now()}.${photo.format || 'jpeg'}`, { type: `image/${photo.format || 'jpeg'}` });
+              setSelectedFile(file);
+              setPreviewUrl(photo.dataUrl);
+          }
+      } catch (err: any) {
+          if (!err.message?.includes('cancelled') && !err.message?.includes('canceled')) {
+              console.error('Camera error:', err);
+          }
       }
   };
 
@@ -294,7 +320,10 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                       isMissing: false
                   }],
                   signature: signature,
-                  organization_id: state.currentUser.organization_id
+                  organization_id: state.currentUser.organization_id,
+                  latitude: quickLocation?.latitude,
+                  longitude: quickLocation?.longitude,
+                  locationName: quickLocationName.trim() || undefined,
               }, [{
                   itemId: item.id,
                   newStatus: ItemStatus.CHECKED_OUT, // Force Unavailable
@@ -322,7 +351,10 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                       isMissing: false
                   }],
                   signature: signature,
-                  organization_id: state.currentUser.organization_id
+                  organization_id: state.currentUser.organization_id,
+                  latitude: quickLocation?.latitude,
+                  longitude: quickLocation?.longitude,
+                  locationName: quickLocationName.trim() || undefined,
               }, [{
                   itemId: item.id,
                   newStatus: ItemStatus.AVAILABLE, // Force Available
@@ -338,6 +370,8 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
           }
 
           setQuickAction(null);
+          setQuickLocation(null);
+          setQuickLocationName('');
           signaturePadRef.current?.clearSignature();
 
       } catch (err: any) {
@@ -581,6 +615,15 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                               />
                           </div>
 
+                          {/* Location (Optional) */}
+                          <LocationPicker
+                              location={quickLocation}
+                              locationName={quickLocationName}
+                              onLocationChange={setQuickLocation}
+                              onLocationNameChange={setQuickLocationName}
+                              compact
+                          />
+
                           <div>
                               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                                   <FileSignature size={14} /> Signature
@@ -726,7 +769,14 @@ const ItemDetailScreen: React.FC<{ itemId: number }> = ({ itemId }) => {
                                   {(previewUrl || editForm?.imageUrl) && <button type="button" onClick={() => { setPreviewUrl(null); setSelectedFile(null); if(editForm) setEditForm({...editForm, imageUrl: ''}); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70"><X size={16} /></button>}
                               </div>
                               <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileSelect} />
-                              <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"><Camera size={18} /> Change Photo</button>
+                              {Capacitor.isNativePlatform() ? (
+                                  <div className="flex gap-2 w-full">
+                                      <button type="button" onClick={() => handleNativeCamera(CameraSource.Camera)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"><Camera size={18} /> Photo</button>
+                                      <button type="button" onClick={() => handleNativeCamera(CameraSource.Photos)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"><ImageIcon size={18} /> Gallery</button>
+                                  </div>
+                              ) : (
+                                  <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"><Camera size={18} /> Change Photo</button>
+                              )}
                               <input type="text" className="w-full bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3 py-2 rounded border border-slate-300 dark:border-slate-600 text-sm" placeholder="Image URL..." value={editForm?.imageUrl || ''} onChange={(e) => editForm && setEditForm({...editForm, imageUrl: e.target.value})} disabled={!!selectedFile} />
                           </div>
                       </div>

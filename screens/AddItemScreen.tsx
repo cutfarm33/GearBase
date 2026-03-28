@@ -5,6 +5,8 @@ import { useVertical } from '../hooks/useVertical';
 import { ItemStatus, ItemCondition } from '../types';
 import { ArrowLeft, Save, X, Camera, Image as ImageIcon, Database, Check, Copy, WifiOff } from 'lucide-react';
 import { db, syncQueue, createSyncableRecord } from '../lib/offline';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 const AddItemScreen: React.FC = () => {
   const { state, dispatch, navigateTo, supabase, refreshData, uploadImage } = useAppContext();
@@ -36,6 +38,29 @@ const AddItemScreen: React.FC = () => {
     imageUrl: '',
     notes: '',
   });
+
+  const handleNativeCamera = async (source: CameraSource) => {
+      try {
+          const photo = await CapCamera.getPhoto({
+              quality: 85,
+              allowEditing: false,
+              resultType: CameraResultType.DataUrl,
+              source,
+          });
+          if (photo.dataUrl) {
+              const res = await fetch(photo.dataUrl);
+              const blob = await res.blob();
+              const file = new File([blob], `item-${Date.now()}.${photo.format || 'jpeg'}`, { type: `image/${photo.format || 'jpeg'}` });
+              setSelectedFile(file);
+              setPreviewUrl(photo.dataUrl);
+              setFormData(prev => ({...prev, imageUrl: ''}));
+          }
+      } catch (err: any) {
+          if (!err.message?.includes('cancelled') && !err.message?.includes('canceled')) {
+              console.error('Camera error:', err);
+          }
+      }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -378,13 +403,32 @@ const AddItemScreen: React.FC = () => {
                         ref={fileInputRef}
                         onChange={handleFileSelect}
                     />
-                    <button 
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
-                    >
-                        <Camera size={18} /> Take Photo / Upload
-                    </button>
+                    {Capacitor.isNativePlatform() ? (
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handleNativeCamera(CameraSource.Camera)}
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                            >
+                                <Camera size={18} /> Take Photo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleNativeCamera(CameraSource.Photos)}
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                            >
+                                <ImageIcon size={18} /> Gallery
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                        >
+                            <Camera size={18} /> Take Photo / Upload
+                        </button>
+                    )}
                     
                     <div className="relative flex items-center py-1">
                         <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>

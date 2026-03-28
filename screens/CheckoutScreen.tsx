@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemCondition, TransactionItem, ItemStatus, TransactionType, User } from '../types';
 import SignaturePad, { SignaturePadRef } from '../components/SignaturePad';
+import LocationPicker from '../components/LocationPicker';
 import { CheckSquare, Square } from 'lucide-react';
 
 interface CheckoutItemState extends TransactionItem {
@@ -37,6 +38,8 @@ const CheckoutScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
   
   const [assignedToName, setAssignedToName] = useState<string>('');
   const [isSigning, setIsSigning] = useState(false);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationName, setLocationName] = useState('');
 
   if (!job) return <div>Job not found</div>;
 
@@ -84,6 +87,9 @@ const CheckoutScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
               items: scannedItems,
               signature,
               organization_id: state.currentUser.organization_id,
+              latitude: location?.latitude,
+              longitude: location?.longitude,
+              locationName: locationName.trim() || undefined,
           },
           scannedItems.map(item => ({
               itemId: item.itemId,
@@ -124,6 +130,15 @@ const CheckoutScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                       </datalist>
                       <p className="text-xs text-slate-400 mt-1">Type any name - doesn't have to be a team member</p>
                   </div>
+
+                  {/* Location (Optional) */}
+                  <LocationPicker
+                      location={location}
+                      locationName={locationName}
+                      onLocationChange={setLocation}
+                      onLocationNameChange={setLocationName}
+                  />
+
                   <div>
                       <label className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-2">Signature</label>
                       <div className="bg-slate-700 rounded-lg overflow-hidden">

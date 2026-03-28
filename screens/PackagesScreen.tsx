@@ -31,22 +31,26 @@ const PackagesScreen: React.FC = () => {
     };
 
     // Download PDF for a specific package
-    const downloadPackagePDF = (kit: Kit) => {
+    const downloadPackagePDF = async (kit: Kit) => {
         const items = kit.itemIds
             .map(id => state.inventory.find(i => i.id === id))
             .filter((item): item is InventoryItem => item !== undefined);
 
         const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const { addLogoToDoc } = await import('../lib/pdfLogo');
         const doc = new jsPDF();
+
+        // Logo
+        await addLogoToDoc(doc, state.orgLogoUrl);
 
         // Title
         doc.setFontSize(20);
-        doc.setTextColor(79, 70, 229); // Indigo color
+        doc.setTextColor(0, 0, 0);
         doc.text(kit.name, 14, 20);
 
         // Subtitle
         doc.setFontSize(10);
-        doc.setTextColor(100, 116, 139);
+        doc.setTextColor(80, 80, 80);
         doc.text(`${packageSingular} Contents - Generated: ${date}`, 14, 28);
 
         // Summary stats
@@ -54,6 +58,7 @@ const PackagesScreen: React.FC = () => {
         const totalWeight = items.reduce((sum, i) => sum + (i.weight || 0), 0);
 
         doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
         doc.text(`Total Items: ${items.length}  |  Total Value: $${totalValue.toLocaleString()}  |  Total Weight: ${totalWeight.toFixed(1)} lbs`, 14, 35);
 
         // Group by category
@@ -70,8 +75,10 @@ const PackagesScreen: React.FC = () => {
 
             // Category header
             doc.setFontSize(12);
-            doc.setTextColor(30, 41, 59);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined as any, 'bold');
             doc.text(`${category} (${categoryItems.length})`, 14, yPosition);
+            doc.setFont(undefined as any, 'normal');
             yPosition += 2;
 
             // Table for this category
@@ -85,12 +92,9 @@ const PackagesScreen: React.FC = () => {
                     item.value ? `$${item.value.toLocaleString()}` : '-',
                     item.weight ? `${item.weight} lbs` : '-'
                 ]),
-                theme: 'striped',
-                headStyles: {
-                    fillColor: [79, 70, 229], // Indigo
-                    fontSize: 8,
-                    fontStyle: 'bold'
-                },
+                theme: 'grid',
+                headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
                 bodyStyles: { fontSize: 8 },
                 columnStyles: {
                     0: { cellWidth: 60 },
@@ -99,7 +103,8 @@ const PackagesScreen: React.FC = () => {
                     3: { cellWidth: 25 },
                     4: { cellWidth: 25 }
                 },
-                margin: { left: 14, right: 14 }
+                margin: { left: 14, right: 14 },
+                styles: { lineColor: [200, 200, 200], lineWidth: 0.25 }
             });
 
             yPosition = (doc as any).lastAutoTable.finalY + 10;
@@ -115,7 +120,7 @@ const PackagesScreen: React.FC = () => {
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
-            doc.setTextColor(148, 163, 184);
+            doc.setTextColor(120, 120, 120);
             doc.text(`Gear Base - ${kit.name} - Page ${i} of ${pageCount}`, 14, 290);
         }
 

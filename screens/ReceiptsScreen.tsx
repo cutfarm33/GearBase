@@ -96,14 +96,20 @@ const ReceiptsScreen: React.FC = () => {
   };
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { addLogoToDoc } = await import('../lib/pdfLogo');
     const doc = new jsPDF();
     const date = new Date().toLocaleDateString();
 
+    await addLogoToDoc(doc, state.orgLogoUrl);
+
     doc.setFontSize(20);
+    doc.setTextColor(0, 0, 0);
     doc.text('Expense Report', 14, 20);
     doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
     doc.text(`Generated: ${date}`, 14, 28);
+    doc.setTextColor(0, 0, 0);
     doc.text(`Total: $${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 14, 35);
     doc.text(`${filteredReceipts.length} receipts`, 14, 42);
 
@@ -118,8 +124,10 @@ const ReceiptsScreen: React.FC = () => {
         `$${r.amount.toFixed(2)}`
       ]),
       foot: [['', '', '', 'Total:', `$${totalAmount.toFixed(2)}`]],
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129] }
+      theme: 'grid',
+      headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      styles: { lineColor: [200, 200, 200], lineWidth: 0.25 }
     });
 
     doc.save(`expense_report_${new Date().toISOString().split('T')[0]}.pdf`);

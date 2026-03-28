@@ -77,6 +77,7 @@ export interface Organization {
   subscription_tier?: SubscriptionTier;
   subscription_status?: SubscriptionStatus;
   owner_id?: string;
+  logo_url?: string;
   created_at: string;
   updated_at?: string;
 }
@@ -196,6 +197,10 @@ export interface Transaction {
   items: TransactionItem[];
   signature?: string; // Data URL of signature
   organization_id: string; // UUID - links to Organization
+  latitude?: number;
+  longitude?: number;
+  locationName?: string;
+  locationAddress?: string;
 }
 
 export interface TransactionLog {
@@ -238,7 +243,7 @@ export interface Receipt {
 }
 
 export interface ViewState {
-  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'RESET_PASSWORD' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'PRIVACY' | 'TERMS' | 'RECEIPTS' | 'ADD_RECEIPT' | 'LOANS' | 'ADD_LOAN' | 'GALLERY_SETTINGS' | 'PUBLIC_GALLERY' | 'CHECKOUT_SUCCESS';
+  view: 'LANDING' | 'LOGIN' | 'SIGNUP' | 'VERIFY_EMAIL' | 'EMAIL_CONFIRMED' | 'RESET_PASSWORD' | 'DASHBOARD' | 'JOB_LIST' | 'JOB_DETAIL' | 'INVENTORY' | 'ITEM_DETAIL' | 'CHECKOUT' | 'CHECKIN' | 'ADD_ITEM' | 'IMPORT_INVENTORY' | 'ADD_JOB' | 'EDIT_JOB' | 'PACKAGES' | 'PACKAGE_FORM' | 'TEAM' | 'TEAM_MANAGEMENT' | 'ACCEPT_INVITATION' | 'CALENDAR' | 'FEATURES' | 'PRICING' | 'HELP' | 'ABOUT' | 'CONTACT' | 'PRIVACY' | 'TERMS' | 'RECEIPTS' | 'ADD_RECEIPT' | 'LOANS' | 'ADD_LOAN' | 'GALLERY_SETTINGS' | 'PUBLIC_GALLERY' | 'CHECKOUT_SUCCESS' | 'EQUIPMENT_MAP';
   params?: any;
 }
 

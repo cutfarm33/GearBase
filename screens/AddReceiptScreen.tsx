@@ -5,6 +5,8 @@ import { useVertical } from '../hooks/useVertical';
 import { ExpenseCategory, PaymentMethod, Receipt } from '../types';
 import { ArrowLeft, Save, Camera, Image as ImageIcon, X, Trash2, Car, Sparkles, Loader2 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 const EXPENSE_CATEGORIES = Object.values(ExpenseCategory);
 const PAYMENT_METHODS = Object.values(PaymentMethod);
@@ -120,6 +122,30 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
       setFormData(prev => ({ ...prev, job_id: params.jobId }));
     }
   }, [state.currentView.params, isEditing]);
+
+  const handleNativeCamera = async (source: CameraSource) => {
+    try {
+      const photo = await CapCamera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source,
+      });
+      if (photo.dataUrl) {
+        const res = await fetch(photo.dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `receipt-${Date.now()}.${photo.format || 'jpeg'}`, { type: `image/${photo.format || 'jpeg'}` });
+        setSelectedFile(file);
+        setPreviewUrl(photo.dataUrl);
+        setFormData(prev => ({ ...prev, receipt_image_url: '' }));
+        setScanError(null);
+      }
+    } catch (err: any) {
+      if (!err.message?.includes('cancelled') && !err.message?.includes('canceled')) {
+        console.error('Camera error:', err);
+      }
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -618,13 +644,32 @@ const AddReceiptScreen: React.FC<AddReceiptScreenProps> = ({ receiptId }) => {
                 onChange={handleFileSelect}
               />
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
-                >
-                  <Camera size={18} /> Take Photo / Upload
-                </button>
+                {Capacitor.isNativePlatform() ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleNativeCamera(CameraSource.Camera)}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                    >
+                      <Camera size={18} /> Take Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleNativeCamera(CameraSource.Photos)}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                    >
+                      <ImageIcon size={18} /> Gallery
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+                  >
+                    <Camera size={18} /> Take Photo / Upload
+                  </button>
+                )}
 
                 {/* AI Scan Button - only show when image is selected */}
                 {selectedFile && (

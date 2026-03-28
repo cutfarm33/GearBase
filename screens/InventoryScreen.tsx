@@ -262,23 +262,27 @@ const InventoryScreen: React.FC = () => {
   };
 
   // Download PDF inventory report
-  const downloadPDF = (categoryToExport?: string) => {
+  const downloadPDF = async (categoryToExport?: string) => {
       const items = categoryToExport
           ? state.inventory.filter(i => i.category === categoryToExport)
           : (filteredInventory.length > 0 ? filteredInventory : state.inventory);
 
       const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const { addLogoToDoc } = await import('../lib/pdfLogo');
       const doc = new jsPDF();
+
+      // Logo
+      await addLogoToDoc(doc, state.orgLogoUrl);
 
       // Title
       const title = categoryToExport ? `${categoryToExport} Inventory` : 'Inventory Report';
       doc.setFontSize(20);
-      doc.setTextColor(16, 185, 129); // Emerald color
+      doc.setTextColor(0, 0, 0);
       doc.text(title, 14, 20);
 
       // Subtitle with date
       doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139); // Slate color
+      doc.setTextColor(80, 80, 80);
       doc.text(`Generated: ${date}`, 14, 28);
 
       // Summary stats
@@ -287,61 +291,100 @@ const InventoryScreen: React.FC = () => {
       const totalValue = items.reduce((sum, i) => sum + (i.value || 0), 0);
 
       doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
       doc.text(`Total Items: ${items.length}  |  Available: ${available}  |  Checked Out: ${checkedOut}  |  Total Value: $${totalValue.toLocaleString()}`, 14, 35);
 
-      // Group by category
-      const byCategory: Record<string, InventoryItem[]> = {};
-      items.forEach(item => {
-          if (!byCategory[item.category]) byCategory[item.category] = [];
-          byCategory[item.category].push(item);
+      // Group items: first by package, then loose items by category
+      const itemSet = new Set(items.map(i => i.id));
+      const kitGroups: { kit: typeof state.kits[0]; items: InventoryItem[] }[] = [];
+      const itemsInKits = new Set<number>();
+
+      state.kits.forEach(kit => {
+          const kitItems = kit.itemIds
+              .filter(id => itemSet.has(id))
+              .map(id => items.find(i => i.id === id)!)
+              .filter(Boolean);
+          if (kitItems.length >= 2) {
+              kitGroups.push({ kit, items: kitItems });
+              kitItems.forEach(i => itemsInKits.add(i.id));
+          }
       });
+
+      kitGroups.sort((a, b) => a.kit.name.localeCompare(b.kit.name));
+      const looseItems = items.filter(i => !itemsInKits.has(i.id));
 
       let yPosition = 45;
 
-      Object.keys(byCategory).sort().forEach(category => {
-          const categoryItems = byCategory[category].sort((a, b) => a.name.localeCompare(b.name));
+      // Render kit groups first
+      kitGroups.forEach(({ kit, items: kitItems }) => {
+          kitItems.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+          const kitValue = kitItems.reduce((sum, i) => sum + (i.value || 0), 0);
 
-          // Category header
           doc.setFontSize(12);
-          doc.setTextColor(30, 41, 59); // Slate-800
-          doc.text(`${category} (${categoryItems.length})`, 14, yPosition);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined as any, 'bold');
+          doc.text(`${kit.name}  (${kitItems.length} items, $${kitValue.toLocaleString()})`, 14, yPosition);
+          doc.setFont(undefined as any, 'normal');
           yPosition += 2;
 
-          // Table for this category
           autoTable(doc, {
               startY: yPosition,
               head: [['Name', 'QR Code', 'Status', 'Condition', 'Value']],
-              body: categoryItems.map(item => [
-                  item.name,
-                  item.qrCode,
+              body: kitItems.map(item => [
+                  item.name, item.qrCode,
                   item.status === ItemStatus.CHECKED_OUT ? 'Checked Out' : item.status,
                   item.condition,
                   item.value ? `$${item.value.toLocaleString()}` : '-'
               ]),
-              theme: 'striped',
-              headStyles: {
-                  fillColor: [16, 185, 129], // Emerald
-                  fontSize: 8,
-                  fontStyle: 'bold'
-              },
+              theme: 'grid',
+              headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+              alternateRowStyles: { fillColor: [245, 245, 245] },
               bodyStyles: { fontSize: 8 },
-              columnStyles: {
-                  0: { cellWidth: 60 },
-                  1: { cellWidth: 30 },
-                  2: { cellWidth: 30 },
-                  3: { cellWidth: 30 },
-                  4: { cellWidth: 25 }
-              },
-              margin: { left: 14, right: 14 }
+              columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30 }, 2: { cellWidth: 30 }, 3: { cellWidth: 30 }, 4: { cellWidth: 25 } },
+              margin: { left: 14, right: 14 },
+              styles: { lineColor: [200, 200, 200], lineWidth: 0.25 }
+          });
+          yPosition = (doc as any).lastAutoTable.finalY + 10;
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
+      });
+
+      // Render loose items grouped by category
+      const byCategory: Record<string, InventoryItem[]> = {};
+      looseItems.forEach(item => {
+          if (!byCategory[item.category]) byCategory[item.category] = [];
+          byCategory[item.category].push(item);
+      });
+
+      Object.keys(byCategory).sort().forEach(category => {
+          const categoryItems = byCategory[category].sort((a, b) => a.name.localeCompare(b.name));
+
+          doc.setFontSize(12);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined as any, 'bold');
+          doc.text(`${category} (${categoryItems.length})`, 14, yPosition);
+          doc.setFont(undefined as any, 'normal');
+          yPosition += 2;
+
+          autoTable(doc, {
+              startY: yPosition,
+              head: [['Name', 'QR Code', 'Status', 'Condition', 'Value']],
+              body: categoryItems.map(item => [
+                  item.name, item.qrCode,
+                  item.status === ItemStatus.CHECKED_OUT ? 'Checked Out' : item.status,
+                  item.condition,
+                  item.value ? `$${item.value.toLocaleString()}` : '-'
+              ]),
+              theme: 'grid',
+              headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+              alternateRowStyles: { fillColor: [245, 245, 245] },
+              bodyStyles: { fontSize: 8 },
+              columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30 }, 2: { cellWidth: 30 }, 3: { cellWidth: 30 }, 4: { cellWidth: 25 } },
+              margin: { left: 14, right: 14 },
+              styles: { lineColor: [200, 200, 200], lineWidth: 0.25 }
           });
 
           yPosition = (doc as any).lastAutoTable.finalY + 10;
-
-          // Add new page if needed
-          if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 20;
-          }
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
       });
 
       // Footer on last page
@@ -349,7 +392,7 @@ const InventoryScreen: React.FC = () => {
       for (let i = 1; i <= pageCount; i++) {
           doc.setPage(i);
           doc.setFontSize(8);
-          doc.setTextColor(148, 163, 184);
+          doc.setTextColor(120, 120, 120);
           doc.text(`Gear Base - Page ${i} of ${pageCount}`, 14, 290);
       }
 
@@ -599,7 +642,11 @@ const InventoryScreen: React.FC = () => {
       }
 
       const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const { addLogoToDoc } = await import('../lib/pdfLogo');
       const doc = new jsPDF();
+
+      // Logo on first page
+      await addLogoToDoc(doc, state.orgLogoUrl);
 
       // Layout settings: 2 columns x 3 rows = 6 items per page
       const cols = 2;

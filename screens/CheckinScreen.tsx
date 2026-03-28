@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { ItemCondition, ItemStatus, TransactionItem, TransactionType, InventoryItem } from '../types';
 import { CheckSquare, Square } from 'lucide-react';
+import LocationPicker from '../components/LocationPicker';
 
 interface CheckinItemState extends TransactionItem {
   scanned: boolean;
@@ -13,6 +14,8 @@ interface CheckinItemState extends TransactionItem {
 const CheckinScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
   const { state, createTransaction, findJob, findItem, navigateTo, supabase, refreshData } = useAppContext();
   const job = findJob(jobId);
+  const [returnLocation, setReturnLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [returnLocationName, setReturnLocationName] = useState('');
 
   const getItemsForCheckin = (): InventoryItem[] => {
       const transaction = state.transactions.slice().reverse().find(t => t.jobId === jobId && t.type === TransactionType.CHECKOUT);
@@ -84,6 +87,9 @@ const CheckinScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                   notes: i.notes
               })),
               organization_id: state.currentUser.organization_id,
+              latitude: returnLocation?.latitude,
+              longitude: returnLocation?.longitude,
+              locationName: returnLocationName.trim() || undefined,
           },
           processedItems.map(item => ({
               itemId: item.itemId,
@@ -174,6 +180,16 @@ const CheckinScreen: React.FC<{ jobId: number }> = ({ jobId }) => {
                   </li>
               ))}
           </ul>
+      </div>
+
+      {/* Return Location (Optional) */}
+      <div className="mt-6 bg-white dark:bg-slate-800 rounded-lg shadow p-4 border border-slate-200 dark:border-slate-700">
+          <LocationPicker
+              location={returnLocation}
+              locationName={returnLocationName}
+              onLocationChange={setReturnLocation}
+              onLocationNameChange={setReturnLocationName}
+          />
       </div>
 
       <div className="sticky bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-4 mt-6 border-t border-slate-200 dark:border-slate-700">

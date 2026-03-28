@@ -2,13 +2,15 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useVertical } from '../hooks/useVertical';
-import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music, Share2, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Package, Camera, LogOut, Sun, Moon, ChevronRight, Users, Calendar, HelpCircle, Receipt, Music, Share2, Trash2, Upload, X, MapPin } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
-  const { state, dispatch, navigateTo, signOut, deleteAccount, toggleTheme } = useAppContext();
+  const { state, dispatch, navigateTo, signOut, deleteAccount, toggleTheme, uploadLogo, removeLogo } = useAppContext();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = React.useState('');
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [logoUploading, setLogoUploading] = React.useState(false);
+  const logoInputRef = React.useRef<HTMLInputElement>(null);
   const { view } = state.currentView;
   const { t, features, vertical } = useVertical();
 
@@ -21,11 +23,12 @@ const Sidebar: React.FC = () => {
       if (target === 'TEAM') return view === 'TEAM';
       if (target === 'CALENDAR') return view === 'CALENDAR';
       if (target === 'RECEIPTS') return ['RECEIPTS', 'ADD_RECEIPT'].includes(view);
+      if (target === 'EQUIPMENT_MAP') return view === 'EQUIPMENT_MAP';
       if (target === 'GALLERY_SETTINGS') return view === 'GALLERY_SETTINGS';
       return false;
   };
 
-  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS' | 'GALLERY_SETTINGS'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
+  const NavItem: React.FC<{ target: 'DASHBOARD' | 'JOB_LIST' | 'INVENTORY' | 'PACKAGES' | 'TEAM' | 'CALENDAR' | 'RECEIPTS' | 'EQUIPMENT_MAP' | 'GALLERY_SETTINGS'; icon: React.ReactNode; label: string }> = ({ target, icon, label }) => {
       const isActive = isNavActive(target);
       return (
           <button
@@ -48,8 +51,41 @@ const Sidebar: React.FC = () => {
   return (
     <aside className="w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-300 fixed left-0 top-0 z-30">
       {/* Logo Area */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-center cursor-pointer" onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})}>
-          <img src="/logo.png" alt="Gear Base" className="h-18 w-auto object-contain" />
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center gap-2">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/svg+xml"
+            className="hidden"
+            ref={logoInputRef}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setLogoUploading(true);
+              try { await uploadLogo(file); } catch (err: any) { alert('Logo upload failed: ' + err.message); }
+              setLogoUploading(false);
+              if (logoInputRef.current) logoInputRef.current.value = '';
+            }}
+          />
+          {state.orgLogoUrl ? (
+            <div className="relative group">
+              <img src={state.orgLogoUrl} alt="Organization Logo" className="h-16 w-auto max-w-full object-contain cursor-pointer" onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})} />
+              <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                <button onClick={() => logoInputRef.current?.click()} className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 p-1 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600" title="Change logo"><Upload size={12} /></button>
+                <button onClick={async () => { await removeLogo(); }} className="bg-red-100 dark:bg-red-900/30 text-red-500 p-1 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50" title="Remove logo"><X size={12} /></button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <img src="/logo.png" alt="Gear Base" className="h-16 w-auto object-contain cursor-pointer" onClick={() => dispatch({type: 'NAVIGATE', payload: {view: 'LANDING'}})} />
+              <button
+                onClick={() => logoInputRef.current?.click()}
+                disabled={logoUploading}
+                className="text-xs text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors flex items-center gap-1"
+              >
+                <Upload size={12} /> {logoUploading ? 'Uploading...' : 'Upload your logo'}
+              </button>
+            </div>
+          )}
       </div>
 
       {/* Navigation */}
@@ -71,6 +107,7 @@ const Sidebar: React.FC = () => {
           {features.calendar && (
             <NavItem target="CALENDAR" icon={<Calendar size={20} />} label="Calendar" />
           )}
+          <NavItem target="EQUIPMENT_MAP" icon={<MapPin size={20} />} label="Equipment Map" />
           {features.receipts && (
             <NavItem target="RECEIPTS" icon={<Receipt size={20} />} label="Receipts" />
           )}
