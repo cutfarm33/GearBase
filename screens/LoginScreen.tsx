@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { trackLogin } from '../lib/analytics';
+import { authRedirectUrl } from '../lib/authRedirect';
 
 // Apple logo SVG component
 const AppleIcon = () => (
@@ -92,7 +93,7 @@ const LoginScreen: React.FC = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: authRedirectUrl('/reset-password')
       });
 
       if (error) throw error;

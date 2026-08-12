@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Film, Music, Camera, Package, Check } from 'luci
 import { UserRole, Vertical } from '../types';
 import { getAllVerticals, getVerticalConfig, getRolesForVertical } from '../lib/verticalConfig';
 import { trackSignupStart, trackSignupComplete } from '../lib/analytics';
+import { authRedirectUrl } from '../lib/authRedirect';
 
 // Apple logo SVG component
 const AppleIcon = () => (
@@ -129,7 +130,8 @@ const SignupScreen: React.FC = () => {
               options: {
                   // Without this the confirmation link falls back to the
                   // project's Site URL, which may not be where this build runs.
-                  emailRedirectTo: window.location.origin,
+                  // Native builds hand off to the web app — see lib/authRedirect.
+                  emailRedirectTo: authRedirectUrl(),
                   data: {
                       full_name: formData.name,
                       role: formData.role,

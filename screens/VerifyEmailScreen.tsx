@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Mail, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
+import { authRedirectUrl } from '../lib/authRedirect';
 
 const VerifyEmailScreen: React.FC = () => {
   const { state, navigateTo, supabase } = useAppContext();
@@ -25,7 +26,7 @@ const VerifyEmailScreen: React.FC = () => {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
-        options: { emailRedirectTo: window.location.origin }
+        options: { emailRedirectTo: authRedirectUrl() }
       });
 
       // Supabase rate-limits confirmation emails; surface that verbatim rather
