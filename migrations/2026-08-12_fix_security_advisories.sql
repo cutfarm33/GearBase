@@ -1,9 +1,13 @@
 -- ============================================================================
 -- GearBase — Supabase security advisory remediation
 -- Date: 2026-08-12
--- Run this ENTIRE file in the Supabase SQL Editor (it is one transaction-safe
--- script; the editor wraps it in a transaction, so a failure rolls everything
--- back rather than leaving you half-secured).
+-- Run this ENTIRE file in the Supabase SQL Editor.
+--
+-- The script is IDEMPOTENT — every section drops before it creates, so it is
+-- safe to run again after a failure or to re-run from the top at any time.
+-- Do not assume a failed run rolled back: the SQL Editor commits as it goes, so
+-- a statement that errors leaves everything before it applied. Re-running is
+-- the correct recovery, not manual cleanup.
 --
 -- Root cause of the ERROR-level advisories: DISABLE_RLS_TEMP.sql was run
 -- against production. It disabled RLS AND dropped every policy on
@@ -400,6 +404,7 @@ DROP FUNCTION IF EXISTS public.get_user_organization_id();
 -- ============================================================================
 
 DROP POLICY IF EXISTS "Anyone can view images" ON storage.objects;
+DROP POLICY IF EXISTS "Owners can list their inventory objects" ON storage.objects;
 
 CREATE POLICY "Owners can list their inventory objects" ON storage.objects
   FOR SELECT TO authenticated
