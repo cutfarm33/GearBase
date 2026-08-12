@@ -127,6 +127,9 @@ const SignupScreen: React.FC = () => {
               email: formData.email,
               password: formData.password,
               options: {
+                  // Without this the confirmation link falls back to the
+                  // project's Site URL, which may not be where this build runs.
+                  emailRedirectTo: window.location.origin,
                   data: {
                       full_name: formData.name,
                       role: formData.role,

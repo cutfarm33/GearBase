@@ -1,11 +1,44 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Mail, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 const VerifyEmailScreen: React.FC = () => {
-  const { state, navigateTo } = useAppContext();
+  const { state, navigateTo, supabase } = useAppContext();
   const email = state.pendingEmail;
+
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const [resendError, setResendError] = useState('');
+
+  const handleResend = async () => {
+    if (!email) {
+      setResendError('No email address on file. Please sign up again.');
+      return;
+    }
+
+    setResending(true);
+    setResendMessage('');
+    setResendError('');
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: window.location.origin }
+      });
+
+      // Supabase rate-limits confirmation emails; surface that verbatim rather
+      // than claiming success, otherwise "resend" looks broken.
+      if (error) throw error;
+
+      setResendMessage('Verification email sent. Check your inbox and spam folder.');
+    } catch (err: any) {
+      setResendError(err.message || 'Could not resend the verification email.');
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -65,6 +98,25 @@ const VerifyEmailScreen: React.FC = () => {
             Click the link in your email to activate your account.<br/>
             <span className="text-xs">Don't see it? Check your spam folder.</span>
         </p>
+
+        {resendMessage && (
+            <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-3 rounded mb-4 text-sm">
+                {resendMessage}
+            </div>
+        )}
+        {resendError && (
+            <div className="bg-red-500/10 text-red-500 dark:text-red-400 p-3 rounded mb-4 text-sm break-words">
+                {resendError}
+            </div>
+        )}
+
+        <button
+            onClick={handleResend}
+            disabled={resending}
+            className="w-full mb-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium py-3 rounded-lg transition-colors disabled:opacity-60"
+        >
+            {resending ? 'Sending...' : 'Resend verification email'}
+        </button>
 
         <button
             onClick={() => navigateTo('LOGIN')}
