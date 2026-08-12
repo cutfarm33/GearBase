@@ -1,9 +1,23 @@
 -- ==========================================
--- EMERGENCY: DISABLE ALL RLS FOR TESTING
+-- ☠️  DO NOT RUN — DISARMED 2026-08-12
 -- ==========================================
--- Run this to temporarily disable RLS and test login
--- WARNING: This removes security - only use for testing!
+-- This script was run against production and is the direct cause of the
+-- `rls_disabled_in_public` / `policy_exists_rls_disabled` ERROR advisories:
+-- it disabled RLS AND dropped every policy on profiles, inventory, kits,
+-- transactions and jobs, leaving them open to any anon API key.
+--
+-- Repair script: migrations/2026-08-12_fix_security_advisories.sql
+--
+-- The guard below aborts the script. If you genuinely need to disable RLS on a
+-- local/branch database, delete the guard block — never on production.
 -- ==========================================
+
+DO $guard$
+BEGIN
+    RAISE EXCEPTION
+      'DISABLE_RLS_TEMP.sql is disarmed. It removes all data isolation. See migrations/2026-08-12_fix_security_advisories.sql';
+END
+$guard$;
 
 -- Disable RLS on all tables
 ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;

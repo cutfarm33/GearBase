@@ -662,58 +662,77 @@ export const AppProvider = ({ children }: React.PropsWithChildren<{}>) => {
         const email = session.user.email || `user-${session.user.id}@example.com`;
         const full_name_from_meta = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
 
-        // Handle new OAuth users (no profile exists yet)
+        // Provision organization + profile on first authenticated load.
+        // This runs for EVERY profile-less session, not just OAuth: with RLS
+        // enabled, email signup cannot create either one before the address is
+        // confirmed, because signUp() returns no session to act as.
         if (!profileData) {
-            console.log('No profile found - checking for pending OAuth signup');
-            const pendingSignupStr = localStorage.getItem('gearbase_pending_signup');
+            console.log('No profile found - provisioning organization and profile');
 
-            if (pendingSignupStr) {
-                try {
-                    const pendingSignup = JSON.parse(pendingSignupStr);
-                    const vertical = pendingSignup.vertical || 'film';
-                    console.log('Found pending signup with vertical:', vertical);
+            let pendingSignup: { vertical?: string } = {};
+            try {
+                pendingSignup = JSON.parse(localStorage.getItem('gearbase_pending_signup') || '{}');
+            } catch (parseError) {
+                console.warn('Ignoring unparseable pending signup data:', parseError);
+            }
 
-                    // Create organization for new OAuth user
-                    const { data: organizationId, error: orgError } = await supabase
+            const meta = session.user.user_metadata || {};
+            const vertical = meta.vertical || pendingSignup.vertical || 'film';
+            const role = meta.role || 'Owner';
+
+            try {
+                // A manager may have pre-created an offline profile for this
+                // email. Claiming it puts the user in that organization rather
+                // than an empty new one. Runs SECURITY DEFINER because a
+                // brand-new user has no organization, so profiles RLS hides the
+                // placeholder row from them.
+                let organizationId: string | null = null;
+
+                const { data: claimedOrgId, error: claimError } = await supabase.rpc('claim_offline_profile');
+                if (claimError) {
+                    console.warn('claim_offline_profile failed, creating a new organization instead:', claimError.message);
+                } else if (claimedOrgId) {
+                    console.log('Claimed offline profile in organization:', claimedOrgId);
+                    organizationId = claimedOrgId;
+                }
+
+                if (!organizationId) {
+                    const { data: newOrgId, error: orgError } = await supabase
                         .rpc('create_organization_for_signup', {
                             org_name: `${full_name_from_meta}'s Organization`,
                             org_vertical: vertical
                         });
 
-                    if (orgError || !organizationId) {
-                        console.error('Error creating organization for OAuth user:', orgError);
-                    } else {
-                        // Create profile for new OAuth user
-                        const { error: profileError } = await supabase.from('profiles').insert({
-                            id: session.user.id,
-                            email: email,
-                            full_name: full_name_from_meta,
-                            role: 'Owner', // Default role for new signups
-                            plan: 'free',
-                            organization_id: organizationId
-                        });
-
-                        if (profileError) {
-                            console.error('Error creating profile for OAuth user:', profileError);
-                        } else {
-                            console.log('Created profile and organization for OAuth user');
-                            // Update profileData so the rest of the function uses correct values
-                            profileData = {
-                                full_name: full_name_from_meta,
-                                role: 'Owner',
-                                theme: 'dark',
-                                organization_id: organizationId,
-                                active_organization_id: organizationId
-                            };
-                        }
+                    if (orgError || !newOrgId) {
+                        throw orgError || new Error('create_organization_for_signup returned no id');
                     }
-
-                    // Clear the pending signup data
-                    localStorage.removeItem('gearbase_pending_signup');
-                } catch (parseError) {
-                    console.error('Error parsing pending signup data:', parseError);
-                    localStorage.removeItem('gearbase_pending_signup');
+                    organizationId = newOrgId;
                 }
+
+                const { error: profileError } = await supabase.from('profiles').insert({
+                    id: session.user.id,
+                    email: email,
+                    full_name: full_name_from_meta,
+                    role: role,
+                    plan: 'free',
+                    organization_id: organizationId
+                });
+
+                if (profileError) throw profileError;
+
+                console.log('Provisioned profile and organization for new user');
+                // Update profileData so the rest of the function uses correct values
+                profileData = {
+                    full_name: full_name_from_meta,
+                    role: role,
+                    theme: 'dark',
+                    organization_id: organizationId,
+                    active_organization_id: organizationId
+                };
+            } catch (provisionError: any) {
+                console.error('Failed to provision profile:', provisionError?.message || provisionError);
+            } finally {
+                localStorage.removeItem('gearbase_pending_signup');
             }
         }
 

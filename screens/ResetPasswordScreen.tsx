@@ -10,23 +10,67 @@ const ResetPasswordScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  // Check if we have a valid recovery session
+  // Establish the recovery session from the reset link before showing the form.
+  // The previous version only looked for `type=recovery` in the hash and never
+  // did anything with it, so if detectSessionInUrl had not already consumed the
+  // URL the form still submitted and updateUser() threw "Auth session missing!".
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      // If there's no session and no hash fragment, redirect to login
-      if (!session && !window.location.hash.includes('type=recovery')) {
-        // Give Supabase a moment to process the recovery token
-        setTimeout(async () => {
-          const { data: { session: retrySession } } = await supabase.auth.getSession();
-          if (!retrySession) {
-            setError('Invalid or expired reset link. Please request a new one.');
-          }
-        }, 1000);
-      }
+    let cancelled = false;
+
+    const finish = (message?: string) => {
+      if (cancelled) return;
+      if (message) setError(message);
+      else setSessionReady(true);
+      setCheckingSession(false);
     };
-    checkSession();
+
+    const establishSession = async () => {
+      // getSession() awaits the client's own initialization, so if
+      // detectSessionInUrl already handled the link we are done.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        window.history.replaceState({}, '', '/');
+        return finish();
+      }
+
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const queryParams = new URLSearchParams(window.location.search);
+      const param = (key: string) => hashParams.get(key) || queryParams.get(key);
+
+      // Supabase rejected the link itself (expired, already used, bad redirect).
+      const linkError = param('error_description') || param('error');
+      if (linkError) {
+        return finish(decodeURIComponent(linkError.replace(/\+/g, ' ')));
+      }
+
+      // Implicit flow: tokens land in the hash fragment.
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+      if (access_token && refresh_token) {
+        const { error: setSessionError } = await supabase.auth.setSession({ access_token, refresh_token });
+        window.history.replaceState({}, '', '/');
+        return finish(setSessionError ? setSessionError.message : undefined);
+      }
+
+      // PKCE flow: a single-use code lands in the query string.
+      const code = queryParams.get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        window.history.replaceState({}, '', '/');
+        return finish(exchangeError ? exchangeError.message : undefined);
+      }
+
+      finish('Invalid or expired reset link. Please request a new one.');
+    };
+
+    establishSession().catch((err: any) => {
+      finish(err?.message || 'Could not verify this reset link. Please request a new one.');
+    });
+
+    return () => { cancelled = true; };
   }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +96,10 @@ const ResetPasswordScreen: React.FC = () => {
 
       setSuccess(true);
 
+      // Drop the recovery session so the user signs in with the new password
+      // instead of being silently carried into the app on a recovery token.
+      await supabase.auth.signOut().catch(() => {});
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigateTo('LOGIN');
@@ -76,7 +124,18 @@ const ResetPasswordScreen: React.FC = () => {
           </div>
         )}
 
-        {success ? (
+        {checkingSession ? (
+          <p className="text-center text-slate-500 dark:text-slate-400">Verifying reset link...</p>
+        ) : !sessionReady ? (
+          <div className="text-center">
+            <button
+              onClick={() => navigateTo('LOGIN')}
+              className="text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 font-medium"
+            >
+              Back to Login
+            </button>
+          </div>
+        ) : success ? (
           <div className="text-center">
             <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-6 rounded-lg mb-6 flex flex-col items-center gap-3">
               <CheckCircle size={48} />

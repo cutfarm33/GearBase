@@ -126,11 +126,14 @@ const App: React.FC = () => {
       return;
     }
 
-    // Handle /reset-password route (from Supabase password reset email)
+    // Handle /reset-password route (from Supabase password reset email).
+    // Keep BOTH the query string and the hash: the recovery credential arrives
+    // as `?code=...` under PKCE and as `#access_token=...` under the implicit
+    // flow. Dropping either one leaves ResetPasswordScreen with no session and
+    // updateUser() fails with "Auth session missing!".
     if (window.location.pathname === '/reset-password') {
       navigateTo('RESET_PASSWORD');
-      const hash = window.location.hash;
-      window.history.replaceState({}, '', '/' + hash);
+      window.history.replaceState({}, '', '/' + window.location.search + window.location.hash);
       return;
     }
 

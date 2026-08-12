@@ -26,7 +26,7 @@ const GoogleIcon = () => (
 type SignupStep = 'vertical' | 'account' | 'role';
 
 const SignupScreen: React.FC = () => {
-  const { supabase, navigateTo, dispatch, mergeOfflineProfile } = useAppContext();
+  const { supabase, navigateTo, dispatch } = useAppContext();
 
   const [step, setStep] = useState<SignupStep>('vertical');
   const [formData, setFormData] = useState({
@@ -116,19 +116,13 @@ const SignupScreen: React.FC = () => {
       setLoading(true);
 
       try {
-          // Check if an offline profile exists for this email FIRST
-          let offlineProfileId: string | null = null;
-          const { data: existingProfiles } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('email', formData.email);
-
-          if (existingProfiles && existingProfiles.length > 0) {
-              offlineProfileId = existingProfiles[0].id;
-              console.log("Found existing offline profile:", offlineProfileId);
-          }
-
-          // 1. Create Auth User with Metadata
+          // Create the auth user, and nothing else. Email confirmation is
+          // required, so signUp() returns a user but no session — there is no
+          // authenticated identity here to create an organization or profile
+          // with. Everything downstream (organization, profile, claiming a
+          // pre-created offline profile) happens on first authenticated load in
+          // AppContext.checkAuth. The vertical rides along in user_metadata so
+          // it survives the confirmation round trip.
           const { data: authData, error: authError } = await supabase.auth.signUp({
               email: formData.email,
               password: formData.password,
@@ -136,7 +130,8 @@ const SignupScreen: React.FC = () => {
                   data: {
                       full_name: formData.name,
                       role: formData.role,
-                      plan: 'free'
+                      plan: 'free',
+                      vertical: formData.vertical
                   }
               }
           });
@@ -144,46 +139,12 @@ const SignupScreen: React.FC = () => {
           if (authError) throw authError;
 
           if (authData.user) {
-              // 2. Create Organization with vertical using RPC
-              const { data: organizationId, error: orgError } = await supabase
-                  .rpc('create_organization_for_signup', {
-                      org_name: `${formData.name}'s Organization`,
-                      org_vertical: formData.vertical
-                  });
-
-              if (orgError || !organizationId) {
-                  console.error("Error creating organization:", orgError);
-                  throw new Error("Failed to create organization");
-              }
-
-              // 3. Handle Profile Creation or Merge
-              if (offlineProfileId) {
-                  await mergeOfflineProfile(offlineProfileId, authData.user.id);
-
-                  const { error: upsertError } = await supabase.from('profiles').upsert({
-                      id: authData.user.id,
-                      email: formData.email,
-                      full_name: formData.name,
-                      role: formData.role,
-                      plan: 'free',
-                      organization_id: organizationId
-                  });
-                   if (upsertError) console.error("Error creating merged profile:", upsertError);
-
-              } else {
-                  const { error: profileError } = await supabase.from('profiles').insert({
-                      id: authData.user.id,
-                      email: formData.email,
-                      full_name: formData.name,
-                      role: formData.role,
-                      plan: 'free',
-                      organization_id: organizationId
-                  });
-
-                  if (profileError) {
-                      console.warn('Initial profile creation skipped (likely pending verification).', profileError);
-                  }
-              }
+              // Same key the OAuth flow uses. Only a fallback — user_metadata is
+              // the source of truth, since this is lost if the confirmation link
+              // is opened in a different browser.
+              localStorage.setItem('gearbase_pending_signup', JSON.stringify({
+                  vertical: formData.vertical
+              }));
 
               // Track successful signup conversion
               trackSignupComplete(authData.user.id, 'free');
